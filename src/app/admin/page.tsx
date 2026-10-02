@@ -33,7 +33,7 @@ export default function AdminPage() {
   const [loginError, setLoginError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const [activeTab, setActiveTab] = useState<'zupergift' | 'stores' | 'categories' | 'reports' | 'audit'>('zupergift');
+  const [activeTab, setActiveTab] = useState<'zupergift' | 'sas_giftcards' | 'stores' | 'categories' | 'reports' | 'audit'>('zupergift');
   const [dbData, setDbData] = useState<DatabaseSchema | null>(null);
   const [statusMessage, setStatusMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
 
@@ -52,6 +52,19 @@ export default function AdminPage() {
   // Zupergift store filter & search
   const [zgSearch, setZgSearch] = useState('');
   const [zgFilter, setZgFilter] = useState<'all' | 'active' | 'hidden' | 'excluded'>('all');
+
+  // SAS Presentkort tab
+  const [syncingSasGc, setSyncingSasGc] = useState<boolean>(false);
+  const [sasGcSearch, setSasGcSearch] = useState('');
+  // Per-row edit state (keyed by store id): holds draft values
+  const [sasGcEdits, setSasGcEdits] = useState<Record<string, {
+    bonusPer100Kr: string;
+    isCampaign: boolean;
+    campaignValidUntil: string;
+    isHidden: boolean;
+    note: string;
+  }>>({});
+  const [sasGcSaving, setSasGcSaving] = useState<Record<string, boolean>>({});
 
   // SAS Partner stores live sync & filter
   const [syncingPartner, setSyncingPartner] = useState<boolean>(false);
@@ -161,6 +174,89 @@ export default function AdminPage() {
     } finally {
       setSyncingZg(false);
       setTimeout(() => setStatusMessage(null), 6000);
+    }
+  };
+
+  // Trigger live sync against SAS EuroBonus Shop gift cards
+  const handleLiveSyncSasGiftCards = async () => {
+    setSyncingSasGc(true);
+    try {
+      const res = await fetch('/api/admin/sync-sas-giftcards', { method: 'POST' });
+      const data = await res.json();
+      if (data.success) {
+        setStatusMessage({ text: data.message, type: 'success' });
+        await fetchAdminData();
+      } else {
+        setStatusMessage({ text: 'Synkronisering mot SAS Shop misslyckades', type: 'error' });
+      }
+    } catch {
+      setStatusMessage({ text: 'Kunde inte ansluta till SAS EuroBonus Shop', type: 'error' });
+    } finally {
+      setSyncingSasGc(false);
+      setTimeout(() => setStatusMessage(null), 6000);
+    }
+  };
+
+  // Save a single SAS gift card store row
+  const handleSaveSasGiftCard = async (storeId: string) => {
+    const edit = sasGcEdits[storeId];
+    const original = dbData?.sasGiftCards.find((s) => s.id === storeId);
+    if (!original) return;
+
+    setSasGcSaving((prev) => ({ ...prev, [storeId]: true }));
+    try {
+      const bonusVal = edit?.bonusPer100Kr !== undefined ? edit.bonusPer100Kr : '';
+      const bonusPer100Kr = bonusVal === '' ? null : Number(bonusVal);
+      const payload = {
+        id: storeId,
+        bonusPer100Kr,
+        isCampaign: edit?.isCampaign ?? original.isCampaign,
+        campaignValidUntil: edit?.campaignValidUntil ?? original.campaignValidUntil ?? null,
+        isHidden: edit?.isHidden ?? original.isHidden,
+        note: edit?.note ?? original.note,
+      };
+
+      const res = await fetch('/api/admin/sas-giftcard', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setStatusMessage({ text: data.message, type: 'success' });
+        await fetchAdminData();
+        // Clear edit state for this store
+        setSasGcEdits((prev) => { const next = { ...prev }; delete next[storeId]; return next; });
+      } else {
+        setStatusMessage({ text: data.error || 'Kunde inte spara', type: 'error' });
+      }
+    } catch {
+      setStatusMessage({ text: 'Fel vid sparning av SAS presentkortsbutik', type: 'error' });
+    } finally {
+      setSasGcSaving((prev) => ({ ...prev, [storeId]: false }));
+      setTimeout(() => setStatusMessage(null), 4000);
+    }
+  };
+
+  const handleExcludeSasGiftCard = async (storeId: string, storeName: string) => {
+    if (!confirm(`Exkludera "${storeName}" permanent? Den kommer inte att återläggas vid framtida synkar.`)) return;
+    try {
+      const res = await fetch('/api/admin/sas-giftcard', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: storeId, isExcluded: true }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setStatusMessage({ text: `"${storeName}" exkluderades.`, type: 'success' });
+        await fetchAdminData();
+      } else {
+        setStatusMessage({ text: data.error || 'Kunde inte exkludera', type: 'error' });
+      }
+    } catch {
+      setStatusMessage({ text: 'Fel vid exkludering', type: 'error' });
+    } finally {
+      setTimeout(() => setStatusMessage(null), 4000);
     }
   };
 
@@ -384,6 +480,19 @@ export default function AdminPage() {
     });
   }, [dbData?.stores, storeFilter, storeSearch]);
 
+  // Filtered SAS gift card stores for SAS Presentkort tab
+  const filteredSasGiftCards = useMemo(() => {
+    if (!dbData?.sasGiftCards) return [];
+    return dbData.sasGiftCards.filter((item) => {
+      if (item.isExcluded) return false;
+      if (sasGcSearch.trim()) {
+        const q = sasGcSearch.toLowerCase();
+        return item.name.toLowerCase().includes(q) || item.slug.toLowerCase().includes(q);
+      }
+      return true;
+    });
+  }, [dbData?.sasGiftCards, sasGcSearch]);
+
   if (isAuthenticated === false) {
     return (
       <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
@@ -510,6 +619,19 @@ export default function AdminPage() {
           >
             <Gift className="w-4 h-4 text-amber-500" />
             <span>Zupergift &amp; Presentkort ({dbData?.zupergiftStores.length || 0})</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab('sas_giftcards')}
+            className={`px-4 py-2.5 rounded-t-xl text-xs sm:text-sm font-bold flex items-center gap-2 border-b-2 transition-all ${
+              activeTab === 'sas_giftcards'
+                ? 'bg-white text-blue-600 border-blue-600 shadow-2xs'
+                : 'text-slate-600 hover:text-slate-900 border-transparent'
+            }`}
+          >
+            <Gift className="w-4 h-4 text-blue-500" />
+            <span>SAS Presentkort ({dbData?.sasGiftCards?.length || 0})</span>
           </button>
 
           <button
@@ -880,7 +1002,236 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* TAB 2: BUTIKER & PARTNERREGLER */}
+        {/* TAB 2: SAS PRESENTKORT */}
+        {activeTab === 'sas_giftcards' && (
+          <div className="space-y-6">
+            <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-xs border border-slate-200/90 space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                  <div className="flex items-center gap-2 text-xs font-bold text-blue-600 uppercase tracking-wider mb-1">
+                    <Gift className="w-4 h-4" />
+                    SAS EuroBonus Shop
+                  </div>
+                  <h2 className="text-xl font-black text-slate-900">SAS Presentkort</h2>
+                  <p className="text-xs sm:text-sm text-slate-500 mt-1 max-w-2xl">
+                    Butiker på SAS EuroBonus Shop som säljer presentkort. Fyll i poäng per 100 kr för att aktivera en butik. En butik är inaktiv tills du angett ett värde.
+                    {dbData?.lastSasGiftCardSync && (
+                      <span className="ml-2 font-mono text-[11px] text-slate-400">
+                        (Senast synkad: {new Date(dbData.lastSasGiftCardSync).toLocaleString('sv-SE')})
+                      </span>
+                    )}
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleLiveSyncSasGiftCards}
+                  disabled={syncingSasGc}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-bold text-xs transition-colors touch-target shrink-0 shadow-xs"
+                >
+                  <RefreshCw className={`w-4 h-4 ${syncingSasGc ? 'animate-spin' : ''}`} />
+                  <span>{syncingSasGc ? 'Synkar mot SAS Shop...' : 'Synka från SAS Shop'}</span>
+                </button>
+              </div>
+
+              {/* Search */}
+              <div className="relative w-full sm:w-72">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                  <Search className="w-4 h-4" />
+                </div>
+                <input
+                  type="text"
+                  value={sasGcSearch}
+                  onChange={(e) => setSasGcSearch(e.target.value)}
+                  placeholder="Sök bland SAS presentkortsbutiker..."
+                  className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-300 text-xs bg-slate-50 focus:bg-white"
+                />
+              </div>
+
+              {/* Store list */}
+              {filteredSasGiftCards.length === 0 ? (
+                <div className="text-center py-10 text-slate-400 text-sm">
+                  <Gift className="w-8 h-8 mx-auto mb-2 opacity-40" />
+                  <p>Inga butiker hittade. Kör en synk mot SAS Shop för att hämta butiker.</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {filteredSasGiftCards.map((item) => {
+                    const edit = sasGcEdits[item.id];
+                    const bonusVal = edit?.bonusPer100Kr !== undefined ? edit.bonusPer100Kr : (item.bonusPer100Kr !== null ? String(item.bonusPer100Kr) : '');
+                    const isCampaign = edit?.isCampaign !== undefined ? edit.isCampaign : item.isCampaign;
+                    const campaignValidUntil = edit?.campaignValidUntil !== undefined ? edit.campaignValidUntil : (item.campaignValidUntil || '');
+                    const isHidden = edit?.isHidden !== undefined ? edit.isHidden : item.isHidden;
+                    const note = edit?.note !== undefined ? edit.note : item.note;
+                    const isDirty = edit !== undefined;
+                    const isActive = (item.bonusPer100Kr ?? 0) > 0 && !item.isHidden;
+                    const isSaving = Boolean(sasGcSaving[item.id]);
+
+                    const updateEdit = (patch: Partial<typeof edit>) => {
+                      setSasGcEdits((prev) => ({
+                        ...prev,
+                        [item.id]: {
+                          bonusPer100Kr: edit?.bonusPer100Kr ?? (item.bonusPer100Kr !== null ? String(item.bonusPer100Kr) : ''),
+                          isCampaign: edit?.isCampaign ?? item.isCampaign,
+                          campaignValidUntil: edit?.campaignValidUntil ?? (item.campaignValidUntil || ''),
+                          isHidden: edit?.isHidden ?? item.isHidden,
+                          note: edit?.note ?? item.note,
+                          ...patch,
+                        },
+                      }));
+                    };
+
+                    return (
+                      <div
+                        key={item.id}
+                        className={`p-4 rounded-2xl border ${isHidden ? 'bg-slate-50 border-slate-200 opacity-70' : isDirty ? 'bg-blue-50 border-blue-200' : 'bg-white border-slate-200'}`}
+                      >
+                        <div className="flex flex-col sm:flex-row sm:items-start gap-3">
+                          {/* Name + status */}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="font-bold text-sm text-slate-900">{item.name}</span>
+                              <span className="font-mono text-[10px] text-slate-400">{item.slug}</span>
+                              {isActive && (
+                                <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-bold uppercase tracking-wider">
+                                  Aktiv
+                                </span>
+                              )}
+                              {!isActive && (item.bonusPer100Kr ?? 0) === 0 && item.bonusPer100Kr !== null && (
+                                <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[10px] font-bold uppercase tracking-wider">
+                                  Inaktiv (0 poäng)
+                                </span>
+                              )}
+                              {item.bonusPer100Kr === null && (
+                                <span className="px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 text-[10px] font-bold uppercase tracking-wider">
+                                  Ej konfigurerad
+                                </span>
+                              )}
+                              {item.isHidden && (
+                                <span className="px-2 py-0.5 rounded-full bg-slate-200 text-slate-600 text-[10px] font-bold uppercase tracking-wider">
+                                  Dold
+                                </span>
+                              )}
+                              {item.isCampaign && (
+                                <span className="px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 text-[10px] font-bold uppercase tracking-wider">
+                                  Kampanj
+                                </span>
+                              )}
+                              {item.matchedStoreId && (
+                                <span className="px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-[10px] font-bold">
+                                  → {item.matchedStoreId}
+                                </span>
+                              )}
+                            </div>
+                            {item.bonusPer100Kr === null && (
+                              <p className="text-[11px] text-orange-600 font-semibold mt-1">
+                                ⚠ Ej aktiv – fyll i poäng per 100 kr
+                              </p>
+                            )}
+                          </div>
+
+                          {/* Controls */}
+                          <div className="flex flex-wrap gap-2 items-center shrink-0">
+                            {/* bonusPer100Kr input */}
+                            <div className="flex items-center gap-1">
+                              <input
+                                type="number"
+                                min="0"
+                                max="200"
+                                step="0.1"
+                                value={bonusVal}
+                                onChange={(e) => updateEdit({ bonusPer100Kr: e.target.value })}
+                                placeholder="—"
+                                className="w-20 px-2 py-1.5 rounded-lg border border-slate-300 text-xs font-bold text-blue-700 text-center focus:border-blue-500 focus:ring-1 focus:ring-blue-200"
+                                title="Poäng per 100 kr"
+                              />
+                              <span className="text-[10px] text-slate-500 whitespace-nowrap">p/100 kr</span>
+                            </div>
+
+                            {/* Campaign checkbox */}
+                            <label className="flex items-center gap-1 cursor-pointer text-[11px] font-semibold text-slate-700">
+                              <input
+                                type="checkbox"
+                                checked={isCampaign}
+                                onChange={(e) => updateEdit({ isCampaign: e.target.checked })}
+                                className="w-3.5 h-3.5 rounded text-blue-600"
+                              />
+                              Kampanj
+                            </label>
+
+                            {/* Campaign date */}
+                            {isCampaign && (
+                              <input
+                                type="date"
+                                value={campaignValidUntil}
+                                onChange={(e) => updateEdit({ campaignValidUntil: e.target.value })}
+                                className="px-2 py-1.5 rounded-lg border border-slate-300 text-[11px] font-semibold text-slate-700"
+                                title="Kampanj giltig t.o.m."
+                              />
+                            )}
+
+                            {/* Hide/Show toggle */}
+                            <button
+                              type="button"
+                              onClick={() => updateEdit({ isHidden: !isHidden })}
+                              className={`px-2.5 py-1.5 rounded-lg text-[11px] font-semibold flex items-center gap-1 transition-colors ${
+                                isHidden
+                                  ? 'bg-amber-100 text-amber-800 hover:bg-amber-200'
+                                  : 'bg-slate-100 text-slate-700 hover:bg-amber-100 hover:text-amber-800'
+                              }`}
+                              title={isHidden ? 'Visa butiken' : 'Dölj butiken'}
+                            >
+                              {isHidden ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+                              <span>{isHidden ? 'Visa' : 'Dölj'}</span>
+                            </button>
+
+                            {/* Save button */}
+                            <button
+                              type="button"
+                              onClick={() => handleSaveSasGiftCard(item.id)}
+                              disabled={isSaving}
+                              className={`px-3 py-1.5 rounded-lg text-[11px] font-bold flex items-center gap-1 transition-colors ${
+                                isDirty
+                                  ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-sm'
+                                  : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+                              }`}
+                            >
+                              <Save className="w-3.5 h-3.5" />
+                              <span>{isSaving ? 'Sparar...' : 'Spara'}</span>
+                            </button>
+
+                            {/* Exclude button */}
+                            <button
+                              type="button"
+                              onClick={() => handleExcludeSasGiftCard(item.id, item.name)}
+                              className="px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-red-100 text-slate-600 hover:text-red-700 text-[11px] font-semibold flex items-center gap-1 transition-colors"
+                              title="Exkludera permanent"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Note input */}
+                        <div className="mt-2">
+                          <input
+                            type="text"
+                            value={note}
+                            onChange={(e) => updateEdit({ note: e.target.value })}
+                            placeholder="Anteckning (valfritt)"
+                            className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-[11px] text-slate-600 bg-slate-50 focus:bg-white"
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* TAB 3: BUTIKER & PARTNERREGLER */}
         {activeTab === 'stores' && (
           <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-xs border border-slate-200/90 space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">

@@ -28,8 +28,6 @@ interface SearchFilterBoxProps {
   onToggleGiftCards: (val: boolean) => void;
   allowZupergift: boolean;
   onToggleZupergift: (val: boolean) => void;
-  excludeComplex: boolean;
-  onToggleExcludeComplex: (val: boolean) => void;
   tierPointsImportant: boolean;
   onToggleTierPoints: (val: boolean) => void;
   onlyCampaigns: boolean;
@@ -64,8 +62,6 @@ export const SearchFilterBox: React.FC<SearchFilterBoxProps> = ({
   onToggleGiftCards,
   allowZupergift,
   onToggleZupergift,
-  excludeComplex,
-  onToggleExcludeComplex,
   tierPointsImportant,
   onToggleTierPoints,
   onlyCampaigns,
@@ -224,9 +220,6 @@ export const SearchFilterBox: React.FC<SearchFilterBoxProps> = ({
             >
               <option value="most_bonus">Flest bonuspoäng</option>
               <option value="most_tier">Flest nivåpoäng</option>
-              <option value="lowest_outlay">Lägst totalt utlägg</option>
-              <option value="fewest_steps">Minst antal steg</option>
-              <option value="points_per_krona">Bonuspoäng per krona</option>
             </select>
             <ChevronDown className="w-4 h-4 text-slate-400 absolute right-3 top-3.5 pointer-events-none" />
           </div>
@@ -301,28 +294,6 @@ export const SearchFilterBox: React.FC<SearchFilterBoxProps> = ({
           </button>
           <span className="text-xs sm:text-sm font-semibold text-slate-700">
             Visa Zupergift
-          </span>
-        </label>
-
-        {/* Exkludera krångliga upplägg */}
-        <label className="flex items-center gap-2.5 cursor-pointer select-none">
-          <button
-            type="button"
-            role="switch"
-            aria-checked={excludeComplex}
-            onClick={() => onToggleExcludeComplex(!excludeComplex)}
-            className={`w-11 h-6 flex items-center rounded-full p-1 transition-colors ${
-              excludeComplex ? 'bg-blue-600' : 'bg-slate-300'
-            }`}
-          >
-            <div
-              className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform ${
-                excludeComplex ? 'translate-x-5' : 'translate-x-0'
-              }`}
-            />
-          </button>
-          <span className="text-xs sm:text-sm font-semibold text-slate-700">
-            Exkludera krångliga upplägg
           </span>
         </label>
 

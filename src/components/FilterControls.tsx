@@ -72,9 +72,6 @@ export const FilterControls: React.FC<FilterControlsProps> = ({
           >
             <option value="most_bonus">Flest bonuspoäng (standard)</option>
             <option value="most_tier">Flest nivåpoäng först</option>
-            <option value="lowest_outlay">Lägst totalt utlägg</option>
-            <option value="fewest_steps">Minst antal steg</option>
-            <option value="points_per_krona">Flest poäng per utlagd krona</option>
           </select>
         </div>
       </div>

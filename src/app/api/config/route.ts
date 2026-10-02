@@ -91,5 +91,8 @@ export async function GET() {
           ],
     lastZupergiftSync: db.lastZupergiftSync,
     lastPartnerSync: db.lastPartnerSync || null,
+    sasGiftCards: (db.sasGiftCards || []).filter(
+      (gc) => !gc.isHidden && !gc.isExcluded && gc.bonusPer100Kr !== null && gc.bonusPer100Kr > 0
+    ),
   });
 }

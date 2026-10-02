@@ -9,10 +9,8 @@ import {
   Plane,
   Search,
   ExternalLink,
-  Sparkles,
   ArrowRight,
   Compass,
-  CreditCard,
   ShoppingBag,
   Users,
   Calendar,
@@ -20,17 +18,15 @@ import {
   Tag,
   CheckCircle2,
   Lightbulb,
-  ShieldCheck,
-  Zap,
 } from 'lucide-react';
 
-export type ResourceCategory = 'all' | 'awards' | 'shopping' | 'community' | 'routes' | 'cards';
+export type ResourceCategory = 'all' | 'awards' | 'shopping' | 'community' | 'routes';
 
 interface ResourceItem {
   id: string;
   name: string;
   tagline: string;
-  category: 'awards' | 'shopping' | 'community' | 'routes' | 'cards';
+  category: 'awards' | 'shopping' | 'community' | 'routes';
   categoryLabel: string;
   categoryBadgeColor: string;
   badge?: string;
@@ -38,7 +34,6 @@ interface ResourceItem {
   description: string;
   features: string[];
   url: string;
-  highlight?: boolean;
 }
 
 const RESOURCES_DATA: ResourceItem[] = [
@@ -60,7 +55,6 @@ const RESOURCES_DATA: ResourceItem[] = [
       'Filtrera på direktflyg, allianspartners eller specifika destinationer',
     ],
     url: 'https://www.bonussok.no/sv',
-    highlight: true,
   },
   {
     id: 'awardfares',
@@ -243,60 +237,6 @@ const RESOURCES_DATA: ResourceItem[] = [
     ],
     url: 'https://www.skyteam.com/',
   },
-  {
-    id: 'gcmap',
-    name: 'Great Circle Mapper (GCMap)',
-    tagline: 'Beräkna exakta flygavstånd och visualisera rutter',
-    category: 'routes',
-    categoryLabel: 'Rutter & Allianser',
-    categoryBadgeColor: 'bg-cyan-100 text-cyan-800 border-cyan-200',
-    badge: 'Avståndsmätare',
-    badgeColor: 'bg-slate-600 text-white',
-    description:
-      'Klassiskt verktyg som piloter och bonusjägare använt i årtionden för att beräkna exakta flygavstånd i nautiska mil eller kilometer mellan flygplatser, och generera snygga ruttkartor.',
-    features: [
-      'Beräkna exakta avstånd mellan IATA-flygplatskoder (t.ex. ARN-AMS-JFK)',
-      'Genererar snygga kartor över planerade bonusresor',
-      'Hjälper dig räkna ut poängintjäning baserat på distans',
-    ],
-    url: 'http://www.gcmap.com/',
-  },
-  {
-    id: 'sas-amex',
-    name: 'SAS EuroBonus American Express',
-    tagline: 'Kreditkorten med 2-för-1-förmånen (Companion Ticket)',
-    category: 'cards',
-    categoryLabel: 'Kreditkort & Förmåner',
-    categoryBadgeColor: 'bg-indigo-100 text-indigo-800 border-indigo-200',
-    badge: 'Amex 2-4-1',
-    badgeColor: 'bg-blue-800 text-white',
-    description:
-      'De mest centrala kreditkorten för poängjägare. När du handlar för 150 000 kr under ett kalenderår erhåller du en 2-för-1-voucher som halverar poängpriset för en bonusresa för upp till två personer i hela världen.',
-    features: [
-      'Klassiska 2-för-1-vouchern (50 % poängrabatt i hela världen)',
-      'Upp till 20 Extrapoäng per 100 kr på alla vanliga köp',
-      '30 Extrapoäng per 100 kr vid köp av flygbiljetter på sas.se',
-    ],
-    url: 'https://www.americanexpress.com/se/kreditkort/sas-eurobonus/',
-  },
-  {
-    id: 'sas-mastercard',
-    name: 'SAS EuroBonus Mastercard Premium',
-    tagline: 'Kreditkortet med Fly Premium och månatliga nivåpoäng',
-    category: 'cards',
-    categoryLabel: 'Kreditkort & Förmåner',
-    categoryBadgeColor: 'bg-indigo-100 text-indigo-800 border-indigo-200',
-    badge: 'Fly Premium & Status',
-    badgeColor: 'bg-amber-700 text-white',
-    description:
-      'Det perfekta komplementet till Amex. Med förmånen Fly Premium reser du i SAS Plus eller SAS Business för samma poängpris som SAS Go. Dessutom ger kortet 1 000 Nivåpoäng varje månad du gör minst ett köp.',
-    features: [
-      'Fly Premium: Res i SAS Plus & Business för poängpriset av Go',
-      '1 000 Nivåpoäng per månad hjälper dig nå Guld/Diamantstatus',
-      'Kampanjhelger med dubbla poäng flera gånger per år',
-    ],
-    url: 'https://saseurobonusmastercard.se/',
-  },
 ];
 
 const CATEGORY_TABS: { id: ResourceCategory; label: string; icon: React.ElementType }[] = [
@@ -305,7 +245,6 @@ const CATEGORY_TABS: { id: ResourceCategory; label: string; icon: React.ElementT
   { id: 'shopping', label: 'Poäng & Shopping', icon: ShoppingBag },
   { id: 'community', label: 'Forum & Community', icon: Users },
   { id: 'routes', label: 'Rutter & Allianser', icon: Compass },
-  { id: 'cards', label: 'Kreditkort & Vouchers', icon: CreditCard },
 ];
 
 export default function LankarPage() {
@@ -333,8 +272,6 @@ export default function LankarPage() {
     });
   }, [selectedCategory, searchQuery]);
 
-  const spotlightItem = RESOURCES_DATA.find((r) => r.id === 'bonussok') || RESOURCES_DATA[0];
-
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 font-sans text-slate-800">
       <Navbar />
@@ -342,11 +279,6 @@ export default function LankarPage() {
       <main className="flex-1 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-10 w-full">
         {/* Hero Section */}
         <section className="text-center space-y-4 max-w-3xl mx-auto">
-          <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-blue-50 border border-blue-200/80 text-blue-700 text-xs sm:text-sm font-semibold shadow-2xs">
-            <Compass className="w-4 h-4 text-blue-600" />
-            <span>Oberoende resursguide för poängjägare</span>
-          </div>
-
           <h1 className="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight leading-tight">
             Bra sidor &amp; verktyg för EuroBonus-jägare
           </h1>
@@ -355,59 +287,6 @@ export default function LankarPage() {
             Här har vi samlat de bästa externa sökmotorerna för bonusresor, officiella portaler, forum,
             ruttkartor och communities som varje poängsamlare bör ha koll på.
           </p>
-        </section>
-
-        {/* Featured Spotlight: BonusSøk */}
-        <section className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-blue-950 to-indigo-950 text-white rounded-3xl p-6 sm:p-10 shadow-xl border border-blue-900/50">
-          <div className="absolute top-0 right-0 -mt-12 -mr-12 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute bottom-0 left-0 -mb-12 -ml-12 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
-
-          <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-8">
-            <div className="space-y-4 max-w-2xl">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-emerald-500 text-slate-950 flex items-center gap-1">
-                  <Sparkles className="w-3.5 h-3.5 fill-current" />
-                  Tips för bonusresor
-                </span>
-                <span className="px-3 py-1 rounded-full text-xs font-semibold bg-white/10 text-slate-200 backdrop-blur-xs">
-                  Svensk version
-                </span>
-              </div>
-
-              <h2 className="text-2xl sm:text-3xl font-black tracking-tight">
-                {spotlightItem.name} – Hitta lediga bonusresor snabbt
-              </h2>
-
-              <p className="text-sm sm:text-base text-slate-300 leading-relaxed">
-                {spotlightItem.description}
-              </p>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-2">
-                {spotlightItem.features.map((feature, idx) => (
-                  <div key={idx} className="flex items-center gap-2 text-xs sm:text-sm text-slate-200">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                    <span>{feature}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="shrink-0 flex flex-col sm:flex-row lg:flex-col gap-3 justify-center">
-              <a
-                href={spotlightItem.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-6 py-3.5 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-sm transition-all shadow-lg hover:shadow-emerald-500/25 flex items-center justify-center gap-2 touch-target"
-              >
-                <span>Öppna BonusSøk (bonussok.no/sv)</span>
-                <ExternalLink className="w-4 h-4" />
-              </a>
-
-              <p className="text-[11px] text-slate-400 text-center lg:text-left">
-                Kostnadsfritt externt verktyg för SAS &amp; SkyTeam
-              </p>
-            </div>
-          </div>
         </section>
 
         {/* Filter and Search Bar */}
@@ -561,31 +440,6 @@ export default function LankarPage() {
               ))}
             </div>
           )}
-        </section>
-
-        {/* Tip Box: Hur du maximerar samarbetet mellan verktygen */}
-        <section className="bg-blue-50/70 border border-blue-200/80 rounded-3xl p-6 sm:p-8 space-y-4">
-          <div className="flex items-start gap-4">
-            <div className="w-10 h-10 rounded-2xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-xs">
-              <Zap className="w-5 h-5" />
-            </div>
-            <div className="space-y-2">
-              <h2 className="text-lg font-black text-slate-900">
-                Poängjägarens strategi: Samla med Poängkollen, boka med sökmotorerna
-              </h2>
-              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                De mest framgångsrika EuroBonus-jägarna har en tvåstegsstrategi:
-              </p>
-              <ul className="space-y-1.5 text-xs sm:text-sm text-slate-700 list-disc list-inside">
-                <li>
-                  <strong>Steg 1 (Intjäning):</strong> Använd <strong>Poängkollen</strong> för alla dina vardagsköp för att hitta högsta möjliga poängsats via partnerbutiker, presentkort och rätt betalkort.
-                </li>
-                <li>
-                  <strong>Steg 2 (Uttag):</strong> När poängsaldot och dina Amex 2-4-1-vouchers är på plats använder du verktyg som <strong>BonusSøk</strong> eller <strong>AwardFares</strong> för att hitta lediga bonusplatser i Business Class hos SAS och SkyTeam.
-                </li>
-              </ul>
-            </div>
-          </div>
         </section>
 
         {/* Suggestion Box: Tipsa om ett nytt verktyg */}

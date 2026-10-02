@@ -9,6 +9,7 @@ import {
   PointRule,
 } from '@/types/domain';
 import { DEMO_CARDS } from '../fixtures/demo-data';
+import type { SasGiftCardStoreItem } from '@/lib/db';
 
 /**
  * Calculates point yield according to a specific PointRule and an amount in öre.
@@ -71,6 +72,8 @@ export interface RouteGenerationOptions {
   storePartnerTierPer100Kr?: number;
   storeIsZupergiftSupported?: boolean;
   lastCheckedAt?: string;
+  /** SAS EuroBonus Shop gift card entry for this store (if any, admin-configured) */
+  sasGiftCardItem?: SasGiftCardStoreItem | null;
 }
 
 /**
@@ -89,6 +92,7 @@ export function generateCandidateRoutes(options: RouteGenerationOptions): RouteC
     storePartnerBonusPer100Kr,
     storePartnerTierPer100Kr,
     storeIsZupergiftSupported,
+    sasGiftCardItem,
   } = options;
 
   const purchaseAmountOre = Math.round(purchaseAmountKr * 100);
@@ -423,6 +427,72 @@ export function generateCandidateRoutes(options: RouteGenerationOptions): RouteC
     });
   }
 
+  // ROUTE TYPE 4: SAS EuroBonus Shop – butikspresentkort (admin-konfigurerat)
+  // Activated when admin has filled in bonusPer100Kr > 0 for a matched SAS gift card store.
+  if (allowGiftCards && sasGiftCardItem && !sasGiftCardItem.isHidden && !sasGiftCardItem.isExcluded) {
+    const rate = sasGiftCardItem.bonusPer100Kr;
+    if (rate !== null && rate > 0) {
+      const baseBonusPoints = Math.floor((purchaseAmountOre * rate) / 10000);
+      const baseTierPoints = 0;
+      const totalOutlayOre = purchaseAmountOre;
+      const extraOutlayOre = 0;
+      const remainingBalanceOre = 0;
+
+      const breakdown: RouteBreakdownItem[] = [
+        {
+          sourceName: 'SAS EuroBonus Shop',
+          description: `Köp av ${sasGiftCardItem.name}-presentkort ger ${rate} Extrapoäng per 100 kr (administreras av admin)`,
+          bonusPoints: baseBonusPoints,
+          tierPoints: 0,
+          qualifyingAmountOre: purchaseAmountOre,
+        },
+      ];
+
+      const cardOutcomes = computeCardOutcomes(baseBonusPoints, baseTierPoints, totalOutlayOre, totalOutlayOre);
+
+      results.push({
+        id: `${store.id}-sas-giftcard`,
+        storeId: store.id,
+        storeName: store.name,
+        storeLogoUrl: store.logoUrl,
+        routeType: 'gift_card',
+        routeTitle: `SAS EuroBonus Shop – ${sasGiftCardItem.name} presentkort`,
+        routeSummary: `Köp ${sasGiftCardItem.name}-presentkort på SAS EuroBonus Shop och lös in i kassan.`,
+        primaryCategory: store.categories?.[0] || 'department',
+        categories: store.categories || ['department'],
+        steps: [
+          {
+            stepNumber: 1,
+            title: `Köp ${sasGiftCardItem.name}-presentkort hos SAS EuroBonus Shop`,
+            description: `Besök SAS EuroBonus Shop och köp ett presentkort från ${sasGiftCardItem.name} för ${purchaseAmountKr.toLocaleString('sv-SE')} kr. Du får ${rate} Extrapoäng per 100 kr.`,
+            externalUrl: 'https://www.saseurobonusshop.com/se/gift-cards-vouchers',
+          },
+          {
+            stepNumber: 2,
+            title: `Lös in presentkortet hos ${store.name}`,
+            description: `Använd presentkortskoden i ${store.name}s kassa.`,
+          },
+        ],
+        totalSteps: 2,
+        purchaseAmountOre,
+        totalOutlayOre,
+        giftCardValueOre: purchaseAmountOre,
+        extraOutlayOre,
+        remainingBalanceOre,
+        breakdown,
+        baseBonusPoints,
+        baseTierPoints,
+        cardOutcomes,
+        isEligible: true,
+        isExplicitCampaign: Boolean(sasGiftCardItem.isCampaign),
+        lastCheckedAt: sasGiftCardItem.updatedAt || sasGiftCardItem.syncedAt || options.lastCheckedAt || new Date().toISOString(),
+        uncertainties: [],
+        startUrl: 'https://www.saseurobonusshop.com/se/gift-cards-vouchers',
+        isDemoFixture: false,
+      });
+    }
+  }
+
   return results;
 }
 
@@ -512,13 +582,6 @@ export function processAndRankRoutes(
     const bBonus = b.selectedCardOutcome?.totalBonusPoints ?? b.baseBonusPoints;
     const aTier = a.selectedCardOutcome?.totalTierPoints ?? a.baseTierPoints;
     const bTier = b.selectedCardOutcome?.totalTierPoints ?? b.baseTierPoints;
-    const aPointsPerKr =
-      a.selectedCardOutcome?.pointsPerKronor ??
-      (a.totalOutlayOre > 0 ? a.baseBonusPoints / (a.totalOutlayOre / 100) : 0);
-    const bPointsPerKr =
-      b.selectedCardOutcome?.pointsPerKronor ??
-      (b.totalOutlayOre > 0 ? b.baseBonusPoints / (b.totalOutlayOre / 100) : 0);
-
     switch (effectiveSort) {
       case 'most_tier': {
         if (bTier !== aTier) return bTier - aTier;
@@ -528,18 +591,6 @@ export function processAndRankRoutes(
       case 'most_bonus': {
         if (bBonus !== aBonus) return bBonus - aBonus;
         if (bTier !== aTier) return bTier - aTier;
-        break;
-      }
-      case 'lowest_outlay': {
-        if (a.totalOutlayOre !== b.totalOutlayOre) return a.totalOutlayOre - b.totalOutlayOre;
-        break;
-      }
-      case 'fewest_steps': {
-        if (a.totalSteps !== b.totalSteps) return a.totalSteps - b.totalSteps;
-        break;
-      }
-      case 'points_per_krona': {
-        if (bPointsPerKr !== aPointsPerKr) return bPointsPerKr - aPointsPerKr;
         break;
       }
     }

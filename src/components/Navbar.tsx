@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Plane, Search, Menu, X, ShieldCheck, Lightbulb } from 'lucide-react';
+import { Plane, Search, Menu, X, Lightbulb } from 'lucide-react';
 import { useFeedback } from './FeedbackContext';
 
 interface NavbarProps {
@@ -16,7 +16,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onSearchClick }) => {
   const { openFeedback } = useFeedback();
 
   const isHome = pathname === '/';
-  const isGuider = pathname?.startsWith('/guider');
+  const isLankar = pathname?.startsWith('/lankar');
   const isOm = pathname?.startsWith('/om');
 
   return (
@@ -67,14 +67,14 @@ export const Navbar: React.FC<NavbarProps> = ({ onSearchClick }) => {
                 Butiker
               </Link>
               <Link
-                href="/guider"
+                href="/lankar"
                 className={`px-3 py-2 text-sm font-semibold transition-colors ${
-                  isGuider
+                  isLankar
                     ? 'text-blue-600 border-b-2 border-blue-600'
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
-                Guider
+                Verktyg &amp; Länkar
               </Link>
               <Link
                 href="/om"
@@ -91,11 +91,6 @@ export const Navbar: React.FC<NavbarProps> = ({ onSearchClick }) => {
 
           {/* Right actions */}
           <div className="flex items-center gap-2 sm:gap-3">
-            <span className="hidden sm:inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-100">
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-              Oberoende jämförelse
-            </span>
-
             <button
               type="button"
               onClick={() => openFeedback({ category: 'suggestion' })}
@@ -155,13 +150,13 @@ export const Navbar: React.FC<NavbarProps> = ({ onSearchClick }) => {
             Butiker
           </Link>
           <Link
-            href="/guider"
+            href="/lankar"
             onClick={() => setMobileMenuOpen(false)}
             className={`block px-3 py-2 rounded-lg text-base font-semibold ${
-              isGuider ? 'text-blue-600 bg-blue-50' : 'text-slate-700 hover:bg-slate-50'
+              isLankar ? 'text-blue-600 bg-blue-50' : 'text-slate-700 hover:bg-slate-50'
             }`}
           >
-            Guider
+            Verktyg &amp; Länkar
           </Link>
           <Link
             href="/om"

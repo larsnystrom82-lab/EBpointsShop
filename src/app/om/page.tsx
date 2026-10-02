@@ -5,19 +5,12 @@ import { Footer } from '@/components/Footer';
 import {
   ShieldCheck,
   AlertTriangle,
-  CheckCircle2,
   HelpCircle,
   ShoppingBag,
   CreditCard,
-  Sparkles,
   ArrowRight,
-  ExternalLink,
-  Gift,
-  FileText,
+  Info,
   AlertOctagon,
-  Eye,
-  Cookie,
-  Percent,
   Compass,
   MessageSquareWarning,
   BadgeAlert,
@@ -167,147 +160,6 @@ export default function OmPage() {
             </div>
           </div>
 
-          {/* Checklist of what to verify */}
-          <div className="bg-white/90 backdrop-blur-xs rounded-2xl p-6 border border-amber-200 space-y-5">
-            <h3 className="text-base sm:text-lg font-extrabold text-slate-900 flex items-center gap-2">
-              <CheckCircle2 className="w-5 h-5 text-amber-600" />
-              Checklista: Detta måste du kontrollera före varje köp
-            </h3>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs sm:text-sm text-slate-700">
-              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2">
-                <div className="flex items-center gap-2 font-bold text-slate-900">
-                  <Percent className="w-4 h-4 text-blue-600 shrink-0" />
-                  <span>1. Undantagna varor och kategorier</span>
-                </div>
-                <p className="text-slate-600 leading-relaxed">
-                  Många butiker undantar specifika produkter från poängintjäning. Det är vanligt att
-                  presentkort, elektronik (t.ex. Apple-produkter eller spelkonsoler), reavaror,
-                  tobak/alkohol, receptbelagda läkemedel eller fraktkostnader inte ger poäng.
-                </p>
-              </div>
-
-              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2">
-                <div className="flex items-center gap-2 font-bold text-slate-900">
-                  <Sparkles className="w-4 h-4 text-purple-600 shrink-0" />
-                  <span>2. Engångsbonus vs löpande poäng per 100 kr</span>
-                </div>
-                <p className="text-slate-600 leading-relaxed">
-                  Vissa butiker och tjänster (t.ex. matkassar som Factor, lån, elavtal eller
-                  streamingabonnemang) betalar ut en fast engångsbonus på t.ex. 200–1 000 poäng vid
-                  första beställningen. Detta är alltså <em>inte</em> poäng per 100 kr och gäller
-                  ofta endast nya kunder.
-                </p>
-              </div>
-
-              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2">
-                <div className="flex items-center gap-2 font-bold text-slate-900">
-                  <Cookie className="w-4 h-4 text-amber-600 shrink-0" />
-                  <span>3. Cookies, adblockers och spårning</span>
-                </div>
-                <p className="text-slate-600 leading-relaxed">
-                  För att köpet ska registreras till ditt EuroBonus-konto måste spårningskakor
-                  (cookies) godkännas i butiken. Stäng av adblockers och VPN, surfa inte i privat
-                  läge, och genomför köpet direkt i samma webbläsarflik utan att besöka andra
-                  prisjämförelsesajter emellan.
-                </p>
-              </div>
-
-              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2">
-                <div className="flex items-center gap-2 font-bold text-slate-900">
-                  <FileText className="w-4 h-4 text-rose-600 shrink-0" />
-                  <span>4. Rabattkoder och kuponger</span>
-                </div>
-                <p className="text-slate-600 leading-relaxed">
-                  Om du använder en rabattkod från ett externt nyhetsbrev, en influencersatsning
-                  eller en rabattkodssajt kan butiken och SAS neka poängen. Använd endast koder som
-                  uttryckligen listas direkt i SAS EuroBonus-portalen.
-                </p>
-              </div>
-
-              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2">
-                <div className="flex items-center gap-2 font-bold text-slate-900">
-                  <CreditCard className="w-4 h-4 text-emerald-600 shrink-0" />
-                  <span>5. Betalkortets villkor &amp; acceptans</span>
-                </div>
-                <p className="text-slate-600 leading-relaxed">
-                  Kortpoäng förutsätter att butiken accepterar ditt valda kort (alla butiker tar inte
-                  Amex) och att kortköpet räknas som poänggrundande enligt din kortutgivares villkor
-                  (SEB Kort för Mastercard, American Express för Amex).
-                </p>
-              </div>
-
-              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2">
-                <div className="flex items-center gap-2 font-bold text-slate-900">
-                  <Eye className="w-4 h-4 text-indigo-600 shrink-0" />
-                  <span>6. Förbehåll för ändrade kampanjer</span>
-                </div>
-                <p className="text-slate-600 leading-relaxed">
-                  SAS och butikerna uppdaterar ständigt sina poängavtal. En kampanj som ger dubbla
-                  poäng kan avslutas tidigare än beräknat eller ha ett maxtak per köp. Den officiella
-                  informationen på SAS shoppingportal gäller alltid i första hand.
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Så beräknar vi poängen */}
-        <section className="bg-white rounded-3xl p-6 sm:p-10 border border-slate-200 shadow-xs space-y-6">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-purple-50 border border-purple-100 flex items-center justify-center text-purple-600 shrink-0">
-              <Sparkles className="w-5 h-5" />
-            </div>
-            <div>
-              <h2 className="text-2xl font-extrabold text-slate-900">
-                Hur beräknar Poängkollen poängen?
-              </h2>
-              <p className="text-sm text-slate-500 font-medium">
-                Full transparens kring beräkningsmodellen bakom våra rekommendationer.
-              </p>
-            </div>
-          </div>
-
-          <div className="space-y-4 text-sm sm:text-base text-slate-600 leading-relaxed">
-            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
-              <h3 className="font-bold text-slate-900 flex items-center gap-2">
-                <ShoppingBag className="w-4 h-4 text-blue-600" />
-                Partnerbutiker via SAS Online Shopping
-              </h3>
-              <p>
-                SAS samarbetar med hundratals nätbutiker via sin shoppingportal. Poängen anges i
-                regeln som ett antal Extrapoäng per 100 kronor du spenderar (eller som en fast bonus
-                vid engångsköp). När du klickar dig vidare via portalen loggas köpet till ditt
-                EuroBonus-konto.
-              </p>
-            </div>
-
-            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
-              <h3 className="font-bold text-slate-900 flex items-center gap-2">
-                <Gift className="w-4 h-4 text-purple-600" />
-                Presentkort (Zupergift &amp; butikspresentkort)
-              </h3>
-              <p>
-                Många kända butiker (som Zalando, Cervera, Åhléns, Elgiganten, Stadium m.fl.) kan
-                betalas med presentkort. Genom att köpa ett Zupergift-presentkort via SAS portal får
-                du poäng för presentkortsköpet, och kan sedan handla i butiken. I vissa fall går det
-                till och med att kombinera presentkortet med partnerportalen (så kallad trippeldipp).
-              </p>
-            </div>
-
-            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
-              <h3 className="font-bold text-slate-900 flex items-center gap-2">
-                <CreditCard className="w-4 h-4 text-emerald-600" />
-                Kreditkortspoäng
-              </h3>
-              <p>
-                Oavsett om du handlar i partnerbutik eller köper presentkort kan du betala med ett
-                poänggivande kreditkort (t.ex. SAS Amex Classic, Premium eller Elite med upp till 30
-                poäng/100 kr, eller SAS Mastercard Premium med upp till 25 poäng/100 kr). Poängkollen
-                räknar automatiskt in ditt korts intjäning.
-              </p>
-            </div>
-          </div>
         </section>
 
         {/* Oberoende och ansvarsfriskrivning */}
@@ -386,49 +238,6 @@ export default function OmPage() {
               <span>Jämför</span>
               <ArrowRight className="w-4 h-4" />
             </Link>
-          </div>
-        </section>
-
-        {/* Further Reading & Resources */}
-        <section className="border-t border-slate-200/80 pt-8 space-y-4">
-          <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
-            Fördjupa dig i EuroBonus
-          </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Link
-              href="/guider"
-              className="p-5 rounded-2xl bg-white border border-slate-200 hover:border-blue-300 hover:shadow-xs transition-all group flex items-start justify-between gap-4"
-            >
-              <div className="space-y-1">
-                <span className="text-xs font-bold text-blue-600 uppercase">Guider &amp; Tips</span>
-                <h4 className="font-extrabold text-slate-900 group-hover:text-blue-600 transition-colors">
-                  Våra guider &amp; Eurobonusskolan
-                </h4>
-                <p className="text-xs text-slate-500">
-                  Lär dig allt om 2-4-1 vouchers, Fly Premium, SkyTeam och de bästa strategierna.
-                </p>
-              </div>
-              <ArrowRight className="w-5 h-5 text-slate-400 group-hover:text-blue-600 group-hover:translate-x-0.5 transition-all shrink-0 mt-1" />
-            </Link>
-
-            <a
-              href="https://eurobonusguiden.se/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="p-5 rounded-2xl bg-white border border-slate-200 hover:border-blue-300 hover:shadow-xs transition-all group flex items-start justify-between gap-4"
-            >
-              <div className="space-y-1">
-                <span className="text-xs font-bold text-emerald-600 uppercase">Extern resurs</span>
-                <h4 className="font-extrabold text-slate-900 group-hover:text-blue-600 transition-colors flex items-center gap-1.5">
-                  <span>EuroBonusguiden.se</span>
-                  <ExternalLink className="w-3.5 h-3.5 text-slate-400" />
-                </h4>
-                <p className="text-xs text-slate-500">
-                  Nordens ledande community, kalkylatorer och podcasts för poängresenärer.
-                </p>
-              </div>
-              <ArrowRight className="w-5 h-5 text-slate-400 group-hover:text-blue-600 group-hover:translate-x-0.5 transition-all shrink-0 mt-1" />
-            </a>
           </div>
         </section>
       </main>

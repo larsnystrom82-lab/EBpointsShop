@@ -90,15 +90,32 @@ export interface DbCategory {
   isActive?: boolean;
 }
 
+export interface SasGiftCardStoreItem {
+  id: string;           // slug e.g. "ikea", "mediamarkt"
+  name: string;         // Display name e.g. "IKEA", "MediaMarkt"
+  slug: string;         // URL slug from SAS shop
+  bonusPer100Kr: number | null;  // null = not yet set by admin = INACTIVE
+  isCampaign: boolean;
+  campaignValidUntil: string | null;
+  isHidden: boolean;    // Hidden by admin
+  isExcluded: boolean;  // Permanently excluded by admin
+  matchedStoreId?: string; // Corresponding store ID in main stores list
+  note: string;
+  syncedAt: string;
+  updatedAt: string | null; // null = never updated by admin
+}
+
 export interface DatabaseSchema {
   zupergiftConfig: ZupergiftConfig;
   zupergiftStores: ZupergiftStoreItem[]; // Fullständig lista över Zupergift-butiker
+  sasGiftCards: SasGiftCardStoreItem[];
   stores: DbStore[];
   categories?: DbCategory[];
   errorReports: DbErrorReport[];
   auditEvents: DbAuditEvent[];
   lastZupergiftSync: string | null;
   lastPartnerSync?: string | null;
+  lastSasGiftCardSync: string | null;
 }
 
 const DB_PATH = path.join(process.cwd(), 'data', 'database.json');
@@ -354,6 +371,7 @@ const INITIAL_DATA: DatabaseSchema = {
     },
   ],
   errorReports: [],
+  sasGiftCards: [],
   auditEvents: [
     {
       id: 'init-1',
@@ -364,6 +382,7 @@ const INITIAL_DATA: DatabaseSchema = {
     },
   ],
   lastZupergiftSync: '2026-10-02T04:00:00.000Z',
+  lastSasGiftCardSync: null,
 };
 
 export function getDatabase(): DatabaseSchema {
@@ -384,6 +403,18 @@ export function getDatabase(): DatabaseSchema {
     // Initialize categories if missing
     if (!parsed.categories || !Array.isArray(parsed.categories) || parsed.categories.length === 0) {
       parsed.categories = INITIAL_CATEGORIES;
+      saveDatabase(parsed);
+    }
+
+    // Initialize sasGiftCards if missing (backward compat)
+    if (!parsed.sasGiftCards || !Array.isArray(parsed.sasGiftCards)) {
+      parsed.sasGiftCards = [];
+      saveDatabase(parsed);
+    }
+
+    // Initialize lastSasGiftCardSync if missing
+    if (!('lastSasGiftCardSync' in parsed)) {
+      (parsed as DatabaseSchema).lastSasGiftCardSync = null;
       saveDatabase(parsed);
     }
 

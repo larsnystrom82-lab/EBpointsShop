@@ -9,6 +9,7 @@ import { Footer } from '@/components/Footer';
 import { ErrorReportModal } from '@/components/ErrorReportModal';
 import { DEMO_STORES, DEMO_CATEGORIES, DEMO_CARDS } from '@/lib/fixtures/demo-data';
 import { Category, FilterState, OneTimeBonusFilter, RouteCalculationResult, SortOption, Store } from '@/types/domain';
+import type { SasGiftCardStoreItem } from '@/lib/db';
 import { generateCandidateRoutes, processAndRankRoutes } from '@/lib/engine/calculator';
 import { Info, Plane } from 'lucide-react';
 
@@ -21,13 +22,11 @@ export default function Home() {
   const [categories, setCategories] = useState<Category[]>(DEMO_CATEGORIES);
   const [zupergiftRate, setZupergiftRate] = useState<number | undefined>(undefined);
   const [zupergiftIsCampaign, setZupergiftIsCampaign] = useState<boolean>(false);
+  const [sasGiftCards, setSasGiftCards] = useState<SasGiftCardStoreItem[]>([]);
 
   // Search & Filter state matching reference image
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>([
-    'kitchen',
-    'electronics',
-  ]);
+  const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>([]);
   const [purchaseAmountKr, setPurchaseAmountKr] = useState<number | null>(100);
   const [rawAmountInput, setRawAmountInput] = useState<string>('100 kr');
   const [amountError, setAmountError] = useState<string | undefined>();
@@ -58,16 +57,16 @@ export default function Home() {
         if (typeof parsed.allowPartnerStores === 'boolean') setAllowPartnerStores(parsed.allowPartnerStores);
         if (typeof parsed.allowGiftCards === 'boolean') setAllowGiftCards(parsed.allowGiftCards);
         if (typeof parsed.allowZupergift === 'boolean') setAllowZupergift(parsed.allowZupergift);
-        if (typeof parsed.excludeComplex === 'boolean') setExcludeComplex(parsed.excludeComplex);
         if (typeof parsed.tierPointsImportant === 'boolean') setTierPointsImportant(parsed.tierPointsImportant);
         if (typeof parsed.onlyCampaigns === 'boolean') setOnlyCampaigns(parsed.onlyCampaigns);
         if (parsed.oneTimeBonusFilter && ['all', 'only', 'exclude'].includes(parsed.oneTimeBonusFilter)) {
           setOneTimeBonusFilter(parsed.oneTimeBonusFilter);
         }
         if (Array.isArray(parsed.selectedCardIds)) setSelectedCardIds(parsed.selectedCardIds);
-        if (Array.isArray(parsed.selectedCategoryIds)) setSelectedCategoryIds(parsed.selectedCategoryIds);
         if (Array.isArray(parsed.selectedStoreIds)) setSelectedStoreIds(parsed.selectedStoreIds);
-        if (parsed.sortBy) setSortBy(parsed.sortBy);
+        if (parsed.sortBy && ['most_bonus', 'most_tier'].includes(parsed.sortBy)) {
+          setSortBy(parsed.sortBy as SortOption);
+        }
       }
     } catch {
       // Gracefully continue
@@ -90,6 +89,9 @@ export default function Home() {
         }
         if (data?.zupergiftConfig?.isCampaign !== undefined) {
           setZupergiftIsCampaign(Boolean(data.zupergiftConfig.isCampaign));
+        }
+        if (data?.sasGiftCards && Array.isArray(data.sasGiftCards)) {
+          setSasGiftCards(data.sasGiftCards);
         }
       })
       .catch(() => {
@@ -214,6 +216,11 @@ export default function Home() {
     const candidateRoutes: RouteCalculationResult[] = [];
 
     for (const store of matchingStores) {
+      // Find matching SAS gift card for this store (active ones only)
+      const sasGiftCardItem = sasGiftCards.find(
+        (gc) => gc.matchedStoreId === store.id || gc.id === store.slug || gc.slug === store.slug
+      ) ?? null;
+
       const routes = generateCandidateRoutes({
         store,
         purchaseAmountKr,
@@ -224,14 +231,10 @@ export default function Home() {
         allowZupergift,
         zupergiftRatePer100Kr: zupergiftRate,
         zupergiftIsCampaign: zupergiftIsCampaign,
+        sasGiftCardItem,
       });
 
-      // Filter complex chains if toggle is active
-      const filteredForComplexity = excludeComplex
-        ? routes.filter((r) => r.totalSteps <= 2 && r.extraOutlayOre === 0)
-        : routes;
-
-      candidateRoutes.push(...filteredForComplexity);
+      candidateRoutes.push(...routes);
     }
 
     const filterState: FilterState = {
@@ -334,11 +337,6 @@ export default function Home() {
           onToggleZupergift={(val) => {
             setAllowZupergift(val);
             savePreferences({ allowZupergift: val });
-          }}
-          excludeComplex={excludeComplex}
-          onToggleExcludeComplex={(val) => {
-            setExcludeComplex(val);
-            savePreferences({ excludeComplex: val });
           }}
           tierPointsImportant={tierPointsImportant}
           onToggleTierPoints={(val) => {
