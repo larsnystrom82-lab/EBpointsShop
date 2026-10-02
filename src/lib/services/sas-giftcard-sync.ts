@@ -9,65 +9,155 @@ function decodeHtml(html: string): string {
     .replace(/&amp;/g, '&')
     .replace(/&quot;/g, '"')
     .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>');
+    .replace(/&gt;/g, '>')
+    .replace(/&nbsp;/g, ' ');
 }
 
 /**
- * Converts a slug like "media-markt" to display name "Media Markt".
- * Also handles common all-caps brands.
+ * Known non-store category slugs and navigation links from SAS shop to ignore
  */
-function slugToDisplayName(slug: string): string {
-  const knownNames: Record<string, string> = {
-    ikea: 'IKEA',
-    hm: 'H&M',
-    mediamarkt: 'MediaMarkt',
-    'media-markt': 'MediaMarkt',
-    elgiganten: 'Elgiganten',
-    ahlens: 'Åhléns',
-    stadium: 'Stadium',
-    zalando: 'Zalando',
-    adidas: 'Adidas',
-    nike: 'Nike',
-    spotify: 'Spotify',
-    amazon: 'Amazon',
-    'itunes-app-store': 'iTunes App Store',
-    'google-play': 'Google Play',
-    netflix: 'Netflix',
-    'bookbeat': 'BookBeat',
-    storytel: 'Storytel',
+const NON_STORE_SLUGS = new Set([
+  'gift-cards-vouchers',
+  'shopping',
+  'lottery-games',
+  'language-courses',
+  'streaming-services',
+  'experiences',
+  'customer-service',
+  'faq',
+  'company',
+  'redeem',
+  'privacy-policy',
+  'cookies',
+  'terms',
+  'accessibility',
+  'contact',
+  'about',
+  'vouchers',
+  'help',
+  'login',
+  'register',
+  'home',
+  'all-products',
+  'se',
+  'en',
+  'no',
+  'dk',
+  'fi',
+  'donations',
+  'donations-r24',
+  'beauty-accessories',
+  'sas-products',
+  'kitchen-accessories',
+  'home-electronics',
+  'sports-leisure',
+  'kids-baby',
+  'home-decor',
+  'media-electronics',
+  'deals-of-the-month',
+  'safety',
+  'sas-traveler',
+  'tools-garden',
+  'bags-accessories',
+  'eatables',
+]);
+
+const NON_STORE_NAMES = new Set([
+  'presentkort',
+  'shopping',
+  'lottery games',
+  'language courses',
+  'streaming services',
+  'experiences',
+  'kundservice',
+  'customer service',
+  'faq',
+  'endast poäng',
+  'skönhet & accessoarer',
+  'sas produkter',
+  'kökstillbehör',
+  'hemelektronik',
+  'sport & fritid',
+  'barn & baby',
+  'donationer',
+  'hem & design',
+  'media & elektronik',
+  'månadens deals',
+  'säkerhet',
+  'till resan',
+  'verktyg & trädgård',
+  'väskor & tillbehör',
+  'ätbart',
+]);
+
+/**
+ * Cleans up raw image alt or product title to a clean store name
+ */
+export function cleanStoreName(raw: string): string {
+  let name = decodeHtml(raw)
+    .replace(/^Presentkort\s+/i, '')
+    .replace(/\s+Presentkort$/i, '')
+    .replace(/\s*-\s*digital värdekod/i, '')
+    .replace(/\s*-\s*digitalt presentkort/i, '')
+    .replace(/\s*-\s*värdekod/i, '')
+    .replace(/\s+SE$/i, '')
+    .replace(/\s+\d+\s*(?:kr|SEK)$/i, '')
+    .replace(/\s*\(SE\)$/i, '')
+    .replace(/\s*\(Sverige\)$/i, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const BRAND_OVERRIDES: Record<string, string> = {
+    'h&m': 'H&M',
+    'h m': 'H&M',
+    'hm': 'H&M',
+    'ikea': 'IKEA',
+    'ikea se': 'IKEA',
+    'polarn o pyret': 'Polarn O. Pyret',
+    'polarn & pyret': 'Polarn O. Pyret',
+    'polarn o. pyret': 'Polarn O. Pyret',
+    'akademibokhandeln': 'Akademibokhandeln',
+    'granngården': 'Granngården',
+    'menybiljett': 'Filmstaden (Menybiljett)',
+    'bio & kulturkortet': 'Bio & Kulturkortet',
+    'dinsko': 'Din Sko',
+    'din sko': 'Din Sko',
+    'clas ohlson': 'Clas Ohlson',
+    'blomsterlandet': 'Blomsterlandet',
+    'bokadirekt': 'Bokadirekt',
+    'coolstuff': 'Coolstuff',
+    'mq': 'MQ Marqet',
+    'mq marqet': 'MQ Marqet',
+    'cervera': 'Cervera',
+    'mio': 'Mio',
+    'zalando': 'Zalando',
+    'stadium': 'Stadium',
+    'elgiganten': 'Elgiganten',
+    'care of carl': 'Care of Carl',
+    'electrolux home': 'Electrolux Home',
+    'circle k': 'Circle K',
+    'designtorget': 'Designtorget',
+    'dormy': 'Dormy',
+    'interflora': 'Interflora',
+    'foodora': 'Foodora',
+    'espresso house': 'Espresso House',
+    'åhléns': 'Åhléns',
+    'ahlens': 'Åhléns',
     'kicks': 'KICKS',
-    plantagen: 'Plantagen',
-    clas: 'Clas Ohlson',
-    'clas-ohlson': 'Clas Ohlson',
-    jula: 'Jula',
-    biltema: 'Biltema',
-    'mr-green': 'Mr Green',
-    granit: 'Granit',
-    cervera: 'Cervera',
-    kitchentime: 'KitchenTime',
-    royaldesign: 'RoyalDesign',
-    rituals: 'Rituals',
-    akademibokhandeln: 'Akademibokhandeln',
-    netonnet: 'NetOnNet',
-    boozt: 'Boozt',
+    'rituals': 'Rituals',
+    'royal design': 'Royal Design',
+    'revolutionrace': 'RevolutionRace',
+    'östermalms saluhall': 'Östermalms Saluhall',
   };
 
-  const lower = slug.toLowerCase();
-  if (knownNames[lower]) return knownNames[lower];
-
-  return slug
-    .split('-')
-    .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
-    .join(' ');
+  const lower = name.toLowerCase();
+  return BRAND_OVERRIDES[lower] || name;
 }
 
 /**
- * Scrapes store names/links from https://www.saseurobonusshop.com/se/gift-cards-vouchers.
- * Does NOT try to scrape denominations – only discovers which stores sell gift cards.
- * Admin must manually enter 'points per 100 kr' for each store.
- *
- * Preserves existing admin settings (bonusPer100Kr, isHidden, isExcluded) when re-syncing.
- * Skips stores that admin has marked isExcluded.
+ * Scrapes actual store gift cards from https://www.saseurobonusshop.com/se/gift-cards-vouchers.
+ * Fetches all paginated product lists across main and category pages to discover all products.
+ * Extracts actual store brand names from the product card image alt / titles.
  */
 export async function syncSasGiftCardStores(): Promise<{
   success: boolean;
@@ -79,103 +169,153 @@ export async function syncSasGiftCardStores(): Promise<{
   const db = getDatabase();
   const discoveredMap = new Map<string, { slug: string; name: string }>();
 
-  try {
-    const response = await fetch('https://www.saseurobonusshop.com/se/gift-cards-vouchers', {
-      headers: {
-        'User-Agent':
-          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
-        Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-        'Accept-Language': 'sv-SE,sv;q=0.9,en-US;q=0.8,en;q=0.7',
-      },
-      next: { revalidate: 0 },
-    });
+  const baseCategories = [
+    'https://www.saseurobonusshop.com/se/gift-cards-vouchers',
+    'https://www.saseurobonusshop.com/se/gift-cards-vouchers/shopping',
+    'https://www.saseurobonusshop.com/se/gift-cards-vouchers/streaming-services',
+    'https://www.saseurobonusshop.com/se/gift-cards-vouchers/experiences',
+    'https://www.saseurobonusshop.com/se/gift-cards-vouchers/lottery-games',
+    'https://www.saseurobonusshop.com/se/gift-cards-vouchers/language-courses',
+  ];
 
-    if (response.ok) {
-      const html = await response.text();
+  for (const base of baseCategories) {
+    let page = 1;
+    while (page <= 10) {
+      const url = `${base}?page=${page}`;
+      try {
+        const response = await fetch(url, {
+          headers: {
+            'User-Agent':
+              'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+            Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            'Accept-Language': 'sv-SE,sv;q=0.9,en-US;q=0.8,en;q=0.7',
+          },
+          next: { revalidate: 0 },
+        });
 
-      // Pattern 1: href="/se/gift-cards-vouchers/SLUG" or "/se/stores/SLUG"
-      const patterns = [
-        /href=["']\/se\/gift-cards-vouchers\/([a-z0-9-]+)["']/gi,
-        /href=["']\/se\/stores\/([a-z0-9-]+)["']/gi,
-        /href=["']\/se\/([a-z0-9-]+-presentkort)["']/gi,
-        // data-slug or similar attributes
-        /data-slug=["']([a-z0-9-]+)["']/gi,
-        // Product card links – catches product cards pointing to gift card store pages
-        /href=["']\/se\/([a-z0-9-]+)\/gift-cards?["']/gi,
-      ];
+        if (!response.ok) break;
 
-      // Non-store slugs to ignore
-      const nonStoreSlugs = new Set([
-        'gift-cards-vouchers',
-        'se',
-        'faq',
-        'company',
-        'redeem',
-        'privacy-policy',
-        'cookies',
-        'terms',
-        'accessibility',
-        'contact',
-        'about',
-        'vouchers',
-        'help',
-        'login',
-        'register',
-        'home',
-        'en',
-        'no',
-        'dk',
-        'fi',
-      ]);
+        const html = await response.text();
+        let foundOnPage = 0;
 
-      for (const regex of patterns) {
-        let match;
-        while ((match = regex.exec(html)) !== null) {
-          const slug = match[1].toLowerCase();
-          if (!nonStoreSlugs.has(slug) && !discoveredMap.has(slug)) {
-            discoveredMap.set(slug, { slug, name: slugToDisplayName(slug) });
+        // Pattern 1: Find inside ProductList_item wrapper
+        const itemRegex = /<div class="[^"]*ProductList_item[^"]*"[^>]*>([\s\S]*?)<\/div>\s*<\/div>/gi;
+        let m;
+        while ((m = itemRegex.exec(html)) !== null) {
+          const itemHtml = m[1];
+          const linkMatch = itemHtml.match(/href="(\/se\/[^"]+)"/);
+          if (!linkMatch) continue;
+
+          const href = linkMatch[1];
+          if (
+            href.startsWith('/se/gift-cards-vouchers') ||
+            href === '/se/' ||
+            href.includes('customer-service') ||
+            href.includes('all-products')
+          ) {
+            continue;
+          }
+
+          const slug = href.replace('/se/', '').toLowerCase();
+          if (NON_STORE_SLUGS.has(slug)) continue;
+
+          // Extract alt attribute from image
+          const altMatch = itemHtml.match(/alt="([^"]+)"/i);
+          let rawName = altMatch ? altMatch[1].trim() : '';
+
+          if (!rawName) {
+            // Look for title text inside card
+            const textMatches = [...itemHtml.matchAll(/<(?:span|p|h[1-6]|div)[^>]*>([^<]+)<\/(?:span|p|h[1-6]|div)>/gi)]
+              .map((x) => x[1].trim())
+              .filter(
+                (t) =>
+                  t.length > 1 &&
+                  !t.includes('kr') &&
+                  !t.toLowerCase().includes('poäng') &&
+                  t.toLowerCase() !== 'presentkort'
+              );
+            if (textMatches.length > 0) rawName = textMatches[0];
+          }
+
+          if (!rawName) continue;
+
+          const cleanName = cleanStoreName(rawName);
+          if (
+            cleanName.length >= 2 &&
+            !NON_STORE_NAMES.has(cleanName.toLowerCase()) &&
+            cleanName.toLowerCase() !== 'presentkort'
+          ) {
+            foundOnPage++;
+            if (!discoveredMap.has(slug)) {
+              discoveredMap.set(slug, { slug, name: cleanName });
+            }
           }
         }
-      }
 
-      // Pattern: look for store name text near anchor tags with typical gift card card structure
-      // <a ... href="..."><h3>StoreName</h3>...
-      const storeCardRegex =
-        /<a\s+[^>]*href=["']([^"']*\/([a-z0-9-]+))["'][^>]*>[\s\S]*?<(?:h[1-6]|p|span)[^>]*>([^<]{2,40})<\/(?:h[1-6]|p|span)>/gi;
-      let m;
-      while ((m = storeCardRegex.exec(html)) !== null) {
-        const slug = m[2].toLowerCase();
-        const rawName = decodeHtml(m[3].trim());
-        if (
-          !nonStoreSlugs.has(slug) &&
-          rawName.length >= 2 &&
-          rawName.length <= 60 &&
-          !rawName.includes('<') &&
-          !discoveredMap.has(slug)
-        ) {
-          discoveredMap.set(slug, { slug, name: rawName });
+        // Pattern 2: Fallback for any product link <a class="...styles_block..." href="/se/SLUG">
+        const blockRegex = /<a[^>]+href="(\/se\/([a-z0-9-]+))"[^>]*>([\s\S]*?)<\/a>/gi;
+        while ((m = blockRegex.exec(html)) !== null) {
+          const slug = m[2].toLowerCase();
+          if (NON_STORE_SLUGS.has(slug)) continue;
+
+          const blockHtml = m[3];
+          const altMatch = blockHtml.match(/alt="([^"]+)"/i);
+          if (!altMatch) continue;
+
+          const cleanName = cleanStoreName(altMatch[1]);
+          if (
+            cleanName.length >= 2 &&
+            !NON_STORE_NAMES.has(cleanName.toLowerCase()) &&
+            cleanName.toLowerCase() !== 'presentkort'
+          ) {
+            foundOnPage++;
+            if (!discoveredMap.has(slug)) {
+              discoveredMap.set(slug, { slug, name: cleanName });
+            }
+          }
         }
+
+        // Stop iterating if no products found on this page
+        if (foundOnPage === 0) break;
+
+        // Check if there is another page
+        if (!html.includes(`page=${page + 1}`) && !html.includes('data-page="next"')) {
+          break;
+        }
+
+        page++;
+      } catch (err) {
+        console.warn(`Fetch error for ${url}:`, err);
+        break;
       }
     }
-  } catch (err) {
-    console.warn('Network fetch failed for SAS EuroBonus Shop gift cards:', err);
   }
 
-  // Fallback baseline: known stores that sell gift cards on SAS EuroBonus Shop
+  // Fallback baseline: known stores if scraping completely failed
   if (discoveredMap.size === 0) {
     const baseline: { slug: string; name: string }[] = [
-      { slug: 'ikea', name: 'IKEA' },
-      { slug: 'mediamarkt', name: 'MediaMarkt' },
-      { slug: 'elgiganten', name: 'Elgiganten' },
+      { slug: 'ikea-se', name: 'IKEA' },
+      { slug: 'presentkort-elgiganten', name: 'Elgiganten' },
       { slug: 'ahlens', name: 'Åhléns' },
       { slug: 'stadium', name: 'Stadium' },
-      { slug: 'zalando', name: 'Zalando' },
-      { slug: 'hm', name: 'H&M' },
-      { slug: 'bookbeat', name: 'BookBeat' },
-      { slug: 'spotify', name: 'Spotify' },
-      { slug: 'clas-ohlson', name: 'Clas Ohlson' },
-      { slug: 'kicks', name: 'KICKS' },
-      { slug: 'plantagen', name: 'Plantagen' },
+      { slug: 'zalando-presentkort', name: 'Zalando' },
+      { slug: 'h-m-presentkort', name: 'H&M' },
+      { slug: 'cervera', name: 'Cervera' },
+      { slug: 'mio', name: 'Mio' },
+      { slug: 'presentkort-care-of-carl', name: 'Care of Carl' },
+      { slug: 'presentkort-electrolux-home', name: 'Electrolux Home' },
+      { slug: 'circle-k-presentkort', name: 'Circle K' },
+      { slug: 'presentkort-dormy', name: 'Dormy' },
+      { slug: 'junkyard', name: 'Junkyard' },
+      { slug: 'granngarden-r24', name: 'Granngården' },
+      { slug: 'akademibokhandeln-r24', name: 'Akademibokhandeln' },
+      { slug: 'presentkort-volt', name: 'Volt' },
+      { slug: 'revolution-race-presentkort', name: 'RevolutionRace' },
+      { slug: 'presentkort-jula', name: 'Jula' },
+      { slug: 'presentkort-dressmann', name: 'Dressmann' },
+      { slug: 'presentkort-carlings', name: 'Carlings' },
+      { slug: 'polarn-o-pyret', name: 'Polarn O. Pyret' },
+      { slug: 'zupergift-presentkort', name: 'Zupergift' },
     ];
     for (const item of baseline) {
       discoveredMap.set(item.slug, item);
@@ -183,40 +323,73 @@ export async function syncSasGiftCardStores(): Promise<{
   }
 
   const now = new Date().toISOString();
+
+  // Clean out legacy invalid entries from db.sasGiftCards (categories, generic names, etc.)
+  db.sasGiftCards = (db.sasGiftCards || []).filter((item) => {
+    const slugLower = item.slug.toLowerCase();
+    const nameLower = (item.name || '').toLowerCase();
+    if (NON_STORE_SLUGS.has(slugLower)) return false;
+    if (NON_STORE_NAMES.has(nameLower)) return false;
+    if (nameLower === 'presentkort' && !item.slug.includes('-')) return false;
+    return true;
+  });
+
+  // Helper to match store to db.stores
+  function findMatchedStoreId(slug: string, name: string): string | undefined {
+    const cleanSlug = slug
+      .replace(/^presentkort-/, '')
+      .replace(/-presentkort$/, '')
+      .replace(/-se$/, '')
+      .replace(/-r24$/, '');
+
+    const nameLower = name.toLowerCase();
+
+    // 1. Exact slug or id match
+    const bySlug = db.stores.find(
+      (s) => s.slug === cleanSlug || s.id === cleanSlug || s.slug === slug || s.id === slug
+    );
+    if (bySlug) return bySlug.id;
+
+    // 2. Exact name match
+    const byName = db.stores.find((s) => s.name.toLowerCase() === nameLower);
+    if (byName) return byName.id;
+
+    // 3. Exact alias match
+    const byAlias = db.stores.find((s) =>
+      s.aliases.some((a) => a.toLowerCase() === nameLower || a.toLowerCase() === cleanSlug)
+    );
+    if (byAlias) return byAlias.id;
+
+    return undefined;
+  }
+
   let newStoresAdded = 0;
 
   for (const [slug, item] of discoveredMap.entries()) {
     const existing = db.sasGiftCards.find((s) => s.slug === slug || s.id === slug);
 
     if (existing) {
-      if (existing.isExcluded) continue; // Admin chose to permanently exclude
-      // Preserve admin settings – only update sync timestamp and name if still slug-derived
+      if (existing.isExcluded) continue;
       existing.syncedAt = now;
-      if (!existing.name || existing.name === slugToDisplayName(existing.slug)) {
-        existing.name = item.name;
+      existing.name = item.name;
+      if (!existing.matchedStoreId) {
+        existing.matchedStoreId = findMatchedStoreId(slug, item.name);
       }
     } else {
       newStoresAdded++;
-
-      // Try to auto-match to a local store
-      const matchedStore = db.stores.find(
-        (s) =>
-          s.slug === slug ||
-          s.id === slug ||
-          s.aliases.some((a) => a.toLowerCase().includes(slug) || slug.includes(a.toLowerCase())) ||
-          s.name.toLowerCase() === item.name.toLowerCase()
-      );
+      const matchedStoreId = findMatchedStoreId(slug, item.name);
 
       const newItem: SasGiftCardStoreItem = {
         id: slug,
         name: item.name,
         slug,
         bonusPer100Kr: null, // Admin must fill in to activate
+        minPurchaseAmount: null,
         isCampaign: false,
         campaignValidUntil: null,
         isHidden: false,
         isExcluded: false,
-        matchedStoreId: matchedStore?.id,
+        matchedStoreId,
         note: '',
         syncedAt: now,
         updatedAt: null,
@@ -226,23 +399,11 @@ export async function syncSasGiftCardStores(): Promise<{
     }
   }
 
+  // Sort sasGiftCards alphabetically by name
+  db.sasGiftCards.sort((a, b) => a.name.localeCompare(b.name, 'sv'));
+
   const matchedStores: string[] = [];
   for (const item of db.sasGiftCards) {
-    if (!item.matchedStoreId) {
-      // Try to match now if not matched yet
-      const matchedStore = db.stores.find(
-        (s) =>
-          s.slug === item.slug ||
-          s.id === item.slug ||
-          s.aliases.some(
-            (a) => a.toLowerCase().includes(item.slug) || item.slug.includes(a.toLowerCase())
-          ) ||
-          s.name.toLowerCase() === item.name.toLowerCase()
-      );
-      if (matchedStore) {
-        item.matchedStoreId = matchedStore.id;
-      }
-    }
     if (item.matchedStoreId && !item.isHidden && !item.isExcluded && (item.bonusPer100Kr ?? 0) > 0) {
       matchedStores.push(item.name);
     }
@@ -254,7 +415,7 @@ export async function syncSasGiftCardStores(): Promise<{
     id: `audit-${Date.now()}`,
     timestamp: now,
     action: 'SYNC_SAS_GIFTCARDS',
-    details: `Synkronisering mot SAS EuroBonus Shop presentkort slutförd. Totalt ${discoveredMap.size} butiker funna, ${newStoresAdded} nya tillagda.`,
+    details: `Synkronisering mot SAS EuroBonus Shop presentkort slutförd. Totalt ${discoveredMap.size} butiker identifierade (${newStoresAdded} nya).`,
     user: 'Admin',
   });
 
@@ -265,6 +426,6 @@ export async function syncSasGiftCardStores(): Promise<{
     totalDiscovered: discoveredMap.size,
     newStoresAdded,
     matchedStores,
-    message: `Synk lyckades: ${discoveredMap.size} butiker identifierade på SAS EuroBonus Shop (${newStoresAdded} nya). ${matchedStores.length} butiker är aktiva (har konfigurerade poäng).`,
+    message: `Synk lyckades: ${discoveredMap.size} presentkortsbutiker identifierade på SAS EuroBonus Shop (${newStoresAdded} nya). ${matchedStores.length} butiker är aktiva (har konfigurerade poäng).`,
   };
 }

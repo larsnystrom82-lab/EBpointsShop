@@ -64,7 +64,7 @@ export default function Home() {
         }
         if (Array.isArray(parsed.selectedCardIds)) setSelectedCardIds(parsed.selectedCardIds);
         if (Array.isArray(parsed.selectedStoreIds)) setSelectedStoreIds(parsed.selectedStoreIds);
-        if (parsed.sortBy && ['most_bonus', 'most_tier'].includes(parsed.sortBy)) {
+        if (parsed.sortBy && ['most_bonus', 'most_tier', 'name_asc', 'name_desc'].includes(parsed.sortBy)) {
           setSortBy(parsed.sortBy as SortOption);
         }
       }

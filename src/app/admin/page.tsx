@@ -56,9 +56,11 @@ export default function AdminPage() {
   // SAS Presentkort tab
   const [syncingSasGc, setSyncingSasGc] = useState<boolean>(false);
   const [sasGcSearch, setSasGcSearch] = useState('');
+  const [sasGcFilter, setSasGcFilter] = useState<'all' | 'active' | 'unconfigured' | 'hidden'>('all');
   // Per-row edit state (keyed by store id): holds draft values
   const [sasGcEdits, setSasGcEdits] = useState<Record<string, {
     bonusPer100Kr: string;
+    minPurchaseAmount: string;
     isCampaign: boolean;
     campaignValidUntil: string;
     isHidden: boolean;
@@ -207,9 +209,12 @@ export default function AdminPage() {
     try {
       const bonusVal = edit?.bonusPer100Kr !== undefined ? edit.bonusPer100Kr : '';
       const bonusPer100Kr = bonusVal === '' ? null : Number(bonusVal);
+      const minVal = edit?.minPurchaseAmount !== undefined ? edit.minPurchaseAmount : '';
+      const minPurchaseAmount = minVal === '' ? null : Number(minVal);
       const payload = {
         id: storeId,
         bonusPer100Kr,
+        minPurchaseAmount,
         isCampaign: edit?.isCampaign ?? original.isCampaign,
         campaignValidUntil: edit?.campaignValidUntil ?? original.campaignValidUntil ?? null,
         isHidden: edit?.isHidden ?? original.isHidden,
@@ -485,13 +490,23 @@ export default function AdminPage() {
     if (!dbData?.sasGiftCards) return [];
     return dbData.sasGiftCards.filter((item) => {
       if (item.isExcluded) return false;
+
+      // Filter by configuration / active state
+      if (sasGcFilter === 'active') {
+        if (item.isHidden || (item.bonusPer100Kr ?? 0) <= 0) return false;
+      } else if (sasGcFilter === 'unconfigured') {
+        if (item.isHidden || (item.bonusPer100Kr !== null && item.bonusPer100Kr > 0)) return false;
+      } else if (sasGcFilter === 'hidden') {
+        if (!item.isHidden) return false;
+      }
+
       if (sasGcSearch.trim()) {
         const q = sasGcSearch.toLowerCase();
         return item.name.toLowerCase().includes(q) || item.slug.toLowerCase().includes(q);
       }
       return true;
     });
-  }, [dbData?.sasGiftCards, sasGcSearch]);
+  }, [dbData?.sasGiftCards, sasGcSearch, sasGcFilter]);
 
   if (isAuthenticated === false) {
     return (
@@ -1034,18 +1049,72 @@ export default function AdminPage() {
                 </button>
               </div>
 
-              {/* Search */}
-              <div className="relative w-full sm:w-72">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                  <Search className="w-4 h-4" />
+              {/* Sök och filterrad */}
+              <div className="flex flex-col sm:flex-row gap-3 items-center justify-between pt-2">
+                <div className="relative w-full sm:w-72">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                    <Search className="w-4 h-4" />
+                  </div>
+                  <input
+                    type="text"
+                    value={sasGcSearch}
+                    onChange={(e) => setSasGcSearch(e.target.value)}
+                    placeholder="Sök bland SAS presentkortsbutiker..."
+                    className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-300 text-xs bg-slate-50 focus:bg-white"
+                  />
                 </div>
-                <input
-                  type="text"
-                  value={sasGcSearch}
-                  onChange={(e) => setSasGcSearch(e.target.value)}
-                  placeholder="Sök bland SAS presentkortsbutiker..."
-                  className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-300 text-xs bg-slate-50 focus:bg-white"
-                />
+
+                {/* Filterflikar */}
+                <div className="flex flex-wrap items-center gap-1.5 self-start sm:self-auto text-xs">
+                  <span className="text-slate-400 font-semibold mr-1 flex items-center gap-1">
+                    <Filter className="w-3.5 h-3.5" />
+                    Visa:
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setSasGcFilter('all')}
+                    className={`px-3 py-1.5 rounded-lg font-bold transition-colors ${
+                      sasGcFilter === 'all'
+                        ? 'bg-slate-900 text-white'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    Alla ({dbData?.sasGiftCards?.filter((s) => !s.isExcluded).length || 0})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSasGcFilter('unconfigured')}
+                    className={`px-3 py-1.5 rounded-lg font-bold transition-colors ${
+                      sasGcFilter === 'unconfigured'
+                        ? 'bg-amber-600 text-white'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    Ej konfigurerade ({dbData?.sasGiftCards?.filter((s) => !s.isExcluded && !s.isHidden && (s.bonusPer100Kr === null || s.bonusPer100Kr === 0)).length || 0})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSasGcFilter('active')}
+                    className={`px-3 py-1.5 rounded-lg font-bold transition-colors ${
+                      sasGcFilter === 'active'
+                        ? 'bg-emerald-700 text-white'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    Aktiva ({dbData?.sasGiftCards?.filter((s) => !s.isExcluded && !s.isHidden && (s.bonusPer100Kr ?? 0) > 0).length || 0})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSasGcFilter('hidden')}
+                    className={`px-3 py-1.5 rounded-lg font-bold transition-colors ${
+                      sasGcFilter === 'hidden'
+                        ? 'bg-slate-700 text-white'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    Dolda ({dbData?.sasGiftCards?.filter((s) => !s.isExcluded && s.isHidden).length || 0})
+                  </button>
+                </div>
               </div>
 
               {/* Store list */}
@@ -1059,6 +1128,7 @@ export default function AdminPage() {
                   {filteredSasGiftCards.map((item) => {
                     const edit = sasGcEdits[item.id];
                     const bonusVal = edit?.bonusPer100Kr !== undefined ? edit.bonusPer100Kr : (item.bonusPer100Kr !== null ? String(item.bonusPer100Kr) : '');
+                    const minPurchaseVal = edit?.minPurchaseAmount !== undefined ? edit.minPurchaseAmount : (item.minPurchaseAmount !== undefined && item.minPurchaseAmount !== null ? String(item.minPurchaseAmount) : '');
                     const isCampaign = edit?.isCampaign !== undefined ? edit.isCampaign : item.isCampaign;
                     const campaignValidUntil = edit?.campaignValidUntil !== undefined ? edit.campaignValidUntil : (item.campaignValidUntil || '');
                     const isHidden = edit?.isHidden !== undefined ? edit.isHidden : item.isHidden;
@@ -1072,6 +1142,7 @@ export default function AdminPage() {
                         ...prev,
                         [item.id]: {
                           bonusPer100Kr: edit?.bonusPer100Kr ?? (item.bonusPer100Kr !== null ? String(item.bonusPer100Kr) : ''),
+                          minPurchaseAmount: edit?.minPurchaseAmount ?? (item.minPurchaseAmount !== undefined && item.minPurchaseAmount !== null ? String(item.minPurchaseAmount) : ''),
                           isCampaign: edit?.isCampaign ?? item.isCampaign,
                           campaignValidUntil: edit?.campaignValidUntil ?? (item.campaignValidUntil || ''),
                           isHidden: edit?.isHidden ?? item.isHidden,
@@ -1112,6 +1183,11 @@ export default function AdminPage() {
                                   Dold
                                 </span>
                               )}
+                              {item.minPurchaseAmount && item.minPurchaseAmount > 0 && (
+                                <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[10px] font-bold">
+                                  Min. {item.minPurchaseAmount} kr
+                                </span>
+                              )}
                               {item.isCampaign && (
                                 <span className="px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 text-[10px] font-bold uppercase tracking-wider">
                                   Kampanj
@@ -1146,6 +1222,23 @@ export default function AdminPage() {
                                 title="Poäng per 100 kr"
                               />
                               <span className="text-[10px] text-slate-500 whitespace-nowrap">p/100 kr</span>
+                            </div>
+
+                            {/* minPurchaseAmount input */}
+                            <div className="flex items-center gap-1" title="Minsta köpbelopp (t.ex. 250 kr)">
+                              <span className="text-[10px] text-slate-500 whitespace-nowrap">Min:</span>
+                              <input
+                                type="number"
+                                min="0"
+                                max="50000"
+                                step="50"
+                                value={minPurchaseVal}
+                                onChange={(e) => updateEdit({ minPurchaseAmount: e.target.value })}
+                                placeholder="Inget"
+                                className="w-16 px-1.5 py-1.5 rounded-lg border border-slate-300 text-xs font-semibold text-slate-700 text-center focus:border-blue-500 focus:ring-1 focus:ring-blue-200"
+                                title="Minimiköp (kr)"
+                              />
+                              <span className="text-[10px] text-slate-500">kr</span>
                             </div>
 
                             {/* Campaign checkbox */}

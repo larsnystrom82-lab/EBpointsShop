@@ -432,23 +432,43 @@ export function generateCandidateRoutes(options: RouteGenerationOptions): RouteC
   if (allowGiftCards && sasGiftCardItem && !sasGiftCardItem.isHidden && !sasGiftCardItem.isExcluded) {
     const rate = sasGiftCardItem.bonusPer100Kr;
     if (rate !== null && rate > 0) {
-      const baseBonusPoints = Math.floor((purchaseAmountOre * rate) / 10000);
+      const minPurchaseKr = sasGiftCardItem.minPurchaseAmount ?? 0;
+      const minPurchaseOre = minPurchaseKr * 100;
+      const giftCardValueOre = Math.max(purchaseAmountOre, minPurchaseOre);
+      const totalOutlayOre = giftCardValueOre;
+      const extraOutlayOre = Math.max(0, totalOutlayOre - purchaseAmountOre);
+      const remainingBalanceOre = Math.max(0, giftCardValueOre - purchaseAmountOre);
+
+      const baseBonusPoints = Math.floor((giftCardValueOre * rate) / 10000);
       const baseTierPoints = 0;
-      const totalOutlayOre = purchaseAmountOre;
-      const extraOutlayOre = 0;
-      const remainingBalanceOre = 0;
+
+      const cardValueKr = giftCardValueOre / 100;
+      const breakdownText =
+        minPurchaseKr > 0 && purchaseAmountKr < minPurchaseKr
+          ? `Köp av ${sasGiftCardItem.name}-presentkort (${cardValueKr.toLocaleString('sv-SE')} kr, minimiköp ${minPurchaseKr} kr) ger ${rate} Extrapoäng per 100 kr`
+          : `Köp av ${sasGiftCardItem.name}-presentkort ger ${rate} Extrapoäng per 100 kr (administreras av admin)`;
 
       const breakdown: RouteBreakdownItem[] = [
         {
           sourceName: 'SAS EuroBonus Shop',
-          description: `Köp av ${sasGiftCardItem.name}-presentkort ger ${rate} Extrapoäng per 100 kr (administreras av admin)`,
+          description: breakdownText,
           bonusPoints: baseBonusPoints,
           tierPoints: 0,
-          qualifyingAmountOre: purchaseAmountOre,
+          qualifyingAmountOre: giftCardValueOre,
         },
       ];
 
       const cardOutcomes = computeCardOutcomes(baseBonusPoints, baseTierPoints, totalOutlayOre, totalOutlayOre);
+
+      const step1Desc =
+        minPurchaseKr > 0 && purchaseAmountKr < minPurchaseKr
+          ? `Besök SAS EuroBonus Shop och köp ett presentkort från ${sasGiftCardItem.name} för ${cardValueKr.toLocaleString('sv-SE')} kr (minimiköp ${minPurchaseKr} kr, kvarvarande saldo ${(remainingBalanceOre / 100).toLocaleString('sv-SE')} kr sparas till senare köp). Du får ${rate} Extrapoäng per 100 kr.`
+          : `Besök SAS EuroBonus Shop och köp ett presentkort från ${sasGiftCardItem.name} för ${purchaseAmountKr.toLocaleString('sv-SE')} kr. Du får ${rate} Extrapoäng per 100 kr.`;
+
+      const uncertainties =
+        minPurchaseKr > 0 && purchaseAmountKr < minPurchaseKr
+          ? [`Presentkortet har ett minimiköp på ${minPurchaseKr} kr. ${(remainingBalanceOre / 100).toLocaleString('sv-SE')} kr sparas på presentkortet för framtida inköp.`]
+          : [];
 
       results.push({
         id: `${store.id}-sas-giftcard`,
@@ -457,14 +477,17 @@ export function generateCandidateRoutes(options: RouteGenerationOptions): RouteC
         storeLogoUrl: store.logoUrl,
         routeType: 'gift_card',
         routeTitle: `SAS EuroBonus Shop – ${sasGiftCardItem.name} presentkort`,
-        routeSummary: `Köp ${sasGiftCardItem.name}-presentkort på SAS EuroBonus Shop och lös in i kassan.`,
+        routeSummary:
+          minPurchaseKr > 0 && purchaseAmountKr < minPurchaseKr
+            ? `Köp ${sasGiftCardItem.name}-presentkort på SAS EuroBonus Shop (min. ${minPurchaseKr} kr) och lös in i kassan.`
+            : `Köp ${sasGiftCardItem.name}-presentkort på SAS EuroBonus Shop och lös in i kassan.`,
         primaryCategory: store.categories?.[0] || 'department',
         categories: store.categories || ['department'],
         steps: [
           {
             stepNumber: 1,
             title: `Köp ${sasGiftCardItem.name}-presentkort hos SAS EuroBonus Shop`,
-            description: `Besök SAS EuroBonus Shop och köp ett presentkort från ${sasGiftCardItem.name} för ${purchaseAmountKr.toLocaleString('sv-SE')} kr. Du får ${rate} Extrapoäng per 100 kr.`,
+            description: step1Desc,
             externalUrl: 'https://www.saseurobonusshop.com/se/gift-cards-vouchers',
           },
           {
@@ -476,7 +499,7 @@ export function generateCandidateRoutes(options: RouteGenerationOptions): RouteC
         totalSteps: 2,
         purchaseAmountOre,
         totalOutlayOre,
-        giftCardValueOre: purchaseAmountOre,
+        giftCardValueOre,
         extraOutlayOre,
         remainingBalanceOre,
         breakdown,
@@ -486,7 +509,7 @@ export function generateCandidateRoutes(options: RouteGenerationOptions): RouteC
         isEligible: true,
         isExplicitCampaign: Boolean(sasGiftCardItem.isCampaign),
         lastCheckedAt: sasGiftCardItem.updatedAt || sasGiftCardItem.syncedAt || options.lastCheckedAt || new Date().toISOString(),
-        uncertainties: [],
+        uncertainties,
         startUrl: 'https://www.saseurobonusshop.com/se/gift-cards-vouchers',
         isDemoFixture: false,
       });
@@ -591,6 +614,18 @@ export function processAndRankRoutes(
       case 'most_bonus': {
         if (bBonus !== aBonus) return bBonus - aBonus;
         if (bTier !== aTier) return bTier - aTier;
+        break;
+      }
+      case 'name_asc': {
+        const nameCmp = a.storeName.localeCompare(b.storeName, 'sv');
+        if (nameCmp !== 0) return nameCmp;
+        if (bBonus !== aBonus) return bBonus - aBonus;
+        break;
+      }
+      case 'name_desc': {
+        const nameCmp = b.storeName.localeCompare(a.storeName, 'sv');
+        if (nameCmp !== 0) return nameCmp;
+        if (bBonus !== aBonus) return bBonus - aBonus;
         break;
       }
     }

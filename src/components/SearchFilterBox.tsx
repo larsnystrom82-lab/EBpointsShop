@@ -220,6 +220,8 @@ export const SearchFilterBox: React.FC<SearchFilterBoxProps> = ({
             >
               <option value="most_bonus">Flest bonuspoäng</option>
               <option value="most_tier">Flest nivåpoäng</option>
+              <option value="name_asc">Bokstavsordning (A–Ö)</option>
+              <option value="name_desc">Bokstavsordning (Ö–A)</option>
             </select>
             <ChevronDown className="w-4 h-4 text-slate-400 absolute right-3 top-3.5 pointer-events-none" />
           </div>

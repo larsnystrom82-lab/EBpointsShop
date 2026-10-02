@@ -173,7 +173,9 @@ export interface RouteCalculationResult {
 
 export type SortOption =
   | 'most_bonus'
-  | 'most_tier';
+  | 'most_tier'
+  | 'name_asc'
+  | 'name_desc';
 
 export type OneTimeBonusFilter = 'all' | 'only' | 'exclude';
 

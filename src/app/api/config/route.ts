@@ -60,7 +60,52 @@ export async function GET() {
       syncedAt: zs.syncedAt || db.lastZupergiftSync || undefined,
     }));
 
-  const allStores = [...baseStores, ...extraZuperStores].sort((a, b) =>
+  const existingStoreIds = new Set([
+    ...baseStoreIds,
+    ...extraZuperStores.map((s) => s.id),
+    ...extraZuperStores.map((s) => s.slug),
+  ]);
+
+  const extraSasStores = (db.sasGiftCards || [])
+    .filter(
+      (gc) =>
+        !gc.isHidden &&
+        !gc.isExcluded &&
+        (gc.bonusPer100Kr ?? 0) > 0 &&
+        !existingStoreIds.has(gc.id) &&
+        !existingStoreIds.has(gc.slug) &&
+        (!gc.matchedStoreId || !existingStoreIds.has(gc.matchedStoreId))
+    )
+    .map((gc) => ({
+      id: gc.id,
+      name: gc.name,
+      slug: gc.slug,
+      aliases: [gc.slug, `${gc.id}.se`],
+      logoUrl: `/logos/${gc.id}.svg`,
+      categories: ['department'],
+      isActive: true,
+      partnerRule: {
+        hasPartnerLink: false,
+        bonusPer100Kr: 0,
+        tierPer100Kr: 0,
+        isCampaign: false,
+        campaignValidUntil: null,
+        startUrl: '',
+      },
+      giftCardRule: {
+        hasDirectGiftCard: false,
+        bonusPer100Kr: 0,
+        denominationsKr: [],
+        feeKr: 0,
+        isCampaign: false,
+        startUrl: '',
+      },
+      zupergiftSupported: false,
+      isZupergiftOnly: false,
+      syncedAt: gc.syncedAt || undefined,
+    }));
+
+  const allStores = [...baseStores, ...extraZuperStores, ...extraSasStores].sort((a, b) =>
     a.name.localeCompare(b.name, 'sv')
   );
 

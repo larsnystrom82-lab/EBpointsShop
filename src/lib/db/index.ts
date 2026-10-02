@@ -95,6 +95,7 @@ export interface SasGiftCardStoreItem {
   name: string;         // Display name e.g. "IKEA", "MediaMarkt"
   slug: string;         // URL slug from SAS shop
   bonusPer100Kr: number | null;  // null = not yet set by admin = INACTIVE
+  minPurchaseAmount?: number | null; // t.ex. 250 kr (null = inget minimiköp)
   isCampaign: boolean;
   campaignValidUntil: string | null;
   isHidden: boolean;    // Hidden by admin

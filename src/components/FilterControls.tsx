@@ -72,6 +72,8 @@ export const FilterControls: React.FC<FilterControlsProps> = ({
           >
             <option value="most_bonus">Flest bonuspoäng (standard)</option>
             <option value="most_tier">Flest nivåpoäng först</option>
+            <option value="name_asc">Bokstavsordning (A–Ö)</option>
+            <option value="name_desc">Bokstavsordning (Ö–A)</option>
           </select>
         </div>
       </div>

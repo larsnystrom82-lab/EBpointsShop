@@ -11,6 +11,7 @@ export async function PATCH(request: NextRequest) {
   let body: {
     id: string;
     bonusPer100Kr?: number | null;
+    minPurchaseAmount?: number | null;
     isCampaign?: boolean;
     campaignValidUntil?: string | null;
     isHidden?: boolean;
@@ -24,7 +25,7 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ error: 'Ogiltig JSON' }, { status: 400 });
   }
 
-  const { id, bonusPer100Kr, isCampaign, campaignValidUntil, isHidden, isExcluded, note } = body;
+  const { id, bonusPer100Kr, minPurchaseAmount, isCampaign, campaignValidUntil, isHidden, isExcluded, note } = body;
 
   if (!id || typeof id !== 'string') {
     return NextResponse.json({ error: 'id saknas' }, { status: 400 });
@@ -34,6 +35,13 @@ export async function PATCH(request: NextRequest) {
   if (bonusPer100Kr !== undefined && bonusPer100Kr !== null) {
     if (typeof bonusPer100Kr !== 'number' || bonusPer100Kr < 0) {
       return NextResponse.json({ error: 'bonusPer100Kr måste vara ett tal >= 0 eller null' }, { status: 400 });
+    }
+  }
+
+  // Validate minPurchaseAmount
+  if (minPurchaseAmount !== undefined && minPurchaseAmount !== null) {
+    if (typeof minPurchaseAmount !== 'number' || minPurchaseAmount < 0) {
+      return NextResponse.json({ error: 'minPurchaseAmount måste vara ett tal >= 0 eller null' }, { status: 400 });
     }
   }
 
@@ -47,6 +55,7 @@ export async function PATCH(request: NextRequest) {
   const now = new Date().toISOString();
 
   if (bonusPer100Kr !== undefined) item.bonusPer100Kr = bonusPer100Kr;
+  if (minPurchaseAmount !== undefined) item.minPurchaseAmount = minPurchaseAmount;
   if (isCampaign !== undefined) item.isCampaign = Boolean(isCampaign);
   if (campaignValidUntil !== undefined) item.campaignValidUntil = campaignValidUntil ?? null;
   if (isHidden !== undefined) item.isHidden = Boolean(isHidden);
@@ -58,7 +67,7 @@ export async function PATCH(request: NextRequest) {
     id: `audit-${Date.now()}`,
     timestamp: now,
     action: 'UPDATE_SAS_GIFTCARD',
-    details: `SAS presentkortsbutik "${item.name}" uppdaterades. bonusPer100Kr=${item.bonusPer100Kr}, isHidden=${item.isHidden}, isExcluded=${item.isExcluded}.`,
+    details: `SAS presentkortsbutik "${item.name}" uppdaterades. bonusPer100Kr=${item.bonusPer100Kr}, minPurchaseAmount=${item.minPurchaseAmount ?? 'inget'}, isHidden=${item.isHidden}, isExcluded=${item.isExcluded}.`,
     user: 'Admin',
   });
 

@@ -265,6 +265,30 @@ describe('EuroBonus Beräkningsmotor – Acceptanstester A03–A16', () => {
     expect(tierSorted.every((r) => r.baseTierPoints > 0)).toBe(true);
   });
 
+  it('sorterar butiker i bokstavsordning stigande (A–Ö) och fallande (Ö–A)', () => {
+    const elgigantenRoutes = generateCandidateRoutes({ store: elgiganten, purchaseAmountKr: 1995 });
+    const bagarenRoutes = generateCandidateRoutes({ store: bagaren, purchaseAmountKr: 1995 });
+    const cerveraRoutes = generateCandidateRoutes({ store: cervera, purchaseAmountKr: 1995 });
+
+    const allRoutes = [...elgigantenRoutes, ...bagarenRoutes, ...cerveraRoutes];
+
+    // Sortera A–Ö
+    const ascSorted = processAndRankRoutes(allRoutes, {
+      ...defaultFilter,
+      sortBy: 'name_asc',
+    });
+    expect(ascSorted[0].storeName).toBe('Bagaren och Kocken');
+    expect(ascSorted[ascSorted.length - 1].storeName).toBe('Elgiganten');
+
+    // Sortera Ö–A
+    const descSorted = processAndRankRoutes(allRoutes, {
+      ...defaultFilter,
+      sortBy: 'name_desc',
+    });
+    expect(descSorted[0].storeName).toBe('Elgiganten');
+    expect(descSorted[descSorted.length - 1].storeName).toBe('Bagaren och Kocken');
+  });
+
   it('handles stores with fixed one-time bonus (e.g. Factor) without scaling base points by amount', () => {
     const factorStore: Store = {
       id: 'factor',
