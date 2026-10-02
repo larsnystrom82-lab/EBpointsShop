@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 50" width="160" height="50">
+  <rect width="160" height="50" rx="8" fill="#F1F5F9" stroke="#CBD5E1" stroke-width="1"/>
+  <path d="M28 20 L33 14 L47 14 L52 20 Z M28 20 L28 36 L52 36 L52 20 Z" fill="none" stroke="#64748B" stroke-width="2" stroke-linejoin="round"/>
+  <text x="96" y="31" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="600" fill="#475569" text-anchor="middle">BUTIK</text>
+</svg>

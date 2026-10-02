@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 50" width="160" height="50">
+  <rect width="160" height="50" rx="8" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="2"/>
+  <path d="M22 25 C22 19 28 15 33 20 C38 15 44 19 44 25 C44 32 33 39 33 39 C33 39 22 32 22 25 Z" fill="#00845B"/>
+  <text x="96" y="27" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="700" fill="#00845B" text-anchor="middle">APOTEK</text>
+  <text x="96" y="40" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="600" fill="#2D3748" text-anchor="middle">HJÄRTAT</text>
+</svg>
