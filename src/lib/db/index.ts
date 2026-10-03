@@ -119,7 +119,17 @@ export interface DatabaseSchema {
   lastSasGiftCardSync: string | null;
 }
 
-const DB_PATH = path.join(process.cwd(), 'data', 'database.json');
+const SEED_DB_PATH = path.join(process.cwd(), 'data', 'database.json');
+const DATA_DIR = process.env.DATA_DIR || path.join(process.cwd(), 'data');
+const DB_PATH = path.join(DATA_DIR, 'database.json');
+
+export function getDbPath(): string {
+  return DB_PATH;
+}
+
+export function getDataDir(): string {
+  return DATA_DIR;
+}
 
 const INITIAL_ZUPERGIFT_STORES: ZupergiftStoreItem[] = [
   { id: 'cervera', name: 'Cervera', slug: 'cervera', isHidden: false, isExcluded: false, matchedStoreId: 'cervera', syncedAt: '2026-10-02T04:00:00.000Z' },
@@ -389,8 +399,24 @@ const INITIAL_DATA: DatabaseSchema = {
 export function getDatabase(): DatabaseSchema {
   try {
     if (!fs.existsSync(DB_PATH)) {
-      fs.writeFileSync(DB_PATH, JSON.stringify(INITIAL_DATA, null, 2), 'utf-8');
-      return INITIAL_DATA;
+      const dir = path.dirname(DB_PATH);
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+      }
+
+      // If we are using a custom DATA_DIR (e.g. persistent disk at /var/data)
+      // and the database file does not exist yet on the disk, copy the seed file from project data/database.json.
+      if (path.resolve(DB_PATH) !== path.resolve(SEED_DB_PATH) && fs.existsSync(SEED_DB_PATH)) {
+        try {
+          fs.copyFileSync(SEED_DB_PATH, DB_PATH);
+          console.log(`[Database] Initialiserade persistent databas från startdata: ${DB_PATH}`);
+        } catch (copyErr) {
+          console.error(`[Database] Kunde inte kopiera startdata till ${DB_PATH}:`, copyErr);
+          fs.writeFileSync(DB_PATH, JSON.stringify(INITIAL_DATA, null, 2), 'utf-8');
+        }
+      } else {
+        fs.writeFileSync(DB_PATH, JSON.stringify(INITIAL_DATA, null, 2), 'utf-8');
+      }
     }
     const data = fs.readFileSync(DB_PATH, 'utf-8');
     const parsed = JSON.parse(data) as DatabaseSchema;
