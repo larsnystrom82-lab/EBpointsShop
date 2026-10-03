@@ -10,7 +10,7 @@ export async function GET() {
   }
 
   const db = getDatabase();
-  const allStores = buildAllStores(db);
+  const allStores = buildAllStores(db, { includeExcluded: true });
   return NextResponse.json({
     ...db,
     allStores,

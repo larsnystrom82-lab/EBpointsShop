@@ -60,6 +60,8 @@ export interface DbStore {
   isZupergiftOnly?: boolean;
   customLogoUrl?: string | null;
   comment?: string | null;
+  isExcluded?: boolean; // Borttagen av admin (t.ex. konkurs eller borttagen från SAS)
+  isHidden?: boolean;
 }
 
 export interface DbErrorReport {
@@ -111,6 +113,7 @@ export interface SasGiftCardStoreItem {
 export interface StoreMetadataItem {
   customLogoUrl?: string | null;
   comment?: string | null;
+  isExcluded?: boolean | null;
   updatedAt?: string | null;
   updatedBy?: string | null;
 }
@@ -122,6 +125,7 @@ export interface DatabaseSchema {
   stores: DbStore[];
   categories?: DbCategory[];
   storeCustomMetadata?: Record<string, StoreMetadataItem>;
+  excludedStoreIds?: string[];
   errorReports: DbErrorReport[];
   auditEvents: DbAuditEvent[];
   lastZupergiftSync: string | null;
@@ -458,6 +462,12 @@ export function getDatabase(): DatabaseSchema {
     // Initialize storeCustomMetadata if missing
     if (!parsed.storeCustomMetadata || typeof parsed.storeCustomMetadata !== 'object') {
       parsed.storeCustomMetadata = {};
+      saveDatabase(parsed);
+    }
+
+    // Initialize excludedStoreIds if missing
+    if (!parsed.excludedStoreIds || !Array.isArray(parsed.excludedStoreIds)) {
+      parsed.excludedStoreIds = [];
       saveDatabase(parsed);
     }
 

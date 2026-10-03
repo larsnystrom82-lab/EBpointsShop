@@ -78,7 +78,7 @@ export default function AdminPage() {
 
   // States for "Alla butiker" tab
   const [allStoresSearch, setAllStoresSearch] = useState('');
-  const [allStoresFilter, setAllStoresFilter] = useState<'all' | 'partner' | 'zupergift' | 'sas' | 'has_logo' | 'missing_logo' | 'has_comment'>('all');
+  const [allStoresFilter, setAllStoresFilter] = useState<'all' | 'partner' | 'zupergift' | 'sas' | 'has_logo' | 'missing_logo' | 'has_comment' | 'excluded'>('all');
   const [storeMetadataEdits, setStoreMetadataEdits] = useState<Record<string, {
     customLogoUrl: string;
     comment: string;
@@ -354,6 +354,35 @@ export default function AdminPage() {
     }
   };
 
+  // Exclude/Delete or Restore a store (e.g. bankruptcy or removed from SAS partner site)
+  const handleStoreAction = async (storeId: string, storeName: string, action: 'exclude' | 'restore') => {
+    if (action === 'exclude') {
+      const confirmed = confirm(
+        `Vill du ta bort "${storeName}" från Poängkollen?\n\nButiken tas bort från sajten och exkluderas från framtida synkningar (används t.ex. vid konkurs eller avslutat samarbete med SAS).`
+      );
+      if (!confirmed) return;
+    }
+
+    try {
+      const res = await fetch('/api/admin/store-action', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ storeId, action }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setStatusMessage({ text: data.message, type: 'success' });
+        await fetchAdminData();
+      } else {
+        setStatusMessage({ text: data.error || 'Åtgärd misslyckades', type: 'error' });
+      }
+    } catch {
+      setStatusMessage({ text: 'Kunde inte utföra butiksåtgärd', type: 'error' });
+    } finally {
+      setTimeout(() => setStatusMessage(null), 4000);
+    }
+  };
+
   // Modify store state: hide, unhide, exclude (remove), restore
   const handleZupergiftStoreAction = async (
     storeId: string,
@@ -550,6 +579,7 @@ export default function AdminPage() {
   const filteredStores = useMemo(() => {
     if (!dbData?.stores) return [];
     return dbData.stores.filter((store) => {
+      if (store.isExcluded) return false;
       if (storeFilter === 'partner' && !store.partnerRule?.hasPartnerLink) return false;
       if (storeFilter === 'campaign' && !store.partnerRule?.isCampaign) return false;
       if (storeFilter === 'zupergift' && !store.zupergiftSupported) return false;
@@ -601,6 +631,14 @@ export default function AdminPage() {
   const filteredAllStores = useMemo(() => {
     if (!dbData?.allStores) return [];
     return dbData.allStores.filter((item) => {
+      // Excluded filter: if viewing 'excluded', only show excluded stores
+      if (allStoresFilter === 'excluded') {
+        if (!item.isExcluded) return false;
+      } else {
+        // All other filters should only show active (non-excluded) stores
+        if (item.isExcluded) return false;
+      }
+
       if (allStoresFilter === 'partner' && !item.hasPartnerLink) return false;
       if (allStoresFilter === 'zupergift' && !item.zupergiftSupported) return false;
       if (allStoresFilter === 'sas' && !item.hasSasGiftCard) return false;
@@ -859,7 +897,7 @@ export default function AdminPage() {
               </div>
 
               {/* Statistik-chips */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-2.5 pt-1">
+              <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2.5 pt-1">
                 <button
                   type="button"
                   onClick={() => setAllStoresFilter('all')}
@@ -869,8 +907,8 @@ export default function AdminPage() {
                       : 'bg-slate-50 hover:bg-slate-100 border-slate-200/60 text-slate-900'
                   }`}
                 >
-                  <div className={`text-[11px] font-semibold ${allStoresFilter === 'all' ? 'text-slate-300' : 'text-slate-500'}`}>Alla butiker</div>
-                  <div className="text-lg font-black">{dbData?.allStores?.length || 0}</div>
+                  <div className={`text-[11px] font-semibold ${allStoresFilter === 'all' ? 'text-slate-300' : 'text-slate-500'}`}>Aktiva butiker</div>
+                  <div className="text-lg font-black">{dbData?.allStores?.filter((s) => !s.isExcluded).length || 0}</div>
                 </button>
 
                 <button
@@ -883,7 +921,7 @@ export default function AdminPage() {
                   }`}
                 >
                   <div className={`text-[11px] font-semibold ${allStoresFilter === 'partner' ? 'text-blue-100' : 'text-blue-700'}`}>SAS Partner</div>
-                  <div className="text-lg font-black">{dbData?.allStores?.filter((s) => s.hasPartnerLink).length || 0}</div>
+                  <div className="text-lg font-black">{dbData?.allStores?.filter((s) => !s.isExcluded && s.hasPartnerLink).length || 0}</div>
                 </button>
 
                 <button
@@ -896,7 +934,7 @@ export default function AdminPage() {
                   }`}
                 >
                   <div className={`text-[11px] font-semibold ${allStoresFilter === 'zupergift' ? 'text-amber-100' : 'text-amber-700'}`}>Zupergift</div>
-                  <div className="text-lg font-black">{dbData?.allStores?.filter((s) => s.zupergiftSupported).length || 0}</div>
+                  <div className="text-lg font-black">{dbData?.allStores?.filter((s) => !s.isExcluded && s.zupergiftSupported).length || 0}</div>
                 </button>
 
                 <button
@@ -909,7 +947,7 @@ export default function AdminPage() {
                   }`}
                 >
                   <div className={`text-[11px] font-semibold ${allStoresFilter === 'sas' ? 'text-indigo-100' : 'text-indigo-700'}`}>SAS Presentkort</div>
-                  <div className="text-lg font-black">{dbData?.allStores?.filter((s) => s.hasSasGiftCard).length || 0}</div>
+                  <div className="text-lg font-black">{dbData?.allStores?.filter((s) => !s.isExcluded && s.hasSasGiftCard).length || 0}</div>
                 </button>
 
                 <button
@@ -925,7 +963,7 @@ export default function AdminPage() {
                     <AlertTriangle className="w-3 h-3" />
                     <span>Saknar logga</span>
                   </div>
-                  <div className="text-lg font-black">{dbData?.allStores?.filter(isStoreMissingLogo).length || 0}</div>
+                  <div className="text-lg font-black">{dbData?.allStores?.filter((s) => !s.isExcluded && isStoreMissingLogo(s)).length || 0}</div>
                 </button>
 
                 <button
@@ -938,7 +976,7 @@ export default function AdminPage() {
                   }`}
                 >
                   <div className={`text-[11px] font-semibold ${allStoresFilter === 'has_logo' ? 'text-purple-100' : 'text-purple-700'}`}>Har logga</div>
-                  <div className="text-lg font-black">{dbData?.allStores?.filter((s) => !isStoreMissingLogo(s)).length || 0}</div>
+                  <div className="text-lg font-black">{dbData?.allStores?.filter((s) => !s.isExcluded && !isStoreMissingLogo(s)).length || 0}</div>
                 </button>
 
                 <button
@@ -951,7 +989,23 @@ export default function AdminPage() {
                   }`}
                 >
                   <div className={`text-[11px] font-semibold ${allStoresFilter === 'has_comment' ? 'text-emerald-100' : 'text-emerald-700'}`}>Har notering</div>
-                  <div className="text-lg font-black">{dbData?.allStores?.filter((s) => !!s.comment).length || 0}</div>
+                  <div className="text-lg font-black">{dbData?.allStores?.filter((s) => !s.isExcluded && !!s.comment).length || 0}</div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setAllStoresFilter('excluded')}
+                  className={`text-left rounded-2xl p-3 border transition-all ${
+                    allStoresFilter === 'excluded'
+                      ? 'bg-rose-950 text-white border-rose-950 shadow-xs ring-2 ring-rose-400'
+                      : 'bg-slate-100 hover:bg-rose-50 border-slate-200 text-slate-700 hover:text-rose-900'
+                  }`}
+                >
+                  <div className={`text-[11px] font-semibold flex items-center gap-1 ${allStoresFilter === 'excluded' ? 'text-rose-300' : 'text-slate-500'}`}>
+                    <Trash2 className="w-3 h-3" />
+                    <span>Borttagna</span>
+                  </div>
+                  <div className="text-lg font-black">{dbData?.allStores?.filter((s) => s.isExcluded).length || 0}</div>
                 </button>
               </div>
 
@@ -985,7 +1039,7 @@ export default function AdminPage() {
                         : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                     }`}
                   >
-                    Alla ({dbData?.allStores?.length || 0})
+                    Alla aktiva ({dbData?.allStores?.filter((s) => !s.isExcluded).length || 0})
                   </button>
                   <button
                     type="button"
@@ -997,7 +1051,7 @@ export default function AdminPage() {
                     }`}
                   >
                     <AlertTriangle className="w-3.5 h-3.5" />
-                    <span>Saknar logga ({dbData?.allStores?.filter(isStoreMissingLogo).length || 0})</span>
+                    <span>Saknar logga ({dbData?.allStores?.filter((s) => !s.isExcluded && isStoreMissingLogo(s)).length || 0})</span>
                   </button>
                   <button
                     type="button"
@@ -1008,7 +1062,7 @@ export default function AdminPage() {
                         : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                     }`}
                   >
-                    Partner ({dbData?.allStores?.filter((s) => s.hasPartnerLink).length || 0})
+                    Partner ({dbData?.allStores?.filter((s) => !s.isExcluded && s.hasPartnerLink).length || 0})
                   </button>
                   <button
                     type="button"
@@ -1019,7 +1073,7 @@ export default function AdminPage() {
                         : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                     }`}
                   >
-                    Zupergift ({dbData?.allStores?.filter((s) => s.zupergiftSupported).length || 0})
+                    Zupergift ({dbData?.allStores?.filter((s) => !s.isExcluded && s.zupergiftSupported).length || 0})
                   </button>
                   <button
                     type="button"
@@ -1030,7 +1084,7 @@ export default function AdminPage() {
                         : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                     }`}
                   >
-                    SAS Presentkort ({dbData?.allStores?.filter((s) => s.hasSasGiftCard).length || 0})
+                    SAS Presentkort ({dbData?.allStores?.filter((s) => !s.isExcluded && s.hasSasGiftCard).length || 0})
                   </button>
                   <button
                     type="button"
@@ -1041,7 +1095,7 @@ export default function AdminPage() {
                         : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                     }`}
                   >
-                    Har logga ({dbData?.allStores?.filter((s) => !isStoreMissingLogo(s)).length || 0})
+                    Har logga ({dbData?.allStores?.filter((s) => !s.isExcluded && !isStoreMissingLogo(s)).length || 0})
                   </button>
                   <button
                     type="button"
@@ -1052,7 +1106,19 @@ export default function AdminPage() {
                         : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                     }`}
                   >
-                    Har notering ({dbData?.allStores?.filter((s) => !!s.comment).length || 0})
+                    Har notering ({dbData?.allStores?.filter((s) => !s.isExcluded && !!s.comment).length || 0})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAllStoresFilter('excluded')}
+                    className={`px-3 py-1.5 rounded-lg font-bold transition-colors flex items-center gap-1.5 ${
+                      allStoresFilter === 'excluded'
+                        ? 'bg-rose-950 text-white shadow-xs'
+                        : 'bg-slate-100 text-rose-700 hover:bg-rose-100 border border-rose-200'
+                    }`}
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Borttagna ({dbData?.allStores?.filter((s) => s.isExcluded).length || 0})</span>
                   </button>
                 </div>
               </div>
@@ -1088,7 +1154,9 @@ export default function AdminPage() {
                       <div
                         key={item.id}
                         className={`p-4 sm:p-5 rounded-2xl border transition-all ${
-                          isDirty
+                          item.isExcluded
+                            ? 'border-rose-300 bg-rose-50/20 opacity-80'
+                            : isDirty
                             ? 'border-blue-300 bg-blue-50/20 shadow-xs'
                             : 'border-slate-200 bg-white hover:border-slate-300'
                         }`}
@@ -1131,22 +1199,31 @@ export default function AdminPage() {
 
                             <div className="space-y-1">
                               <div className="flex items-center gap-2 flex-wrap">
-                                <span className="font-bold text-base text-slate-900">{item.name}</span>
-                                {isStoreMissingLogo(item) && !customLogoVal && (
-                                  <span className="px-2 py-0.5 rounded-md bg-rose-100 text-rose-800 font-bold text-[10px] flex items-center gap-1" title="Butiken saknar en giltig bildlogotyp">
-                                    <AlertTriangle className="w-3 h-3 text-rose-600" />
-                                    Saknar logga
+                                <span className={`font-bold text-base ${item.isExcluded ? 'text-slate-500 line-through' : 'text-slate-900'}`}>{item.name}</span>
+                                {item.isExcluded ? (
+                                  <span className="px-2 py-0.5 rounded-md bg-rose-100 text-rose-800 font-bold text-[10px] flex items-center gap-1">
+                                    <Trash2 className="w-3 h-3 text-rose-600" />
+                                    Borttagen / Konkurs
                                   </span>
-                                )}
-                                {item.customLogoUrl && (
-                                  <span className="px-2 py-0.5 rounded-md bg-purple-100 text-purple-800 font-bold text-[10px]" title="Använder manuell alternativ logga">
-                                    Egen logga
-                                  </span>
-                                )}
-                                {item.comment && (
-                                  <span className="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 font-bold text-[10px]" title="Har aktiv kommentar/notering">
-                                    💬 Notering
-                                  </span>
+                                ) : (
+                                  <>
+                                    {isStoreMissingLogo(item) && !customLogoVal && (
+                                      <span className="px-2 py-0.5 rounded-md bg-rose-100 text-rose-800 font-bold text-[10px] flex items-center gap-1" title="Butiken saknar en giltig bildlogotyp">
+                                        <AlertTriangle className="w-3 h-3 text-rose-600" />
+                                        Saknar logga
+                                      </span>
+                                    )}
+                                    {item.customLogoUrl && (
+                                      <span className="px-2 py-0.5 rounded-md bg-purple-100 text-purple-800 font-bold text-[10px]" title="Använder manuell alternativ logga">
+                                        Egen logga
+                                      </span>
+                                    )}
+                                    {item.comment && (
+                                      <span className="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 font-bold text-[10px]" title="Har aktiv kommentar/notering">
+                                        💬 Notering
+                                      </span>
+                                    )}
+                                  </>
                                 )}
                               </div>
 
@@ -1184,10 +1261,11 @@ export default function AdminPage() {
                               </label>
                               <input
                                 type="url"
+                                disabled={item.isExcluded}
                                 value={customLogoVal}
                                 onChange={(e) => updateMetadataEdit({ customLogoUrl: e.target.value })}
                                 placeholder="t.ex. https://example.com/logo.png"
-                                className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs text-slate-800 placeholder-slate-400 focus:border-blue-600 focus:ring-1 focus:ring-blue-100 bg-slate-50 focus:bg-white font-mono"
+                                className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs text-slate-800 placeholder-slate-400 focus:border-blue-600 focus:ring-1 focus:ring-blue-100 bg-slate-50 focus:bg-white font-mono disabled:opacity-50"
                               />
                               <p className="text-[10px] text-slate-400 mt-1">
                                 Skriv över standardloggan på webbplatsen med en egen länk.
@@ -1201,10 +1279,11 @@ export default function AdminPage() {
                               </label>
                               <textarea
                                 rows={2}
+                                disabled={item.isExcluded}
                                 value={commentVal}
                                 onChange={(e) => updateMetadataEdit({ comment: e.target.value })}
                                 placeholder="t.ex. Poäng ges ej på presentkort eller reavaror. Gäller endast online..."
-                                className="w-full px-3 py-1.5 rounded-xl border border-slate-300 text-xs text-slate-800 placeholder-slate-400 focus:border-blue-600 focus:ring-1 focus:ring-blue-100 bg-slate-50 focus:bg-white resize-none"
+                                className="w-full px-3 py-1.5 rounded-xl border border-slate-300 text-xs text-slate-800 placeholder-slate-400 focus:border-blue-600 focus:ring-1 focus:ring-blue-100 bg-slate-50 focus:bg-white resize-none disabled:opacity-50"
                               />
                               <p className="text-[10px] text-slate-400 mt-0.5">
                                 Visas som en informationsnotis för besökare på butikskortet.
@@ -1212,36 +1291,60 @@ export default function AdminPage() {
                             </div>
                           </div>
 
-                          {/* Save & Reset actions */}
+                          {/* Save, Reset, Delete & Restore actions */}
                           <div className="flex lg:flex-col items-center gap-2 shrink-0 self-end lg:self-center pt-2 lg:pt-0">
-                            <button
-                              type="button"
-                              onClick={() => handleSaveStoreMetadata(item.id)}
-                              disabled={isSaving || !isDirty}
-                              className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs ${
-                                isDirty
-                                  ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                                  : 'bg-slate-100 text-slate-400 cursor-not-allowed'
-                              }`}
-                            >
-                              <Save className="w-3.5 h-3.5" />
-                              <span>{isSaving ? 'Sparar...' : isDirty ? 'Spara' : 'Sparad'}</span>
-                            </button>
-
-                            {isDirty && (
+                            {item.isExcluded ? (
                               <button
                                 type="button"
-                                onClick={() => {
-                                  setStoreMetadataEdits((prev) => {
-                                    const next = { ...prev };
-                                    delete next[item.id];
-                                    return next;
-                                  });
-                                }}
-                                className="px-2.5 py-1.5 rounded-xl text-[11px] font-semibold text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+                                onClick={() => handleStoreAction(item.id, item.name, 'restore')}
+                                className="px-3.5 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white flex items-center gap-1.5 transition-colors shadow-xs"
+                                title="Återställ butiken så den syns på sajten och inkluderas i synkar igen"
                               >
-                                Ångra
+                                <RotateCcw className="w-3.5 h-3.5" />
+                                <span>Återställ butik</span>
                               </button>
+                            ) : (
+                              <>
+                                <button
+                                  type="button"
+                                  onClick={() => handleSaveStoreMetadata(item.id)}
+                                  disabled={isSaving || !isDirty}
+                                  className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs ${
+                                    isDirty
+                                      ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                                      : 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                                  }`}
+                                >
+                                  <Save className="w-3.5 h-3.5" />
+                                  <span>{isSaving ? 'Sparar...' : isDirty ? 'Spara' : 'Sparad'}</span>
+                                </button>
+
+                                {isDirty && (
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setStoreMetadataEdits((prev) => {
+                                        const next = { ...prev };
+                                        delete next[item.id];
+                                        return next;
+                                      });
+                                    }}
+                                    className="px-2.5 py-1.5 rounded-xl text-[11px] font-semibold text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+                                  >
+                                    Ångra
+                                  </button>
+                                )}
+
+                                <button
+                                  type="button"
+                                  onClick={() => handleStoreAction(item.id, item.name, 'exclude')}
+                                  className="px-3 py-1.5 rounded-xl text-xs font-semibold text-rose-600 hover:bg-rose-50 hover:text-rose-700 border border-rose-200 flex items-center gap-1 transition-colors"
+                                  title="Ta bort butiken från Poängkollen (t.ex. vid konkurs eller avslutat samarbete med SAS)"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                  <span>Ta bort</span>
+                                </button>
+                              </>
                             )}
                           </div>
                         </div>
@@ -2207,13 +2310,22 @@ export default function AdminPage() {
                         />
                       </div>
 
-                      <div className="self-end pt-1">
+                      <div className="self-end pt-1 flex items-center gap-2">
                         <button
                           type="button"
                           onClick={() => handleSaveStoreRule(store)}
                           className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-xs touch-target"
                         >
                           Spara
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleStoreAction(store.id, store.name, 'exclude')}
+                          className="px-3 py-2 rounded-xl border border-red-200 bg-red-50 hover:bg-red-100 text-red-700 font-bold text-xs transition-colors touch-target flex items-center gap-1"
+                          title="Ta bort butik (konkurs eller försvunnen)"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                          <span className="hidden sm:inline">Ta bort</span>
                         </button>
                       </div>
                     </div>

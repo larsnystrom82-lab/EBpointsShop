@@ -19,40 +19,53 @@ export function cleanStoreSlug(slug: string): string {
  *
  * Injects customLogoUrl and comment from db.storeCustomMetadata.
  */
-export function buildAllStores(db: DatabaseSchema): Store[] {
+export function buildAllStores(db: DatabaseSchema, options?: { includeExcluded?: boolean }): Store[] {
   const metadata = db.storeCustomMetadata || {};
+  const excludedSet = new Set((db.excludedStoreIds || []).map((id) => id.toLowerCase()));
 
-  const baseStores: Store[] = (db.stores || []).map((s) => {
-    const meta = metadata[s.id] || metadata[s.slug];
-    const customLogoUrl = meta?.customLogoUrl?.trim() || s.customLogoUrl || null;
-    const comment = meta?.comment?.trim() || s.comment || null;
+  const isStoreExcluded = (id: string, slug?: string, obj?: { isExcluded?: boolean }): boolean => {
+    if (obj?.isExcluded) return true;
+    if (excludedSet.has(id.toLowerCase())) return true;
+    if (slug && excludedSet.has(slug.toLowerCase())) return true;
+    if (metadata[id]?.isExcluded || metadata[id.toLowerCase()]?.isExcluded) return true;
+    if (slug && (metadata[slug]?.isExcluded || metadata[slug.toLowerCase()]?.isExcluded)) return true;
+    return false;
+  };
 
-    return {
-      id: s.id,
-      name: s.name,
-      slug: s.slug,
-      aliases: s.aliases || [],
-      logoUrl: customLogoUrl || s.logoUrl || `/logos/${s.id}.svg`,
-      customLogoUrl,
-      comment,
-      categories: s.categories || ['department'],
-      isActive: s.isActive ?? true,
-      partnerRule: s.partnerRule,
-      giftCardRule: s.giftCardRule,
-      zupergiftSupported: Boolean(s.zupergiftSupported),
-      isZupergiftOnly: false,
-      hasPartnerLink: Boolean(s.partnerRule?.hasPartnerLink),
-      syncedAt: (s as any).syncedAt || db.lastPartnerSync || undefined,
-    };
-  });
+  const baseStores: Store[] = (db.stores || [])
+    .filter((s) => options?.includeExcluded || !isStoreExcluded(s.id, s.slug, s))
+    .map((s) => {
+      const meta = metadata[s.id] || metadata[s.slug];
+      const customLogoUrl = meta?.customLogoUrl?.trim() || s.customLogoUrl || null;
+      const comment = meta?.comment?.trim() || s.comment || null;
+      const isExcluded = isStoreExcluded(s.id, s.slug, s);
+
+      return {
+        id: s.id,
+        name: s.name,
+        slug: s.slug,
+        aliases: s.aliases || [],
+        logoUrl: customLogoUrl || s.logoUrl || `/logos/${s.id}.svg`,
+        customLogoUrl,
+        comment,
+        categories: s.categories || ['department'],
+        isActive: isExcluded ? false : (s.isActive ?? true),
+        isExcluded,
+        partnerRule: s.partnerRule,
+        giftCardRule: s.giftCardRule,
+        zupergiftSupported: Boolean(s.zupergiftSupported),
+        isZupergiftOnly: false,
+        hasPartnerLink: isExcluded ? false : Boolean(s.partnerRule?.hasPartnerLink),
+        syncedAt: (s as any).syncedAt || db.lastPartnerSync || undefined,
+      };
+    });
 
   const baseStoreIds = new Set(db.stores.map((s) => s.id));
 
   const extraZuperStores: Store[] = (db.zupergiftStores || [])
     .filter(
       (zs) =>
-        !zs.isHidden &&
-        !zs.isExcluded &&
+        (options?.includeExcluded || (!zs.isHidden && !isStoreExcluded(zs.id, zs.slug, zs))) &&
         !baseStoreIds.has(zs.id) &&
         (!zs.matchedStoreId || !baseStoreIds.has(zs.matchedStoreId))
     )
@@ -60,6 +73,7 @@ export function buildAllStores(db: DatabaseSchema): Store[] {
       const meta = metadata[zs.id] || metadata[zs.slug];
       const customLogoUrl = meta?.customLogoUrl?.trim() || (zs as any).customLogoUrl || null;
       const comment = meta?.comment?.trim() || (zs as any).comment || null;
+      const isExcluded = isStoreExcluded(zs.id, zs.slug, zs);
 
       return {
         id: zs.id,
@@ -70,7 +84,8 @@ export function buildAllStores(db: DatabaseSchema): Store[] {
         customLogoUrl,
         comment,
         categories: zs.category ? [zs.category] : ['department'],
-        isActive: true,
+        isActive: isExcluded ? false : true,
+        isExcluded,
         partnerRule: {
           hasPartnerLink: false,
           bonusPer100Kr: 0,
@@ -87,7 +102,7 @@ export function buildAllStores(db: DatabaseSchema): Store[] {
           isCampaign: false,
           startUrl: '',
         },
-        zupergiftSupported: true,
+        zupergiftSupported: !isExcluded,
         isZupergiftOnly: true,
         hasPartnerLink: false,
         syncedAt: zs.syncedAt || db.lastZupergiftSync || undefined,
@@ -129,7 +144,8 @@ export function buildAllStores(db: DatabaseSchema): Store[] {
   const extraSasStores: Store[] = [];
 
   for (const gc of db.sasGiftCards || []) {
-    if (gc.isHidden || gc.isExcluded) {
+    const isExcluded = isStoreExcluded(gc.id, gc.slug, gc);
+    if (!options?.includeExcluded && (gc.isHidden || isExcluded)) {
       continue;
     }
 
@@ -153,7 +169,8 @@ export function buildAllStores(db: DatabaseSchema): Store[] {
       customLogoUrl,
       comment,
       categories: ['department'],
-      isActive: true,
+      isActive: isExcluded ? false : true,
+      isExcluded,
       partnerRule: {
         hasPartnerLink: false,
         bonusPer100Kr: 0,

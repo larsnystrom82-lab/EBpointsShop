@@ -43,6 +43,7 @@ export interface Store {
   hasPartnerLink?: boolean;
   hasSasGiftCard?: boolean;
   sasGiftCardBonusPer100Kr?: number | null;
+  isExcluded?: boolean;
 }
 
 export interface Category {

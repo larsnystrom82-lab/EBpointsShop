@@ -199,6 +199,18 @@ export async function syncSasPartnerStores(): Promise<{
         existingStoresById.get(shopSlug) ||
         existingStoresByName.get(shopNormName);
 
+      // Check if store was permanently deleted/excluded by admin (e.g. bankruptcy or removed)
+      const isExcluded =
+        Boolean(existing?.isExcluded) ||
+        Boolean(db.excludedStoreIds && (db.excludedStoreIds.includes(shopSlug) || (existing && db.excludedStoreIds.includes(existing.id)))) ||
+        Boolean(db.storeCustomMetadata?.[shopSlug]?.isExcluded) ||
+        Boolean(existing && db.storeCustomMetadata?.[existing.id]?.isExcluded);
+
+      if (isExcluded) {
+        // Skip excluded store so it is never re-added or overwritten
+        continue;
+      }
+
       const partnerRule = {
         hasPartnerLink: true,
         bonusPer100Kr,
@@ -256,13 +268,31 @@ export async function syncSasPartnerStores(): Promise<{
       }
     }
 
+    // Detect stores that were partner stores but are no longer in SAS Online Shopping catalog
+    const returnedSlugs = new Set(allShops.map((s) => s.slug?.toLowerCase()).filter(Boolean));
+    const returnedNormNames = new Set(allShops.map((s) => normalizeName(s.name)).filter(Boolean));
+
+    let removedFromSasCount = 0;
+    for (const store of db.stores) {
+      if (store.partnerRule?.hasPartnerLink && !store.isExcluded) {
+        const stillInSas =
+          returnedSlugs.has(store.slug.toLowerCase()) ||
+          returnedSlugs.has(store.id.toLowerCase()) ||
+          returnedNormNames.has(normalizeName(store.name));
+        if (!stillInSas) {
+          store.partnerRule.hasPartnerLink = false;
+          removedFromSasCount++;
+        }
+      }
+    }
+
     db.lastPartnerSync = new Date().toISOString();
 
     db.auditEvents.push({
       id: `audit-${Date.now()}`,
       timestamp: new Date().toISOString(),
       action: 'sync_partner_stores',
-      details: `Synkade ${allShops.length} partnerbutiker från SAS Online Shopping (${newCount} nya, ${updatedCount} uppdaterade, ${campaignCount} kampanjer)`,
+      details: `Synkade ${allShops.length} partnerbutiker från SAS Online Shopping (${newCount} nya, ${updatedCount} uppdaterade, ${removedFromSasCount} borttagna från SAS, ${campaignCount} kampanjer)`,
       user: 'Admin',
     });
 
