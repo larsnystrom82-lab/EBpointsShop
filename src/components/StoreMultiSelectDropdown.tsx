@@ -52,9 +52,10 @@ export const StoreMultiSelectDropdown: React.FC<StoreMultiSelectDropdownProps> =
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [isOpen]);
 
-  // Focus search input when opening
+  // Reset search query and focus search input when opening
   useEffect(() => {
     if (isOpen) {
+      setSearchQuery('');
       setTimeout(() => {
         searchInputRef.current?.focus();
       }, 50);
