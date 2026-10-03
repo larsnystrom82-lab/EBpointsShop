@@ -251,6 +251,8 @@ export function generateCandidateRoutes(options: RouteGenerationOptions): RouteC
       lastCheckedAt: store.syncedAt || options.lastCheckedAt || '2026-10-02T10:47:57.278Z',
       uncertainties: [],
       startUrl: directUrl,
+      customLogoUrl: store.customLogoUrl || null,
+      comment: store.comment || null,
       isDemoFixture: !store.partnerRule?.hasPartnerLink,
       demoLabel: !store.partnerRule?.hasPartnerLink
         ? ((store.id === 'bagaren-och-kocken' || store.id === 'kitchentime')
@@ -330,6 +332,8 @@ export function generateCandidateRoutes(options: RouteGenerationOptions): RouteC
       lastCheckedAt: store.syncedAt || options.lastCheckedAt || '2026-10-02T10:47:57.278Z',
       uncertainties: [],
       startUrl: 'https://www.saseurobonusshop.com/se/gift-cards-vouchers',
+      customLogoUrl: store.customLogoUrl || null,
+      comment: store.comment || null,
       isDemoFixture: store.giftCardRule === undefined,
       demoLabel: store.giftCardRule === undefined
         ? (store.id === 'elgiganten'
@@ -420,6 +424,8 @@ export function generateCandidateRoutes(options: RouteGenerationOptions): RouteC
       lastCheckedAt: store.syncedAt || options.lastCheckedAt || '2026-10-02T11:10:41.783Z',
       uncertainties: [],
       startUrl: 'https://www.saseurobonusshop.com/se/gift-cards-vouchers',
+      customLogoUrl: store.customLogoUrl || null,
+      comment: store.comment || null,
       isDemoFixture: store.zupergiftSupported === undefined,
       demoLabel: store.zupergiftSupported === undefined
         ? 'Demonstrationsdata (syntetiska testregler)'
@@ -511,6 +517,8 @@ export function generateCandidateRoutes(options: RouteGenerationOptions): RouteC
         lastCheckedAt: sasGiftCardItem.updatedAt || sasGiftCardItem.syncedAt || options.lastCheckedAt || new Date().toISOString(),
         uncertainties,
         startUrl: 'https://www.saseurobonusshop.com/se/gift-cards-vouchers',
+        customLogoUrl: store.customLogoUrl || null,
+        comment: store.comment || null,
         isDemoFixture: false,
       });
     }

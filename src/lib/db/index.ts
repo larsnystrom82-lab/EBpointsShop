@@ -58,6 +58,8 @@ export interface DbStore {
   giftCardRule: StoreGiftCardRule;
   zupergiftSupported: boolean;
   isZupergiftOnly?: boolean;
+  customLogoUrl?: string | null;
+  comment?: string | null;
 }
 
 export interface DbErrorReport {
@@ -106,12 +108,20 @@ export interface SasGiftCardStoreItem {
   updatedAt: string | null; // null = never updated by admin
 }
 
+export interface StoreMetadataItem {
+  customLogoUrl?: string | null;
+  comment?: string | null;
+  updatedAt?: string | null;
+  updatedBy?: string | null;
+}
+
 export interface DatabaseSchema {
   zupergiftConfig: ZupergiftConfig;
   zupergiftStores: ZupergiftStoreItem[]; // Fullständig lista över Zupergift-butiker
   sasGiftCards: SasGiftCardStoreItem[];
   stores: DbStore[];
   categories?: DbCategory[];
+  storeCustomMetadata?: Record<string, StoreMetadataItem>;
   errorReports: DbErrorReport[];
   auditEvents: DbAuditEvent[];
   lastZupergiftSync: string | null;
@@ -442,6 +452,12 @@ export function getDatabase(): DatabaseSchema {
     // Initialize lastSasGiftCardSync if missing
     if (!('lastSasGiftCardSync' in parsed)) {
       (parsed as DatabaseSchema).lastSasGiftCardSync = null;
+      saveDatabase(parsed);
+    }
+
+    // Initialize storeCustomMetadata if missing
+    if (!parsed.storeCustomMetadata || typeof parsed.storeCustomMetadata !== 'object') {
+      parsed.storeCustomMetadata = {};
       saveDatabase(parsed);
     }
 

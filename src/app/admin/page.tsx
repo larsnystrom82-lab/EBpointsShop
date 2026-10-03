@@ -23,9 +23,17 @@ import {
   Mail,
   Tag,
   Plus,
+  ImageIcon,
+  MessageSquare,
+  Building,
 } from 'lucide-react';
 import type { DatabaseSchema, DbStore, ZupergiftStoreItem } from '@/lib/db';
+import type { Store } from '@/types/domain';
 import { DEMO_CATEGORIES } from '@/lib/fixtures/demo-data';
+
+interface AdminData extends DatabaseSchema {
+  allStores?: Store[];
+}
 
 export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
@@ -33,9 +41,18 @@ export default function AdminPage() {
   const [loginError, setLoginError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const [activeTab, setActiveTab] = useState<'zupergift' | 'sas_giftcards' | 'stores' | 'categories' | 'reports' | 'audit'>('zupergift');
-  const [dbData, setDbData] = useState<DatabaseSchema | null>(null);
+  const [activeTab, setActiveTab] = useState<'all_stores' | 'zupergift' | 'sas_giftcards' | 'stores' | 'categories' | 'reports' | 'audit'>('all_stores');
+  const [dbData, setDbData] = useState<AdminData | null>(null);
   const [statusMessage, setStatusMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
+
+  // States for "Alla butiker" tab
+  const [allStoresSearch, setAllStoresSearch] = useState('');
+  const [allStoresFilter, setAllStoresFilter] = useState<'all' | 'partner' | 'zupergift' | 'sas' | 'has_logo' | 'has_comment'>('all');
+  const [storeMetadataEdits, setStoreMetadataEdits] = useState<Record<string, {
+    customLogoUrl: string;
+    comment: string;
+  }>>({});
+  const [storeMetadataSaving, setStoreMetadataSaving] = useState<Record<string, boolean>>({});
 
   // Form states for Category management
   const [newCategoryName, setNewCategoryName] = useState('');
@@ -261,6 +278,47 @@ export default function AdminPage() {
     } catch {
       setStatusMessage({ text: 'Fel vid exkludering', type: 'error' });
     } finally {
+      setTimeout(() => setStatusMessage(null), 4000);
+    }
+  };
+
+  // Save custom logo and comments for any store in All Stores
+  const handleSaveStoreMetadata = async (storeId: string) => {
+    const edit = storeMetadataEdits[storeId];
+    const store = dbData?.allStores?.find((s) => s.id === storeId);
+    if (!store) return;
+
+    setStoreMetadataSaving((prev) => ({ ...prev, [storeId]: true }));
+    try {
+      const customLogoUrl = edit?.customLogoUrl !== undefined ? edit.customLogoUrl : (store.customLogoUrl || '');
+      const comment = edit?.comment !== undefined ? edit.comment : (store.comment || '');
+
+      const res = await fetch('/api/admin/store-metadata', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          storeId,
+          customLogoUrl: customLogoUrl.trim() || null,
+          comment: comment.trim() || null,
+        }),
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        setStatusMessage({ text: data.message || `Information för "${store.name}" har sparats.`, type: 'success' });
+        await fetchAdminData();
+        setStoreMetadataEdits((prev) => {
+          const next = { ...prev };
+          delete next[storeId];
+          return next;
+        });
+      } else {
+        setStatusMessage({ text: data.error || 'Kunde inte spara', type: 'error' });
+      }
+    } catch {
+      setStatusMessage({ text: 'Fel vid sparning av butiksinformation', type: 'error' });
+    } finally {
+      setStoreMetadataSaving((prev) => ({ ...prev, [storeId]: false }));
       setTimeout(() => setStatusMessage(null), 4000);
     }
   };
@@ -508,6 +566,38 @@ export default function AdminPage() {
     });
   }, [dbData?.sasGiftCards, sasGcSearch, sasGcFilter]);
 
+  // Filtered list for "Alla butiker" tab
+  const filteredAllStores = useMemo(() => {
+    if (!dbData?.allStores) return [];
+    return dbData.allStores.filter((item) => {
+      if (allStoresFilter === 'partner' && !item.hasPartnerLink) return false;
+      if (allStoresFilter === 'zupergift' && !item.zupergiftSupported) return false;
+      if (allStoresFilter === 'sas' && !item.hasSasGiftCard) return false;
+      if (allStoresFilter === 'has_logo' && !item.customLogoUrl) return false;
+      if (allStoresFilter === 'has_comment' && !item.comment) return false;
+
+      if (allStoresSearch.trim()) {
+        const q = allStoresSearch.toLowerCase();
+        return (
+          item.name.toLowerCase().includes(q) ||
+          item.slug.toLowerCase().includes(q) ||
+          (item.categories && item.categories.some((c) => c.toLowerCase().includes(q))) ||
+          (item.comment && item.comment.toLowerCase().includes(q))
+        );
+      }
+      return true;
+    });
+  }, [dbData?.allStores, allStoresFilter, allStoresSearch]);
+
+  const categoryNameMap = useMemo(() => {
+    const map = new Map<string, string>();
+    const list = dbData?.categories && dbData.categories.length > 0 ? dbData.categories : DEMO_CATEGORIES;
+    for (const c of list) {
+      map.set(c.id, c.name);
+    }
+    return map;
+  }, [dbData?.categories]);
+
   if (isAuthenticated === false) {
     return (
       <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
@@ -625,6 +715,19 @@ export default function AdminPage() {
         <div className="flex items-center gap-2 border-b border-slate-200 overflow-x-auto pb-1 scrollbar-none">
           <button
             type="button"
+            onClick={() => setActiveTab('all_stores')}
+            className={`px-4 py-2.5 rounded-t-xl text-xs sm:text-sm font-bold flex items-center gap-2 border-b-2 transition-all ${
+              activeTab === 'all_stores'
+                ? 'bg-white text-blue-600 border-blue-600 shadow-2xs'
+                : 'text-slate-600 hover:text-slate-900 border-transparent'
+            }`}
+          >
+            <StoreIcon className="w-4 h-4 text-indigo-600" />
+            <span>Alla butiker ({dbData?.allStores?.length || 0})</span>
+          </button>
+
+          <button
+            type="button"
             onClick={() => setActiveTab('zupergift')}
             className={`px-4 py-2.5 rounded-t-xl text-xs sm:text-sm font-bold flex items-center gap-2 border-b-2 transition-all ${
               activeTab === 'zupergift'
@@ -701,6 +804,325 @@ export default function AdminPage() {
             <span>Auditlogg</span>
           </button>
         </div>
+
+        {/* TAB: ALLA BUTIKER */}
+        {activeTab === 'all_stores' && (
+          <div className="space-y-6">
+            <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-xs border border-slate-200/90 space-y-6">
+              {/* Header */}
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                  <div className="flex items-center gap-2 text-xs font-bold text-indigo-600 uppercase tracking-wider mb-1">
+                    <StoreIcon className="w-4 h-4" />
+                    Katalogöversikt &amp; Metadata
+                  </div>
+                  <h2 className="text-xl font-black text-slate-900">
+                    Alla butiker ({dbData?.allStores?.length || 0})
+                  </h2>
+                  <p className="text-xs sm:text-sm text-slate-500 mt-1 max-w-3xl">
+                    Samlad lista över samtliga butiker i systemet oavsett kanal (Partner, Zupergift och SAS Presentkort).
+                    Här kan du specificera en alternativ butikslogga eller skriva en speciell kommentar/villkor per butik som visas för besökare.
+                  </p>
+                </div>
+              </div>
+
+              {/* Statistik-chips */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 pt-1">
+                <div className="bg-slate-50 rounded-2xl p-3 border border-slate-200/60">
+                  <div className="text-[11px] font-semibold text-slate-500">Alla butiker</div>
+                  <div className="text-lg font-black text-slate-900">{dbData?.allStores?.length || 0}</div>
+                </div>
+                <div className="bg-blue-50/60 rounded-2xl p-3 border border-blue-100">
+                  <div className="text-[11px] font-semibold text-blue-700">SAS Partner</div>
+                  <div className="text-lg font-black text-blue-900">{dbData?.allStores?.filter((s) => s.hasPartnerLink).length || 0}</div>
+                </div>
+                <div className="bg-amber-50/60 rounded-2xl p-3 border border-amber-100">
+                  <div className="text-[11px] font-semibold text-amber-700">Zupergift</div>
+                  <div className="text-lg font-black text-amber-900">{dbData?.allStores?.filter((s) => s.zupergiftSupported).length || 0}</div>
+                </div>
+                <div className="bg-indigo-50/60 rounded-2xl p-3 border border-indigo-100">
+                  <div className="text-[11px] font-semibold text-indigo-700">SAS Presentkort</div>
+                  <div className="text-lg font-black text-indigo-900">{dbData?.allStores?.filter((s) => s.hasSasGiftCard).length || 0}</div>
+                </div>
+                <div className="bg-purple-50/60 rounded-2xl p-3 border border-purple-100">
+                  <div className="text-[11px] font-semibold text-purple-700">Anpassad logga</div>
+                  <div className="text-lg font-black text-purple-900">{dbData?.allStores?.filter((s) => !!s.customLogoUrl).length || 0}</div>
+                </div>
+                <div className="bg-emerald-50/60 rounded-2xl p-3 border border-emerald-100">
+                  <div className="text-[11px] font-semibold text-emerald-700">Har notering</div>
+                  <div className="text-lg font-black text-emerald-900">{dbData?.allStores?.filter((s) => !!s.comment).length || 0}</div>
+                </div>
+              </div>
+
+              {/* Sök och filterrad */}
+              <div className="flex flex-col sm:flex-row gap-3 items-center justify-between pt-2 border-t border-slate-100">
+                <div className="relative w-full sm:w-80">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                    <Search className="w-4 h-4" />
+                  </div>
+                  <input
+                    type="text"
+                    value={allStoresSearch}
+                    onChange={(e) => setAllStoresSearch(e.target.value)}
+                    placeholder="Sök bland alla butiker (namn, kategori)..."
+                    className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-300 text-xs bg-slate-50 focus:bg-white"
+                  />
+                </div>
+
+                {/* Filterknappar */}
+                <div className="flex flex-wrap items-center gap-1.5 self-start sm:self-auto text-xs">
+                  <span className="text-slate-400 font-semibold mr-1 flex items-center gap-1">
+                    <Filter className="w-3.5 h-3.5" />
+                    Visa:
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setAllStoresFilter('all')}
+                    className={`px-3 py-1.5 rounded-lg font-bold transition-colors ${
+                      allStoresFilter === 'all'
+                        ? 'bg-slate-900 text-white'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    Alla ({dbData?.allStores?.length || 0})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAllStoresFilter('partner')}
+                    className={`px-3 py-1.5 rounded-lg font-bold transition-colors ${
+                      allStoresFilter === 'partner'
+                        ? 'bg-blue-700 text-white'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    Partner ({dbData?.allStores?.filter((s) => s.hasPartnerLink).length || 0})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAllStoresFilter('zupergift')}
+                    className={`px-3 py-1.5 rounded-lg font-bold transition-colors ${
+                      allStoresFilter === 'zupergift'
+                        ? 'bg-amber-600 text-white'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    Zupergift ({dbData?.allStores?.filter((s) => s.zupergiftSupported).length || 0})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAllStoresFilter('sas')}
+                    className={`px-3 py-1.5 rounded-lg font-bold transition-colors ${
+                      allStoresFilter === 'sas'
+                        ? 'bg-indigo-700 text-white'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    SAS Presentkort ({dbData?.allStores?.filter((s) => s.hasSasGiftCard).length || 0})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAllStoresFilter('has_logo')}
+                    className={`px-3 py-1.5 rounded-lg font-bold transition-colors ${
+                      allStoresFilter === 'has_logo'
+                        ? 'bg-purple-700 text-white'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    Anpassad logga ({dbData?.allStores?.filter((s) => !!s.customLogoUrl).length || 0})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAllStoresFilter('has_comment')}
+                    className={`px-3 py-1.5 rounded-lg font-bold transition-colors ${
+                      allStoresFilter === 'has_comment'
+                        ? 'bg-emerald-700 text-white'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    Har notering ({dbData?.allStores?.filter((s) => !!s.comment).length || 0})
+                  </button>
+                </div>
+              </div>
+
+              {/* Butikslista */}
+              {filteredAllStores.length === 0 ? (
+                <div className="text-center py-12 text-slate-400 text-sm">
+                  <StoreIcon className="w-8 h-8 mx-auto mb-2 opacity-40" />
+                  <p>Inga butiker matchar ditt filter eller din sökning.</p>
+                </div>
+              ) : (
+                <div className="space-y-4 max-h-[750px] overflow-y-auto pr-1">
+                  {filteredAllStores.map((item) => {
+                    const edit = storeMetadataEdits[item.id];
+                    const customLogoVal = edit?.customLogoUrl !== undefined ? edit.customLogoUrl : (item.customLogoUrl || '');
+                    const commentVal = edit?.comment !== undefined ? edit.comment : (item.comment || '');
+                    const isDirty = edit !== undefined;
+                    const isSaving = Boolean(storeMetadataSaving[item.id]);
+                    const previewLogoUrl = customLogoVal.trim() || item.logoUrl;
+
+                    const updateMetadataEdit = (patch: Partial<{ customLogoUrl: string; comment: string }>) => {
+                      setStoreMetadataEdits((prev) => ({
+                        ...prev,
+                        [item.id]: {
+                          customLogoUrl: edit?.customLogoUrl !== undefined ? edit.customLogoUrl : (item.customLogoUrl || ''),
+                          comment: edit?.comment !== undefined ? edit.comment : (item.comment || ''),
+                          ...patch,
+                        },
+                      }));
+                    };
+
+                    return (
+                      <div
+                        key={item.id}
+                        className={`p-4 sm:p-5 rounded-2xl border transition-all ${
+                          isDirty
+                            ? 'border-blue-300 bg-blue-50/20 shadow-xs'
+                            : 'border-slate-200 bg-white hover:border-slate-300'
+                        }`}
+                      >
+                        <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
+                          {/* Store info & logo preview */}
+                          <div className="flex items-start gap-3.5 min-w-[240px] max-w-sm">
+                            <div className="w-14 h-14 rounded-2xl border border-slate-200 bg-white p-1 flex items-center justify-center shrink-0 overflow-hidden shadow-2xs relative">
+                              {previewLogoUrl ? (
+                                <img
+                                  src={previewLogoUrl}
+                                  alt={item.name}
+                                  className="w-full h-full object-contain"
+                                  onError={(e) => {
+                                    (e.target as HTMLElement).style.display = 'none';
+                                    const fallback = (e.target as HTMLElement).nextElementSibling as HTMLElement;
+                                    if (fallback) fallback.style.display = 'flex';
+                                  }}
+                                />
+                              ) : null}
+                              <div
+                                className={`w-full h-full items-center justify-center font-bold text-slate-400 text-lg uppercase ${
+                                  previewLogoUrl ? 'hidden' : 'flex'
+                                }`}
+                              >
+                                {item.name.charAt(0)}
+                              </div>
+                            </div>
+
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="font-bold text-base text-slate-900">{item.name}</span>
+                                {item.customLogoUrl && (
+                                  <span className="px-2 py-0.5 rounded-md bg-purple-100 text-purple-800 font-bold text-[10px]" title="Använder manuell alternativ logga">
+                                    Egen logga
+                                  </span>
+                                )}
+                                {item.comment && (
+                                  <span className="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 font-bold text-[10px]" title="Har aktiv kommentar/notering">
+                                    💬 Notering
+                                  </span>
+                                )}
+                              </div>
+
+                              <div className="text-[11px] text-slate-400 font-mono">
+                                ID: {item.id}
+                              </div>
+
+                              {/* Integrations-badges */}
+                              <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
+                                {item.hasPartnerLink && (
+                                  <span className="px-2 py-0.5 rounded-md bg-blue-100 text-blue-800 font-semibold text-[10px]">
+                                    Partner ({item.partnerRule?.bonusPer100Kr || 0} p/100 kr)
+                                  </span>
+                                )}
+                                {item.zupergiftSupported && (
+                                  <span className="px-2 py-0.5 rounded-md bg-amber-100 text-amber-800 font-semibold text-[10px]">
+                                    Zupergift
+                                  </span>
+                                )}
+                                {item.hasSasGiftCard && (
+                                  <span className="px-2 py-0.5 rounded-md bg-indigo-100 text-indigo-800 font-semibold text-[10px]">
+                                    SAS Presentkort {item.sasGiftCardBonusPer100Kr ? `(${item.sasGiftCardBonusPer100Kr} p/100 kr)` : ''}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Editable fields: Custom Logo URL and Comment */}
+                          <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-3 min-w-0">
+                            <div>
+                              <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1 flex items-center gap-1">
+                                <ImageIcon className="w-3.5 h-3.5 text-purple-600" />
+                                <span>Alternativ logga (URL)</span>
+                              </label>
+                              <input
+                                type="url"
+                                value={customLogoVal}
+                                onChange={(e) => updateMetadataEdit({ customLogoUrl: e.target.value })}
+                                placeholder="t.ex. https://example.com/logo.png"
+                                className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs text-slate-800 placeholder-slate-400 focus:border-blue-600 focus:ring-1 focus:ring-blue-100 bg-slate-50 focus:bg-white font-mono"
+                              />
+                              <p className="text-[10px] text-slate-400 mt-1">
+                                Skriv över standardloggan på webbplatsen med en egen länk.
+                              </p>
+                            </div>
+
+                            <div>
+                              <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1 flex items-center gap-1">
+                                <MessageSquare className="w-3.5 h-3.5 text-emerald-600" />
+                                <span>Speciell kommentar / notering</span>
+                              </label>
+                              <textarea
+                                rows={2}
+                                value={commentVal}
+                                onChange={(e) => updateMetadataEdit({ comment: e.target.value })}
+                                placeholder="t.ex. Poäng ges ej på presentkort eller reavaror. Gäller endast online..."
+                                className="w-full px-3 py-1.5 rounded-xl border border-slate-300 text-xs text-slate-800 placeholder-slate-400 focus:border-blue-600 focus:ring-1 focus:ring-blue-100 bg-slate-50 focus:bg-white resize-none"
+                              />
+                              <p className="text-[10px] text-slate-400 mt-0.5">
+                                Visas som en informationsnotis för besökare på butikskortet.
+                              </p>
+                            </div>
+                          </div>
+
+                          {/* Save & Reset actions */}
+                          <div className="flex lg:flex-col items-center gap-2 shrink-0 self-end lg:self-center pt-2 lg:pt-0">
+                            <button
+                              type="button"
+                              onClick={() => handleSaveStoreMetadata(item.id)}
+                              disabled={isSaving || !isDirty}
+                              className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs ${
+                                isDirty
+                                  ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                                  : 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                              }`}
+                            >
+                              <Save className="w-3.5 h-3.5" />
+                              <span>{isSaving ? 'Sparar...' : isDirty ? 'Spara' : 'Sparad'}</span>
+                            </button>
+
+                            {isDirty && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setStoreMetadataEdits((prev) => {
+                                    const next = { ...prev };
+                                    delete next[item.id];
+                                    return next;
+                                  });
+                                }}
+                                className="px-2.5 py-1.5 rounded-xl text-[11px] font-semibold text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+                              >
+                                Ångra
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* TAB 1: ZUPERGIFT & PRESENTKORT */}
         {activeTab === 'zupergift' && (

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { isAuthenticated } from '@/lib/admin-auth';
 import { getDatabase } from '@/lib/db';
+import { buildAllStores } from '@/lib/services/store-resolver';
 
 export async function GET() {
   const authed = await isAuthenticated();
@@ -9,5 +10,9 @@ export async function GET() {
   }
 
   const db = getDatabase();
-  return NextResponse.json(db);
+  const allStores = buildAllStores(db);
+  return NextResponse.json({
+    ...db,
+    allStores,
+  });
 }

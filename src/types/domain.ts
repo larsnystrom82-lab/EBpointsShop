@@ -38,6 +38,11 @@ export interface Store {
   syncedAt?: string;
   partnerRule?: StorePartnerRule;
   giftCardRule?: StoreGiftCardRule;
+  customLogoUrl?: string | null;
+  comment?: string | null;
+  hasPartnerLink?: boolean;
+  hasSasGiftCard?: boolean;
+  sasGiftCardBonusPer100Kr?: number | null;
 }
 
 export interface Category {
@@ -166,6 +171,9 @@ export interface RouteCalculationResult {
   lastCheckedAt: string;
   uncertainties: string[];
   startUrl: string;
+
+  customLogoUrl?: string | null;
+  comment?: string | null;
 
   isDemoFixture?: boolean;
   demoLabel?: string;

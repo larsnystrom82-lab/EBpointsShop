@@ -158,6 +158,14 @@ export const AlternativeCard: React.FC<AlternativeCardProps> = ({
               >
                 {difficultyText}
               </span>
+              {route.comment && (
+                <span
+                  className="text-[11px] font-semibold text-amber-800 bg-amber-50 border border-amber-200/80 px-2 py-0.5 rounded-md flex items-center gap-1 cursor-help"
+                  title={route.comment}
+                >
+                  <span>💬 Notering</span>
+                </span>
+              )}
             </div>
 
             {/* Breadcrumb och kontrolltid */}
@@ -363,6 +371,16 @@ export const AlternativeCard: React.FC<AlternativeCardProps> = ({
               <div>
                 <span className="font-bold">Engångsbonus: </span>
                 {route.oneTimeTerms || 'Denna bonus faller inte ut per 100 kr, utan utgör en fast engångsbonus vid första köpet/tecknandet.'}
+              </div>
+            </div>
+          )}
+
+          {route.comment && (
+            <div className="bg-amber-50/90 border border-amber-200/90 rounded-xl p-3 text-xs text-amber-900 flex items-start gap-2.5 shadow-2xs">
+              <span className="font-bold text-sm leading-none shrink-0 mt-0.5">💬</span>
+              <div>
+                <span className="font-bold">Notering om butiken: </span>
+                {route.comment}
               </div>
             </div>
           )}
