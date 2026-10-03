@@ -15,6 +15,16 @@ import { Info, Plane } from 'lucide-react';
 
 const STORAGE_KEY = 'poangkollen_user_preferences_v2';
 
+function cleanSlug(slug: string): string {
+  return (slug || '')
+    .toLowerCase()
+    .replace(/^presentkort-/, '')
+    .replace(/-presentkort$/, '')
+    .replace(/-se$/, '')
+    .replace(/-r24$/, '')
+    .replace(/-sek$/, '');
+}
+
 export default function Home() {
   // Dynamic stores list (loaded from API with DEMO_STORES fallback)
   const [allStores, setAllStores] = useState<Store[]>(DEMO_STORES);
@@ -218,7 +228,16 @@ export default function Home() {
     for (const store of matchingStores) {
       // Find matching SAS gift card for this store (active ones only)
       const sasGiftCardItem = sasGiftCards.find(
-        (gc) => gc.matchedStoreId === store.id || gc.id === store.slug || gc.slug === store.slug
+        (gc) =>
+          gc.matchedStoreId === store.id ||
+          gc.matchedStoreId === store.slug ||
+          gc.id === store.id ||
+          gc.slug === store.slug ||
+          gc.id === store.slug ||
+          cleanSlug(gc.id) === cleanSlug(store.id) ||
+          cleanSlug(gc.slug) === cleanSlug(store.slug) ||
+          cleanSlug(gc.id) === cleanSlug(store.slug) ||
+          gc.name.trim().toLowerCase() === store.name.trim().toLowerCase()
       ) ?? null;
 
       const routes = generateCandidateRoutes({

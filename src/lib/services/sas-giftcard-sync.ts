@@ -334,31 +334,41 @@ export async function syncSasGiftCardStores(): Promise<{
     return true;
   });
 
-  // Helper to match store to db.stores
+  // Helper to match store to db.stores or db.zupergiftStores
   function findMatchedStoreId(slug: string, name: string): string | undefined {
     const cleanSlug = slug
       .replace(/^presentkort-/, '')
       .replace(/-presentkort$/, '')
       .replace(/-se$/, '')
-      .replace(/-r24$/, '');
+      .replace(/-r24$/, '')
+      .replace(/-sek$/, '');
 
-    const nameLower = name.toLowerCase();
+    const nameLower = name.trim().toLowerCase();
 
-    // 1. Exact slug or id match
-    const bySlug = db.stores.find(
+    // 1. Check db.stores by slug, id, cleanSlug, name, aliases
+    const byStoreSlug = db.stores.find(
       (s) => s.slug === cleanSlug || s.id === cleanSlug || s.slug === slug || s.id === slug
     );
-    if (bySlug) return bySlug.id;
+    if (byStoreSlug) return byStoreSlug.id;
 
-    // 2. Exact name match
-    const byName = db.stores.find((s) => s.name.toLowerCase() === nameLower);
-    if (byName) return byName.id;
+    const byStoreName = db.stores.find((s) => s.name.trim().toLowerCase() === nameLower);
+    if (byStoreName) return byStoreName.id;
 
-    // 3. Exact alias match
-    const byAlias = db.stores.find((s) =>
+    const byStoreAlias = db.stores.find((s) =>
       s.aliases.some((a) => a.toLowerCase() === nameLower || a.toLowerCase() === cleanSlug)
     );
-    if (byAlias) return byAlias.id;
+    if (byStoreAlias) return byStoreAlias.id;
+
+    // 2. Check db.zupergiftStores by slug, id, cleanSlug, name
+    const byZuperSlug = (db.zupergiftStores || []).find(
+      (s) => s.slug === cleanSlug || s.id === cleanSlug || s.slug === slug || s.id === slug
+    );
+    if (byZuperSlug) return byZuperSlug.matchedStoreId || byZuperSlug.id;
+
+    const byZuperName = (db.zupergiftStores || []).find(
+      (s) => s.name.trim().toLowerCase() === nameLower
+    );
+    if (byZuperName) return byZuperName.matchedStoreId || byZuperName.id;
 
     return undefined;
   }

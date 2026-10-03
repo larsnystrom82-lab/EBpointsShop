@@ -537,4 +537,81 @@ describe('EuroBonus Beräkningsmotor – Acceptanstester A03–A16', () => {
     });
     expect(noneAllowed.length).toBe(0);
   });
+
+  it('IKEA: genererar både Zupergift-kedja och SAS EuroBonus Shop butikspresentkort under samma butik', () => {
+    const ikeaStore: Store = {
+      id: 'ikea',
+      name: 'IKEA',
+      slug: 'ikea',
+      aliases: ['ikea.se'],
+      logoUrl: '/logos/ikea.svg',
+      categories: ['department'],
+      isActive: true,
+      partnerRule: {
+        hasPartnerLink: false,
+        bonusPer100Kr: 0,
+        tierPer100Kr: 0,
+        isCampaign: false,
+        campaignValidUntil: null,
+        startUrl: '',
+      },
+      giftCardRule: {
+        hasDirectGiftCard: false,
+        bonusPer100Kr: 0,
+        denominationsKr: [],
+        feeKr: 0,
+        isCampaign: false,
+        startUrl: '',
+      },
+      zupergiftSupported: true,
+      isZupergiftOnly: false,
+    };
+
+    const routes = generateCandidateRoutes({
+      store: ikeaStore,
+      purchaseAmountKr: 1000,
+      allowGiftCards: true,
+      allowZupergift: true,
+      zupergiftRatePer100Kr: 30,
+      sasGiftCardItem: {
+        id: 'ikea-se',
+        name: 'IKEA',
+        slug: 'ikea-se',
+        bonusPer100Kr: 50,
+        minPurchaseAmount: null,
+        isCampaign: false,
+        campaignValidUntil: null,
+        isHidden: false,
+        isExcluded: false,
+        matchedStoreId: 'ikea',
+        note: '',
+        syncedAt: '2026-10-02T23:23:05.841Z',
+        updatedAt: null,
+      },
+    });
+
+    // Båda rutterna ska finnas under butiken IKEA
+    expect(routes.length).toBe(2);
+    const zgRoute = routes.find((r) => r.routeType === 'zupergift_chain');
+    const sasRoute = routes.find((r) => r.routeType === 'gift_card');
+
+    expect(zgRoute).toBeDefined();
+    expect(sasRoute).toBeDefined();
+    expect(sasRoute?.routeTitle).toBe('SAS EuroBonus Shop – IKEA presentkort');
+    expect(sasRoute?.baseBonusPoints).toBe(500); // 1000 kr * 50 / 100 = 500 poäng
+    expect(zgRoute?.baseBonusPoints).toBe(300); // 1000 kr * 30 / 100 = 300 poäng
+
+    // När rutterna rankas ska SAS-presentkortet komma först eftersom det ger 50p/100kr (500p) mot Zupergifts 30p/100kr (300p)
+    const ranked = processAndRankRoutes(routes, {
+      ...defaultFilter,
+      selectedStoreIds: ['ikea'],
+      purchaseAmountKr: 1000,
+    });
+
+    expect(ranked[0].routeType).toBe('gift_card');
+    expect(ranked[0].baseBonusPoints).toBe(500);
+    expect(ranked[1].routeType).toBe('zupergift_chain');
+    expect(ranked[1].baseBonusPoints).toBe(300);
+  });
 });
+

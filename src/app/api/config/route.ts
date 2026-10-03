@@ -60,23 +60,70 @@ export async function GET() {
       syncedAt: zs.syncedAt || db.lastZupergiftSync || undefined,
     }));
 
-  const existingStoreIds = new Set([
-    ...baseStoreIds,
-    ...extraZuperStores.map((s) => s.id),
-    ...extraZuperStores.map((s) => s.slug),
-  ]);
+  function cleanSlug(slug: string): string {
+    return (slug || '')
+      .toLowerCase()
+      .replace(/^presentkort-/, '')
+      .replace(/-presentkort$/, '')
+      .replace(/-se$/, '')
+      .replace(/-r24$/, '')
+      .replace(/-sek$/, '');
+  }
 
-  const extraSasStores = (db.sasGiftCards || [])
-    .filter(
-      (gc) =>
-        !gc.isHidden &&
-        !gc.isExcluded &&
-        (gc.bonusPer100Kr ?? 0) > 0 &&
-        !existingStoreIds.has(gc.id) &&
-        !existingStoreIds.has(gc.slug) &&
-        (!gc.matchedStoreId || !existingStoreIds.has(gc.matchedStoreId))
-    )
-    .map((gc) => ({
+  const existingStores = [...baseStores, ...extraZuperStores];
+
+  const existingStoreIds = new Set<string>();
+  const existingStoreNames = new Set<string>();
+  const cleanSlugMap = new Map<string, string>(); // cleanSlug -> store id
+
+  for (const s of existingStores) {
+    existingStoreIds.add(s.id);
+    existingStoreIds.add(s.slug);
+    if (s.aliases) {
+      for (const a of s.aliases) existingStoreIds.add(a.toLowerCase());
+    }
+    existingStoreNames.add(s.name.trim().toLowerCase());
+    cleanSlugMap.set(cleanSlug(s.id), s.id);
+    cleanSlugMap.set(cleanSlug(s.slug), s.id);
+  }
+
+  // Find if a SAS gift card matches an existing store
+  function findExistingStoreId(gc: any): string | undefined {
+    if (gc.matchedStoreId && existingStoreIds.has(gc.matchedStoreId)) {
+      return gc.matchedStoreId;
+    }
+    if (existingStoreIds.has(gc.id)) return gc.id;
+    if (existingStoreIds.has(gc.slug)) return gc.slug;
+
+    const gcClean = cleanSlug(gc.slug || gc.id);
+    if (cleanSlugMap.has(gcClean)) {
+      return cleanSlugMap.get(gcClean);
+    }
+
+    const nameLower = (gc.name || '').trim().toLowerCase();
+    const storeByName = existingStores.find(
+      (s) => s.name.trim().toLowerCase() === nameLower
+    );
+    if (storeByName) return storeByName.id;
+
+    return undefined;
+  }
+
+  const extraSasStores: typeof baseStores = [];
+
+  for (const gc of db.sasGiftCards || []) {
+    if (gc.isHidden || gc.isExcluded || (gc.bonusPer100Kr ?? 0) <= 0) {
+      continue;
+    }
+
+    const matchedId = findExistingStoreId(gc);
+    if (matchedId) {
+      // Store already exists (either in baseStores or extraZuperStores) - do not duplicate
+      continue;
+    }
+
+    // Completely new store only available as SAS gift card
+    const newStore = {
       id: gc.id,
       name: gc.name,
       slug: gc.slug,
@@ -103,11 +150,33 @@ export async function GET() {
       zupergiftSupported: false,
       isZupergiftOnly: false,
       syncedAt: gc.syncedAt || undefined,
-    }));
+    };
+
+    extraSasStores.push(newStore);
+    existingStores.push(newStore);
+    existingStoreIds.add(gc.id);
+    existingStoreIds.add(gc.slug);
+    existingStoreNames.add(gc.name.trim().toLowerCase());
+    cleanSlugMap.set(cleanSlug(gc.id), gc.id);
+    cleanSlugMap.set(cleanSlug(gc.slug), gc.id);
+  }
 
   const allStores = [...baseStores, ...extraZuperStores, ...extraSasStores].sort((a, b) =>
     a.name.localeCompare(b.name, 'sv')
   );
+
+  // Return active SAS gift cards with matchedStoreId populated if matched
+  const activeSasGiftCards = (db.sasGiftCards || [])
+    .filter(
+      (gc) => !gc.isHidden && !gc.isExcluded && gc.bonusPer100Kr !== null && gc.bonusPer100Kr > 0
+    )
+    .map((gc) => {
+      const matchedStoreId = gc.matchedStoreId || findExistingStoreId(gc);
+      return {
+        ...gc,
+        matchedStoreId: matchedStoreId || gc.matchedStoreId,
+      };
+    });
 
   return NextResponse.json({
     zupergiftConfig: {
@@ -136,8 +205,6 @@ export async function GET() {
           ],
     lastZupergiftSync: db.lastZupergiftSync,
     lastPartnerSync: db.lastPartnerSync || null,
-    sasGiftCards: (db.sasGiftCards || []).filter(
-      (gc) => !gc.isHidden && !gc.isExcluded && gc.bonusPer100Kr !== null && gc.bonusPer100Kr > 0
-    ),
+    sasGiftCards: activeSasGiftCards,
   });
 }
