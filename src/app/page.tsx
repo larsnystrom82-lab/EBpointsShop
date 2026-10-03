@@ -143,7 +143,12 @@ export default function Home() {
     savePreferences({ selectedStoreIds: [] });
   };
 
-  const handleSelectAllStores = () => {
+  const handleSelectAllStores = (storeIds?: string[]) => {
+    if (storeIds && Array.isArray(storeIds)) {
+      setSelectedStoreIds(storeIds);
+      savePreferences({ selectedStoreIds: storeIds });
+      return;
+    }
     const candidateStores =
       selectedCategoryIds.length > 0
         ? allStores.filter((s) => s.categories.some((c) => selectedCategoryIds.includes(c)))

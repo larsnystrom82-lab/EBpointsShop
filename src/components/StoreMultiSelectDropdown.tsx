@@ -10,7 +10,7 @@ interface StoreMultiSelectDropdownProps {
   selectedStoreIds: string[];
   onToggleStore: (storeId: string) => void;
   onClearSelection: () => void;
-  onSelectAll?: () => void;
+  onSelectAll?: (storeIds?: string[]) => void;
   label?: string;
   isCategoryFiltered?: boolean;
 }
@@ -107,6 +107,24 @@ export const StoreMultiSelectDropdown: React.FC<StoreMultiSelectDropdownProps> =
   const handleImageError = (storeId: string) => {
     setImgErrors((prev) => ({ ...prev, [storeId]: true }));
   };
+
+  const handleSelectAll = () => {
+    if (!onSelectAll) return;
+    if (query) {
+      // Om användaren har skrivit en sökfras, välj bara de butiker som matchar sökningen
+      const matchingIds = [...filteredSelected, ...filteredUnselected].map((s) => s.id);
+      const newSelection = Array.from(new Set([...selectedStoreIds, ...matchingIds]));
+      onSelectAll(newSelection);
+    } else {
+      // Annars välj alla tillgängliga butiker i listan
+      const allIds = allStores.map((s) => s.id);
+      onSelectAll(allIds);
+    }
+  };
+
+  const canSelectAll =
+    Boolean(onSelectAll) &&
+    (query ? filteredUnselected.length > 0 : selectedStoreIds.length < allStores.length);
 
   return (
     <div className="relative w-full" ref={dropdownRef}>
@@ -264,10 +282,10 @@ export const StoreMultiSelectDropdown: React.FC<StoreMultiSelectDropdownProps> =
                     Rensa alla ({selectedStoreIds.length})
                   </button>
                 )}
-                {onSelectAll && selectedStoreIds.length < allStores.length && (
+                {canSelectAll && (
                   <button
                     type="button"
-                    onClick={onSelectAll}
+                    onClick={handleSelectAll}
                     className="text-blue-600 hover:text-blue-800 font-semibold hover:underline"
                   >
                     Välj alla

@@ -10,7 +10,7 @@ interface SearchFilterBoxProps {
   selectedStoreIds: string[];
   onToggleStore: (storeId: string) => void;
   onClearStores: () => void;
-  onSelectAllStores?: () => void;
+  onSelectAllStores?: (storeIds?: string[]) => void;
   searchQuery?: string;
   onSearchChange?: (query: string) => void;
   categories: Category[];
