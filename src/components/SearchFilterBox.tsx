@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { Search, X, ChevronDown, ArrowRight, CreditCard, Sparkles, Zap } from 'lucide-react';
 import { Category, OneTimeBonusFilter, PaymentCard, SortOption, Store } from '@/types/domain';
 import { StoreMultiSelectDropdown } from './StoreMultiSelectDropdown';
@@ -106,6 +106,19 @@ export const SearchFilterBox: React.FC<SearchFilterBoxProps> = ({
     }
   };
 
+  // Filtrera butiker för butiksväljaren baserat på valda kategorier
+  const storesForDropdown = useMemo(() => {
+    if (selectedCategoryIds.length === 0) {
+      return allStores;
+    }
+    const catSet = new Set(selectedCategoryIds);
+    return allStores.filter(
+      (store) =>
+        selectedStoreIds.includes(store.id) ||
+        store.categories.some((c) => catSet.has(c))
+    );
+  }, [allStores, selectedCategoryIds, selectedStoreIds]);
+
   return (
     <div className="bg-white rounded-3xl p-5 sm:p-7 shadow-xs border border-slate-200/90 space-y-5">
       {/* Översta raden: Butiker, Kategori, Köpbelopp, Sortera */}
@@ -113,12 +126,13 @@ export const SearchFilterBox: React.FC<SearchFilterBoxProps> = ({
         {/* Butiksväljare: Kryssrutor i rullgardinsmeny med sökfunktion och valda i toppen */}
         <div className="md:col-span-4">
           <StoreMultiSelectDropdown
-            allStores={allStores}
+            allStores={storesForDropdown}
             selectedStoreIds={selectedStoreIds}
             onToggleStore={onToggleStore}
             onClearSelection={onClearStores}
             onSelectAll={onSelectAllStores}
             label="Välj butik"
+            isCategoryFiltered={selectedCategoryIds.length > 0}
           />
         </div>
 

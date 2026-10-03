@@ -144,7 +144,11 @@ export default function Home() {
   };
 
   const handleSelectAllStores = () => {
-    const all = allStores.map((s) => s.id);
+    const candidateStores =
+      selectedCategoryIds.length > 0
+        ? allStores.filter((s) => s.categories.some((c) => selectedCategoryIds.includes(c)))
+        : allStores;
+    const all = candidateStores.map((s) => s.id);
     setSelectedStoreIds(all);
     savePreferences({ selectedStoreIds: all });
   };
@@ -154,7 +158,25 @@ export default function Home() {
       ? selectedCategoryIds.filter((id) => id !== catId)
       : [...selectedCategoryIds, catId];
     setSelectedCategoryIds(updated);
-    savePreferences({ selectedCategoryIds: updated });
+
+    // If categories are active, prune selectedStoreIds to only keep stores matching active categories
+    let updatedStoreIds = selectedStoreIds;
+    if (updated.length > 0 && selectedStoreIds.length > 0) {
+      const allowedStoreIds = new Set(
+        allStores
+          .filter((s) => s.categories.some((c) => updated.includes(c)))
+          .map((s) => s.id)
+      );
+      updatedStoreIds = selectedStoreIds.filter((id) => allowedStoreIds.has(id));
+      if (updatedStoreIds.length !== selectedStoreIds.length) {
+        setSelectedStoreIds(updatedStoreIds);
+      }
+    }
+
+    savePreferences({
+      selectedCategoryIds: updated,
+      selectedStoreIds: updatedStoreIds,
+    });
   };
 
   const handleToggleCard = (cardId: string) => {
@@ -190,14 +212,16 @@ export default function Home() {
   const matchingStores = useMemo(() => {
     let list = allStores.filter((store) => store.isActive);
 
-    // 1. If specific stores are selected by the user, prioritize those exact stores
-    if (selectedStoreIds.length > 0) {
-      list = list.filter((store) => selectedStoreIds.includes(store.id));
-    } else if (selectedCategoryIds.length > 0) {
-      // 2. Otherwise filter by selected categories if any
+    // 1. Filter by selected categories if any
+    if (selectedCategoryIds.length > 0) {
       list = list.filter((store) =>
         store.categories.some((c) => selectedCategoryIds.includes(c))
       );
+    }
+
+    // 2. Filter by specific selected stores if any
+    if (selectedStoreIds.length > 0) {
+      list = list.filter((store) => selectedStoreIds.includes(store.id));
     }
 
     // 3. Filter by search query if any

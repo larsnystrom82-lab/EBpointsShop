@@ -12,6 +12,7 @@ interface StoreMultiSelectDropdownProps {
   onClearSelection: () => void;
   onSelectAll?: () => void;
   label?: string;
+  isCategoryFiltered?: boolean;
 }
 
 export const StoreMultiSelectDropdown: React.FC<StoreMultiSelectDropdownProps> = ({
@@ -21,6 +22,7 @@ export const StoreMultiSelectDropdown: React.FC<StoreMultiSelectDropdownProps> =
   onClearSelection,
   onSelectAll,
   label = 'Välj butik',
+  isCategoryFiltered = false,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -114,7 +116,9 @@ export const StoreMultiSelectDropdown: React.FC<StoreMultiSelectDropdownProps> =
         </label>
         <span className="text-[11px] text-slate-500 font-medium">
           {selectedStoreIds.length === 0
-            ? `Alla (${allStores.length} st)`
+            ? isCategoryFiltered
+              ? `Alla i kategorin (${allStores.length} st)`
+              : `Alla (${allStores.length} st)`
             : `${selectedStoreIds.length} av ${allStores.length} valda`}
         </span>
       </div>
@@ -142,7 +146,7 @@ export const StoreMultiSelectDropdown: React.FC<StoreMultiSelectDropdownProps> =
                 Alla butiker
               </span>
               <span className="text-xs text-slate-400 ml-1.5 hidden sm:inline">
-                ({allStores.length} st tillgängliga)
+                ({allStores.length} st {isCategoryFiltered ? 'i vald kategori' : 'tillgängliga'})
               </span>
             </div>
           ) : (
@@ -243,7 +247,11 @@ export const StoreMultiSelectDropdown: React.FC<StoreMultiSelectDropdownProps> =
             {/* Snabbval och räknare */}
             <div className="flex items-center justify-between text-xs text-slate-500 mt-2 px-1 font-medium">
               <span>
-                {query ? `Matchar ${totalMatching} butiker` : `${allStores.length} butiker totalt`}
+                {query
+                  ? `Matchar ${totalMatching} butiker`
+                  : isCategoryFiltered
+                  ? `${allStores.length} butiker i vald kategori`
+                  : `${allStores.length} butiker totalt`}
               </span>
               <div className="flex items-center gap-3">
                 {selectedStoreIds.length > 0 && (
@@ -351,7 +359,9 @@ export const StoreMultiSelectDropdown: React.FC<StoreMultiSelectDropdownProps> =
                     Ingen butik matchar &quot;{searchQuery}&quot;
                   </p>
                   <p className="text-xs text-slate-500">
-                    Prova att söka på en annan butik eller rensa sökfältet.
+                    {isCategoryFiltered
+                      ? 'Prova att söka på en annan butik eller välj fler kategorier.'
+                      : 'Prova att söka på en annan butik eller rensa sökfältet.'}
                   </p>
                 </div>
               ) : (
