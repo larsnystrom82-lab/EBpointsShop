@@ -35,6 +35,37 @@ interface AdminData extends DatabaseSchema {
   allStores?: Store[];
 }
 
+const KNOWN_EXISTING_LOGOS = new Set([
+  'ahlens',
+  'apotek-hjartat',
+  'bagaren-och-kocken',
+  'boozt',
+  'cervera',
+  'elgiganten',
+  'ikea',
+  'kitchentime',
+  'netonnet',
+  'neutral-store',
+  'stadium',
+  'zalando',
+]);
+
+function isStoreMissingLogo(store?: { customLogoUrl?: string | null; logoUrl?: string | null; id?: string; slug?: string } | null): boolean {
+  if (!store) return true;
+  if (store.customLogoUrl && store.customLogoUrl.trim()) return false;
+  if (!store.logoUrl || !store.logoUrl.trim()) return true;
+  if (store.logoUrl.startsWith('http://') || store.logoUrl.startsWith('https://')) return false;
+
+  if (store.logoUrl.startsWith('/logos/')) {
+    const rawName = store.logoUrl.replace('/logos/', '').replace(/\.(svg|png|jpg|webp)$/i, '').toLowerCase();
+    if (KNOWN_EXISTING_LOGOS.has(rawName)) return false;
+    if (store.id && KNOWN_EXISTING_LOGOS.has(store.id.toLowerCase())) return false;
+    if (store.slug && KNOWN_EXISTING_LOGOS.has(store.slug.toLowerCase())) return false;
+    return true;
+  }
+  return true;
+}
+
 export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [password, setPassword] = useState('');
@@ -47,7 +78,7 @@ export default function AdminPage() {
 
   // States for "Alla butiker" tab
   const [allStoresSearch, setAllStoresSearch] = useState('');
-  const [allStoresFilter, setAllStoresFilter] = useState<'all' | 'partner' | 'zupergift' | 'sas' | 'has_logo' | 'has_comment'>('all');
+  const [allStoresFilter, setAllStoresFilter] = useState<'all' | 'partner' | 'zupergift' | 'sas' | 'has_logo' | 'missing_logo' | 'has_comment'>('all');
   const [storeMetadataEdits, setStoreMetadataEdits] = useState<Record<string, {
     customLogoUrl: string;
     comment: string;
@@ -573,7 +604,8 @@ export default function AdminPage() {
       if (allStoresFilter === 'partner' && !item.hasPartnerLink) return false;
       if (allStoresFilter === 'zupergift' && !item.zupergiftSupported) return false;
       if (allStoresFilter === 'sas' && !item.hasSasGiftCard) return false;
-      if (allStoresFilter === 'has_logo' && !item.customLogoUrl) return false;
+      if (allStoresFilter === 'has_logo' && isStoreMissingLogo(item)) return false;
+      if (allStoresFilter === 'missing_logo' && !isStoreMissingLogo(item)) return false;
       if (allStoresFilter === 'has_comment' && !item.comment) return false;
 
       if (allStoresSearch.trim()) {
@@ -827,31 +859,100 @@ export default function AdminPage() {
               </div>
 
               {/* Statistik-chips */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 pt-1">
-                <div className="bg-slate-50 rounded-2xl p-3 border border-slate-200/60">
-                  <div className="text-[11px] font-semibold text-slate-500">Alla butiker</div>
-                  <div className="text-lg font-black text-slate-900">{dbData?.allStores?.length || 0}</div>
-                </div>
-                <div className="bg-blue-50/60 rounded-2xl p-3 border border-blue-100">
-                  <div className="text-[11px] font-semibold text-blue-700">SAS Partner</div>
-                  <div className="text-lg font-black text-blue-900">{dbData?.allStores?.filter((s) => s.hasPartnerLink).length || 0}</div>
-                </div>
-                <div className="bg-amber-50/60 rounded-2xl p-3 border border-amber-100">
-                  <div className="text-[11px] font-semibold text-amber-700">Zupergift</div>
-                  <div className="text-lg font-black text-amber-900">{dbData?.allStores?.filter((s) => s.zupergiftSupported).length || 0}</div>
-                </div>
-                <div className="bg-indigo-50/60 rounded-2xl p-3 border border-indigo-100">
-                  <div className="text-[11px] font-semibold text-indigo-700">SAS Presentkort</div>
-                  <div className="text-lg font-black text-indigo-900">{dbData?.allStores?.filter((s) => s.hasSasGiftCard).length || 0}</div>
-                </div>
-                <div className="bg-purple-50/60 rounded-2xl p-3 border border-purple-100">
-                  <div className="text-[11px] font-semibold text-purple-700">Anpassad logga</div>
-                  <div className="text-lg font-black text-purple-900">{dbData?.allStores?.filter((s) => !!s.customLogoUrl).length || 0}</div>
-                </div>
-                <div className="bg-emerald-50/60 rounded-2xl p-3 border border-emerald-100">
-                  <div className="text-[11px] font-semibold text-emerald-700">Har notering</div>
-                  <div className="text-lg font-black text-emerald-900">{dbData?.allStores?.filter((s) => !!s.comment).length || 0}</div>
-                </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-2.5 pt-1">
+                <button
+                  type="button"
+                  onClick={() => setAllStoresFilter('all')}
+                  className={`text-left rounded-2xl p-3 border transition-all ${
+                    allStoresFilter === 'all'
+                      ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
+                      : 'bg-slate-50 hover:bg-slate-100 border-slate-200/60 text-slate-900'
+                  }`}
+                >
+                  <div className={`text-[11px] font-semibold ${allStoresFilter === 'all' ? 'text-slate-300' : 'text-slate-500'}`}>Alla butiker</div>
+                  <div className="text-lg font-black">{dbData?.allStores?.length || 0}</div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setAllStoresFilter('partner')}
+                  className={`text-left rounded-2xl p-3 border transition-all ${
+                    allStoresFilter === 'partner'
+                      ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
+                      : 'bg-blue-50/60 hover:bg-blue-100/70 border-blue-100 text-blue-900'
+                  }`}
+                >
+                  <div className={`text-[11px] font-semibold ${allStoresFilter === 'partner' ? 'text-blue-100' : 'text-blue-700'}`}>SAS Partner</div>
+                  <div className="text-lg font-black">{dbData?.allStores?.filter((s) => s.hasPartnerLink).length || 0}</div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setAllStoresFilter('zupergift')}
+                  className={`text-left rounded-2xl p-3 border transition-all ${
+                    allStoresFilter === 'zupergift'
+                      ? 'bg-amber-600 text-white border-amber-600 shadow-xs'
+                      : 'bg-amber-50/60 hover:bg-amber-100/70 border-amber-100 text-amber-900'
+                  }`}
+                >
+                  <div className={`text-[11px] font-semibold ${allStoresFilter === 'zupergift' ? 'text-amber-100' : 'text-amber-700'}`}>Zupergift</div>
+                  <div className="text-lg font-black">{dbData?.allStores?.filter((s) => s.zupergiftSupported).length || 0}</div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setAllStoresFilter('sas')}
+                  className={`text-left rounded-2xl p-3 border transition-all ${
+                    allStoresFilter === 'sas'
+                      ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs'
+                      : 'bg-indigo-50/60 hover:bg-indigo-100/70 border-indigo-100 text-indigo-900'
+                  }`}
+                >
+                  <div className={`text-[11px] font-semibold ${allStoresFilter === 'sas' ? 'text-indigo-100' : 'text-indigo-700'}`}>SAS Presentkort</div>
+                  <div className="text-lg font-black">{dbData?.allStores?.filter((s) => s.hasSasGiftCard).length || 0}</div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setAllStoresFilter('missing_logo')}
+                  className={`text-left rounded-2xl p-3 border transition-all ${
+                    allStoresFilter === 'missing_logo'
+                      ? 'bg-rose-600 text-white border-rose-600 shadow-xs ring-2 ring-rose-200'
+                      : 'bg-rose-50/80 hover:bg-rose-100 border-rose-200 text-rose-900'
+                  }`}
+                >
+                  <div className={`text-[11px] font-semibold flex items-center gap-1 ${allStoresFilter === 'missing_logo' ? 'text-rose-100' : 'text-rose-700'}`}>
+                    <AlertTriangle className="w-3 h-3" />
+                    <span>Saknar logga</span>
+                  </div>
+                  <div className="text-lg font-black">{dbData?.allStores?.filter(isStoreMissingLogo).length || 0}</div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setAllStoresFilter('has_logo')}
+                  className={`text-left rounded-2xl p-3 border transition-all ${
+                    allStoresFilter === 'has_logo'
+                      ? 'bg-purple-600 text-white border-purple-600 shadow-xs'
+                      : 'bg-purple-50/60 hover:bg-purple-100/70 border-purple-100 text-purple-900'
+                  }`}
+                >
+                  <div className={`text-[11px] font-semibold ${allStoresFilter === 'has_logo' ? 'text-purple-100' : 'text-purple-700'}`}>Har logga</div>
+                  <div className="text-lg font-black">{dbData?.allStores?.filter((s) => !isStoreMissingLogo(s)).length || 0}</div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setAllStoresFilter('has_comment')}
+                  className={`text-left rounded-2xl p-3 border transition-all ${
+                    allStoresFilter === 'has_comment'
+                      ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
+                      : 'bg-emerald-50/60 hover:bg-emerald-100/70 border-emerald-100 text-emerald-900'
+                  }`}
+                >
+                  <div className={`text-[11px] font-semibold ${allStoresFilter === 'has_comment' ? 'text-emerald-100' : 'text-emerald-700'}`}>Har notering</div>
+                  <div className="text-lg font-black">{dbData?.allStores?.filter((s) => !!s.comment).length || 0}</div>
+                </button>
               </div>
 
               {/* Sök och filterrad */}
@@ -885,6 +986,18 @@ export default function AdminPage() {
                     }`}
                   >
                     Alla ({dbData?.allStores?.length || 0})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAllStoresFilter('missing_logo')}
+                    className={`px-3 py-1.5 rounded-lg font-bold transition-colors flex items-center gap-1.5 ${
+                      allStoresFilter === 'missing_logo'
+                        ? 'bg-rose-600 text-white shadow-xs'
+                        : 'bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200'
+                    }`}
+                  >
+                    <AlertTriangle className="w-3.5 h-3.5" />
+                    <span>Saknar logga ({dbData?.allStores?.filter(isStoreMissingLogo).length || 0})</span>
                   </button>
                   <button
                     type="button"
@@ -928,7 +1041,7 @@ export default function AdminPage() {
                         : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                     }`}
                   >
-                    Anpassad logga ({dbData?.allStores?.filter((s) => !!s.customLogoUrl).length || 0})
+                    Har logga ({dbData?.allStores?.filter((s) => !isStoreMissingLogo(s)).length || 0})
                   </button>
                   <button
                     type="button"
@@ -984,7 +1097,18 @@ export default function AdminPage() {
                           {/* Store info & logo preview */}
                           <div className="flex items-start gap-3.5 min-w-[240px] max-w-sm">
                             <div className="w-14 h-14 rounded-2xl border border-slate-200 bg-white p-1 flex items-center justify-center shrink-0 overflow-hidden shadow-2xs relative">
-                              {previewLogoUrl ? (
+                              {customLogoVal.trim() ? (
+                                <img
+                                  src={customLogoVal.trim()}
+                                  alt={item.name}
+                                  className="w-full h-full object-contain"
+                                  onError={(e) => {
+                                    (e.target as HTMLElement).style.display = 'none';
+                                    const fallback = (e.target as HTMLElement).nextElementSibling as HTMLElement;
+                                    if (fallback) fallback.style.display = 'flex';
+                                  }}
+                                />
+                              ) : !isStoreMissingLogo(item) && previewLogoUrl ? (
                                 <img
                                   src={previewLogoUrl}
                                   alt={item.name}
@@ -998,7 +1122,7 @@ export default function AdminPage() {
                               ) : null}
                               <div
                                 className={`w-full h-full items-center justify-center font-bold text-slate-400 text-lg uppercase ${
-                                  previewLogoUrl ? 'hidden' : 'flex'
+                                  customLogoVal.trim() || (!isStoreMissingLogo(item) && previewLogoUrl) ? 'hidden' : 'flex'
                                 }`}
                               >
                                 {item.name.charAt(0)}
@@ -1008,6 +1132,12 @@ export default function AdminPage() {
                             <div className="space-y-1">
                               <div className="flex items-center gap-2 flex-wrap">
                                 <span className="font-bold text-base text-slate-900">{item.name}</span>
+                                {isStoreMissingLogo(item) && !customLogoVal && (
+                                  <span className="px-2 py-0.5 rounded-md bg-rose-100 text-rose-800 font-bold text-[10px] flex items-center gap-1" title="Butiken saknar en giltig bildlogotyp">
+                                    <AlertTriangle className="w-3 h-3 text-rose-600" />
+                                    Saknar logga
+                                  </span>
+                                )}
                                 {item.customLogoUrl && (
                                   <span className="px-2 py-0.5 rounded-md bg-purple-100 text-purple-800 font-bold text-[10px]" title="Använder manuell alternativ logga">
                                     Egen logga
