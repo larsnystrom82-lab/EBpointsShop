@@ -735,27 +735,21 @@ export default function AdminPage() {
         if (item.isExcluded) return false;
       }
 
-      const edit = storeMetadataEdits[item.id];
-      const isHiddenVal = edit?.isHidden !== undefined ? edit.isHidden : Boolean(item.isHidden);
-      const customLogoVal = edit?.customLogoUrl !== undefined ? edit.customLogoUrl : (item.customLogoUrl || '');
-      const commentVal = edit?.comment !== undefined ? edit.comment : (item.comment || '');
-      const hasCustomLogo = Boolean(customLogoVal.trim());
-
       // If viewing explicitly hidden stores
       if (allStoresFilter === 'hidden') {
-        if (!isHiddenVal) return false;
+        if (!item.isHidden) return false;
       } else if (allStoresFilter !== 'excluded') {
         // If excludeHidden is checked, hide stores where isHidden is true
-        if (excludeHidden && isHiddenVal) return false;
+        if (excludeHidden && item.isHidden) return false;
       }
 
       if (allStoresFilter === 'partner' && !item.hasPartnerLink) return false;
       if (allStoresFilter === 'zupergift' && !item.zupergiftSupported) return false;
       if (allStoresFilter === 'sas' && !item.hasSasGiftCard) return false;
-      if (allStoresFilter === 'has_logo' && isStoreMissingLogo({ ...item, customLogoUrl: customLogoVal })) return false;
-      if (allStoresFilter === 'missing_logo' && !isStoreMissingLogo({ ...item, customLogoUrl: customLogoVal })) return false;
-      if (allStoresFilter === 'custom_logo' && !hasCustomLogo) return false;
-      if (allStoresFilter === 'has_comment' && !commentVal.trim()) return false;
+      if (allStoresFilter === 'has_logo' && isStoreMissingLogo(item)) return false;
+      if (allStoresFilter === 'missing_logo' && !isStoreMissingLogo(item)) return false;
+      if (allStoresFilter === 'custom_logo' && !item.customLogoUrl?.trim()) return false;
+      if (allStoresFilter === 'has_comment' && !item.comment?.trim()) return false;
 
       if (allStoresSearch.trim()) {
         const q = allStoresSearch.toLowerCase();
@@ -763,12 +757,12 @@ export default function AdminPage() {
           item.name.toLowerCase().includes(q) ||
           item.slug.toLowerCase().includes(q) ||
           (item.categories && item.categories.some((c) => c.toLowerCase().includes(q))) ||
-          (commentVal && commentVal.toLowerCase().includes(q))
+          (item.comment && item.comment.toLowerCase().includes(q))
         );
       }
       return true;
     });
-  }, [dbData?.allStores, allStoresFilter, allStoresSearch, excludeHidden, storeMetadataEdits]);
+  }, [dbData?.allStores, allStoresFilter, allStoresSearch, excludeHidden]);
 
   const categoryNameMap = useMemo(() => {
     const map = new Map<string, string>();
