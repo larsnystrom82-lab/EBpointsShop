@@ -18,6 +18,7 @@ export async function POST(request: Request) {
       zupergiftSupported,
       categories,
       category,
+      aliases,
       rewardType,
       fixedBonusPoints,
       fixedTierPoints,
@@ -35,6 +36,12 @@ export async function POST(request: Request) {
       store.categories = categories;
     } else if (typeof category === 'string' && category.trim()) {
       store.categories = [category.trim()];
+    }
+
+    if (Array.isArray(aliases)) {
+      store.aliases = aliases.map((a: unknown) => String(a).trim()).filter(Boolean);
+    } else if (typeof aliases === 'string') {
+      store.aliases = aliases.split(',').map((a: string) => a.trim()).filter(Boolean);
     }
 
     if (typeof partnerBonusPer100Kr === 'number') {

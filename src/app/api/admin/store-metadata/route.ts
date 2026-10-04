@@ -10,7 +10,7 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json();
-    const { storeId, customLogoUrl, comment, isHidden } = body;
+    const { storeId, customLogoUrl, comment, isHidden, categories, aliases } = body;
 
     if (!storeId || typeof storeId !== 'string') {
       return NextResponse.json({ error: 'Ogiltigt butiks-ID' }, { status: 400 });
@@ -26,11 +26,25 @@ export async function POST(request: Request) {
     const existingMeta = db.storeCustomMetadata[storeId] || {};
     const cleanIsHidden = typeof isHidden === 'boolean' ? isHidden : Boolean(existingMeta.isHidden);
 
+    let cleanCategories: string[] | null | undefined = undefined;
+    if (Array.isArray(categories)) {
+      cleanCategories = categories.map((c: unknown) => String(c).trim()).filter(Boolean);
+    }
+
+    let cleanAliases: string[] | null | undefined = undefined;
+    if (Array.isArray(aliases)) {
+      cleanAliases = aliases.map((a: unknown) => String(a).trim()).filter(Boolean);
+    } else if (typeof aliases === 'string') {
+      cleanAliases = aliases.split(',').map((a: string) => a.trim()).filter(Boolean);
+    }
+
     db.storeCustomMetadata[storeId] = {
       ...existingMeta,
       customLogoUrl: cleanLogoUrl,
       comment: cleanComment,
       isHidden: cleanIsHidden,
+      ...(cleanCategories !== undefined ? { categories: cleanCategories } : {}),
+      ...(cleanAliases !== undefined ? { aliases: cleanAliases } : {}),
       updatedAt: new Date().toISOString(),
       updatedBy: 'Admin',
     };
@@ -41,6 +55,12 @@ export async function POST(request: Request) {
       baseStore.customLogoUrl = cleanLogoUrl;
       baseStore.comment = cleanComment;
       baseStore.isHidden = cleanIsHidden;
+      if (cleanCategories && cleanCategories.length > 0) {
+        baseStore.categories = cleanCategories;
+      }
+      if (cleanAliases) {
+        baseStore.aliases = cleanAliases;
+      }
     }
 
     // Update in zupergiftStores if exists
@@ -49,6 +69,9 @@ export async function POST(request: Request) {
       (zgStore as any).customLogoUrl = cleanLogoUrl;
       (zgStore as any).comment = cleanComment;
       zgStore.isHidden = cleanIsHidden;
+      if (cleanCategories && cleanCategories.length > 0) {
+        zgStore.category = cleanCategories[0];
+      }
     }
 
     // Update in sasGiftCards if exists
@@ -61,11 +84,14 @@ export async function POST(request: Request) {
 
     const storeName = baseStore?.name || zgStore?.name || sasStore?.name || storeId;
 
+    const catDetails = cleanCategories ? `, kategorier=[${cleanCategories.join(', ')}]` : '';
+    const aliasDetails = cleanAliases ? `, alias=[${cleanAliases.join(', ')}]` : '';
+
     db.auditEvents.push({
       id: `audit-${Date.now()}`,
       timestamp: new Date().toISOString(),
       action: 'UPDATE_STORE_METADATA',
-      details: `Uppdaterade butik "${storeName}" (${storeId}): logga=${cleanLogoUrl || 'standard'}, kommentar=${cleanComment ? `"${cleanComment}"` : 'ingen'}, dölj=${cleanIsHidden ? 'ja' : 'nej'}.`,
+      details: `Uppdaterade butik "${storeName}" (${storeId}): logga=${cleanLogoUrl || 'standard'}, kommentar=${cleanComment ? `"${cleanComment}"` : 'ingen'}, dölj=${cleanIsHidden ? 'ja' : 'nej'}${catDetails}${aliasDetails}.`,
       user: 'Admin',
     });
 

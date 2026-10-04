@@ -23,6 +23,8 @@ export async function GET() {
     'URL till logga',
     'URL till alternativ logga',
     'Kommentarer',
+    'Kategorier',
+    'Alias',
     'Presentkort',
     'Zupergift',
     'Partnerbutik',
@@ -38,12 +40,16 @@ export async function GET() {
     const status = store.isExcluded ? 'Borttagen' : store.isHidden ? 'Dold' : 'Aktiv';
     const partnerBonus = store.partnerRule?.bonusPer100Kr ?? '';
     const sasBonus = store.sasGiftCardBonusPer100Kr ?? '';
+    const categoriesStr = (store.categories || []).join(', ');
+    const aliasesStr = (store.aliases || []).join(', ');
 
     return [
       escapeCsv(store.name),
       escapeCsv(store.logoUrl || ''),
       escapeCsv(store.customLogoUrl || ''),
       escapeCsv(store.comment || ''),
+      escapeCsv(categoriesStr),
+      escapeCsv(aliasesStr),
       escapeCsv(isPresentkort),
       escapeCsv(isZupergift),
       escapeCsv(isPartner),

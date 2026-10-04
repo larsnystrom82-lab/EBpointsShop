@@ -115,6 +115,8 @@ export interface StoreMetadataItem {
   comment?: string | null;
   isExcluded?: boolean | null;
   isHidden?: boolean | null;
+  categories?: string[] | null;
+  aliases?: string[] | null;
   updatedAt?: string | null;
   updatedBy?: string | null;
 }

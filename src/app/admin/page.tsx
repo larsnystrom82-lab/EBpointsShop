@@ -86,6 +86,8 @@ export default function AdminPage() {
     customLogoUrl: string;
     comment: string;
     isHidden: boolean;
+    categories: string[];
+    aliasesText: string;
   }>>({});
   const [storeMetadataSaving, setStoreMetadataSaving] = useState<Record<string, boolean>>({});
 
@@ -328,6 +330,9 @@ export default function AdminPage() {
       const customLogoUrl = edit?.customLogoUrl !== undefined ? edit.customLogoUrl : (store.customLogoUrl || '');
       const comment = edit?.comment !== undefined ? edit.comment : (store.comment || '');
       const isHidden = edit?.isHidden !== undefined ? edit.isHidden : Boolean(store.isHidden);
+      const categories = edit?.categories !== undefined ? edit.categories : (store.categories || ['department']);
+      const aliasesText = edit?.aliasesText !== undefined ? edit.aliasesText : (store.aliases || []).join(', ');
+      const aliases = aliasesText.split(',').map((a) => a.trim()).filter(Boolean);
 
       const res = await fetch('/api/admin/store-metadata', {
         method: 'POST',
@@ -337,6 +342,8 @@ export default function AdminPage() {
           customLogoUrl: customLogoUrl.trim() || null,
           comment: comment.trim() || null,
           isHidden,
+          categories,
+          aliases,
         }),
       });
 
@@ -373,6 +380,8 @@ export default function AdminPage() {
       'URL till logga',
       'URL till alternativ logga',
       'Kommentarer',
+      'Kategorier',
+      'Alias',
       'Presentkort',
       'Zupergift',
       'Partnerbutik',
@@ -392,6 +401,8 @@ export default function AdminPage() {
       const customLogo = (edit?.customLogoUrl !== undefined ? edit.customLogoUrl : store.customLogoUrl) || '';
       const comment = (edit?.comment !== undefined ? edit.comment : store.comment) || '';
       const isHidden = edit?.isHidden !== undefined ? edit.isHidden : Boolean(store.isHidden);
+      const categories = (edit?.categories !== undefined ? edit.categories : store.categories) || [];
+      const aliasesText = edit?.aliasesText !== undefined ? edit.aliasesText : (store.aliases || []).join(', ');
 
       const status = store.isExcluded ? 'Borttagen' : isHidden ? 'Dold' : 'Aktiv';
       const isPresentkort = store.hasSasGiftCard ? 'Ja' : 'Nej';
@@ -405,6 +416,8 @@ export default function AdminPage() {
         escapeCsv(store.logoUrl || ''),
         escapeCsv(customLogo),
         escapeCsv(comment),
+        escapeCsv(categories.join(', ')),
+        escapeCsv(aliasesText),
         escapeCsv(isPresentkort),
         escapeCsv(isZupergift),
         escapeCsv(isPartner),
@@ -593,6 +606,7 @@ export default function AdminPage() {
         body: JSON.stringify({
           storeId: store.id,
           categories: store.categories,
+          aliases: store.aliases,
           partnerBonusPer100Kr: store.partnerRule?.bonusPer100Kr ?? 0,
           partnerTierPer100Kr: store.partnerRule?.tierPer100Kr ?? 0,
           rewardType: store.partnerRule?.rewardType ?? 'rate',
@@ -756,7 +770,11 @@ export default function AdminPage() {
         return (
           item.name.toLowerCase().includes(q) ||
           item.slug.toLowerCase().includes(q) ||
-          (item.categories && item.categories.some((c) => c.toLowerCase().includes(q))) ||
+          (item.aliases && item.aliases.some((a) => a.toLowerCase().includes(q))) ||
+          (item.categories && item.categories.some((c) => {
+            const catName = categoryNameMap.get(c) || c;
+            return c.toLowerCase().includes(q) || catName.toLowerCase().includes(q);
+          })) ||
           (item.comment && item.comment.toLowerCase().includes(q))
         );
       }
@@ -1342,17 +1360,21 @@ export default function AdminPage() {
                     const customLogoVal = edit?.customLogoUrl !== undefined ? edit.customLogoUrl : (item.customLogoUrl || '');
                     const commentVal = edit?.comment !== undefined ? edit.comment : (item.comment || '');
                     const isHiddenVal = edit?.isHidden !== undefined ? edit.isHidden : Boolean(item.isHidden);
+                    const categoriesVal = edit?.categories !== undefined ? edit.categories : (item.categories || ['department']);
+                    const aliasesTextVal = edit?.aliasesText !== undefined ? edit.aliasesText : (item.aliases || []).join(', ');
                     const isDirty = edit !== undefined;
                     const isSaving = Boolean(storeMetadataSaving[item.id]);
                     const previewLogoUrl = customLogoVal.trim() || item.logoUrl;
 
-                    const updateMetadataEdit = (patch: Partial<{ customLogoUrl: string; comment: string; isHidden: boolean }>) => {
+                    const updateMetadataEdit = (patch: Partial<{ customLogoUrl: string; comment: string; isHidden: boolean; categories: string[]; aliasesText: string }>) => {
                       setStoreMetadataEdits((prev) => ({
                         ...prev,
                         [item.id]: {
                           customLogoUrl: edit?.customLogoUrl !== undefined ? edit.customLogoUrl : (item.customLogoUrl || ''),
                           comment: edit?.comment !== undefined ? edit.comment : (item.comment || ''),
                           isHidden: edit?.isHidden !== undefined ? edit.isHidden : Boolean(item.isHidden),
+                          categories: edit?.categories !== undefined ? edit.categories : (item.categories || ['department']),
+                          aliasesText: edit?.aliasesText !== undefined ? edit.aliasesText : (item.aliases || []).join(', '),
                           ...patch,
                         },
                       }));
@@ -1447,8 +1469,14 @@ export default function AdminPage() {
                                 ID: {item.id}
                               </div>
 
-                              {/* Integrations-badges */}
+                              {/* Integrations-badges & Kategorier */}
                               <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
+                                {categoriesVal.map((catId) => (
+                                  <span key={catId} className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 font-semibold text-[10px] flex items-center gap-1">
+                                    <Tag className="w-2.5 h-2.5 text-slate-400" />
+                                    <span>{categoryNameMap.get(catId) || catId}</span>
+                                  </span>
+                                ))}
                                 {item.hasPartnerLink && (
                                   <span className="px-2 py-0.5 rounded-md bg-blue-100 text-blue-800 font-semibold text-[10px]">
                                     Partner ({item.partnerRule?.bonusPer100Kr || 0} p/100 kr)
@@ -1465,10 +1493,18 @@ export default function AdminPage() {
                                   </span>
                                 )}
                               </div>
+                              {aliasesTextVal.trim() && (
+                                <div className="text-[10px] text-slate-500 pt-0.5 flex items-center gap-1">
+                                  <span className="font-bold text-slate-600">Alias:</span>
+                                  <span className="font-mono text-slate-600 truncate max-w-[260px]" title={aliasesTextVal}>
+                                    {aliasesTextVal}
+                                  </span>
+                                </div>
+                              )}
                             </div>
                           </div>
 
-                          {/* Editable fields: Custom Logo URL and Comment */}
+                          {/* Editable fields: Custom Logo, Comment, Categories, Aliases & Visibility */}
                           <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-3 min-w-0">
                             <div>
                               <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1 flex items-center gap-1">
@@ -1503,6 +1539,83 @@ export default function AdminPage() {
                               />
                               <p className="text-[10px] text-slate-400 mt-0.5">
                                 Visas som en informationsnotis för besökare på butikskortet.
+                              </p>
+                            </div>
+
+                            {/* Kategorier (Möjlighet till flera kategorier) */}
+                            <div>
+                              <div className="flex items-center justify-between mb-1">
+                                <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1">
+                                  <Tag className="w-3.5 h-3.5 text-indigo-600" />
+                                  <span>Kategorier ({categoriesVal.length})</span>
+                                </label>
+                                <span className="text-[10px] text-slate-400">Klicka × för att ta bort</span>
+                              </div>
+                              <div className="flex flex-wrap items-center gap-1.5 min-h-[40px] p-2 rounded-xl border border-slate-300 bg-slate-50 focus-within:bg-white focus-within:border-blue-600 transition-colors">
+                                {categoriesVal.map((catId) => (
+                                  <span
+                                    key={catId}
+                                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-xs font-semibold text-slate-800 shadow-2xs"
+                                  >
+                                    <span>{categoryNameMap.get(catId) || catId}</span>
+                                    <button
+                                      type="button"
+                                      disabled={item.isExcluded}
+                                      onClick={() => {
+                                        const next = categoriesVal.filter((c) => c !== catId);
+                                        updateMetadataEdit({ categories: next.length > 0 ? next : ['department'] });
+                                      }}
+                                      className="w-4 h-4 rounded-full hover:bg-rose-100 hover:text-rose-700 text-slate-400 flex items-center justify-center font-bold text-xs ml-0.5 transition-colors cursor-pointer"
+                                      title="Ta bort kategori"
+                                    >
+                                      ×
+                                    </button>
+                                  </span>
+                                ))}
+
+                                {(dbData?.categories || DEMO_CATEGORIES).some((c) => !categoriesVal.includes(c.id)) && (
+                                  <select
+                                    disabled={item.isExcluded}
+                                    value=""
+                                    onChange={(e) => {
+                                      if (e.target.value && !categoriesVal.includes(e.target.value)) {
+                                        updateMetadataEdit({ categories: [...categoriesVal, e.target.value] });
+                                      }
+                                    }}
+                                    className="px-2.5 py-1 rounded-lg border border-dashed border-slate-300 bg-white text-xs text-slate-600 hover:border-slate-400 focus:border-blue-500 cursor-pointer font-medium"
+                                  >
+                                    <option value="">+ Lägg till kategori...</option>
+                                    {(dbData?.categories || DEMO_CATEGORIES)
+                                      .filter((c) => !categoriesVal.includes(c.id))
+                                      .map((c) => (
+                                        <option key={c.id} value={c.id}>
+                                          {c.name}
+                                        </option>
+                                      ))}
+                                  </select>
+                                )}
+                              </div>
+                              <p className="text-[10px] text-slate-400 mt-1">
+                                En butik kan tillhöra flera kategorier samtidigt för att hittas lättare.
+                              </p>
+                            </div>
+
+                            {/* Alias / Populära söknamn */}
+                            <div>
+                              <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1 flex items-center gap-1">
+                                <Search className="w-3.5 h-3.5 text-blue-600" />
+                                <span>Alias / Populära söknamn</span>
+                              </label>
+                              <input
+                                type="text"
+                                disabled={item.isExcluded}
+                                value={aliasesTextVal}
+                                onChange={(e) => updateMetadataEdit({ aliasesText: e.target.value })}
+                                placeholder="t.ex. HM, Hennes & Mauritz, H&M"
+                                className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs text-slate-800 placeholder-slate-400 focus:border-blue-600 focus:ring-1 focus:ring-blue-100 bg-slate-50 focus:bg-white disabled:opacity-50"
+                              />
+                              <p className="text-[10px] text-slate-400 mt-1">
+                                Kommaseparerade alternativa söknamn som gör att butiken hittas vid sökning.
                               </p>
                             </div>
 
@@ -2359,7 +2472,22 @@ export default function AdminPage() {
                           </span>
                         ) : null}
                       </div>
-                      <div className="text-xs text-slate-400">Slug: {store.slug} | Alias: {store.aliases.join(', ')}</div>
+                      <div className="text-xs text-slate-400 flex items-center gap-1.5 flex-wrap">
+                        <span>Slug: {store.slug}</span>
+                        <span>|</span>
+                        <span className="font-semibold text-slate-600">Alias:</span>
+                        <input
+                          type="text"
+                          value={(store.aliases || []).join(', ')}
+                          onChange={(e) => {
+                            store.aliases = e.target.value.split(',').map((a) => a.trim()).filter(Boolean);
+                            setDbData((prev) => (prev ? { ...prev } : null));
+                          }}
+                          placeholder="t.ex. HM, Hennes & Mauritz"
+                          className="px-2 py-0.5 rounded-lg border border-slate-300 text-xs text-slate-800 bg-white w-48"
+                          title="Alternativa söknamn (kommaseparerat)"
+                        />
+                      </div>
                       <div className="flex items-center gap-2 pt-1">
                         <label className="text-xs flex items-center gap-1 cursor-pointer">
                           <input
@@ -2389,23 +2517,52 @@ export default function AdminPage() {
 
                     <div className="flex items-center gap-3.5 flex-wrap">
                       <div>
-                        <span className="text-[11px] font-semibold text-slate-500 block">
-                          Kategori
+                        <span className="text-[11px] font-semibold text-slate-500 block mb-1">
+                          Kategorier ({(store.categories || []).length})
                         </span>
-                        <select
-                          value={store.categories?.[0] || 'department'}
-                          onChange={(e) => {
-                            store.categories = [e.target.value];
-                            setDbData((prev) => (prev ? { ...prev } : null));
-                          }}
-                          className="w-36 px-2 py-1.5 rounded-lg border border-slate-300 text-xs font-semibold text-slate-800 bg-white"
-                        >
-                          {(dbData?.categories || DEMO_CATEGORIES).map((cat) => (
-                            <option key={cat.id} value={cat.id}>
-                              {cat.name}
-                            </option>
+                        <div className="flex flex-wrap items-center gap-1 max-w-xs">
+                          {(store.categories || ['department']).map((catId) => (
+                            <span key={catId} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white border border-slate-200 text-[11px] font-semibold text-slate-700 shadow-2xs">
+                              <span>{categoryNameMap.get(catId) || catId}</span>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const next = (store.categories || ['department']).filter((c) => c !== catId);
+                                  store.categories = next.length > 0 ? next : ['department'];
+                                  setDbData((prev) => (prev ? { ...prev } : null));
+                                }}
+                                className="w-3.5 h-3.5 rounded-full hover:bg-rose-100 hover:text-rose-700 text-slate-400 flex items-center justify-center font-bold text-[10px] cursor-pointer"
+                                title="Ta bort kategori"
+                              >
+                                ×
+                              </button>
+                            </span>
                           ))}
-                        </select>
+                          {(dbData?.categories || DEMO_CATEGORIES).some((c) => !(store.categories || []).includes(c.id)) && (
+                            <select
+                              value=""
+                              onChange={(e) => {
+                                if (e.target.value) {
+                                  const current = store.categories || ['department'];
+                                  if (!current.includes(e.target.value)) {
+                                    store.categories = [...current, e.target.value];
+                                    setDbData((prev) => (prev ? { ...prev } : null));
+                                  }
+                                }
+                              }}
+                              className="px-2 py-0.5 rounded-md border border-dashed border-slate-300 bg-white text-[11px] text-slate-600 hover:border-slate-400 cursor-pointer"
+                            >
+                              <option value="">+ Lägg till...</option>
+                              {(dbData?.categories || DEMO_CATEGORIES)
+                                .filter((c) => !(store.categories || []).includes(c.id))
+                                .map((cat) => (
+                                  <option key={cat.id} value={cat.id}>
+                                    {cat.name}
+                                  </option>
+                                ))}
+                            </select>
+                          )}
+                        </div>
                       </div>
 
                       {/* Bonustyp: Per 100 kr vs Fast engångsbonus */}
