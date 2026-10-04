@@ -26,6 +26,8 @@ import {
   ImageIcon,
   MessageSquare,
   Building,
+  Download,
+  FileSpreadsheet,
 } from 'lucide-react';
 import type { DatabaseSchema, DbStore, ZupergiftStoreItem } from '@/lib/db';
 import type { Store } from '@/types/domain';
@@ -355,6 +357,76 @@ export default function AdminPage() {
       setStoreMetadataSaving((prev) => ({ ...prev, [storeId]: false }));
       setTimeout(() => setStatusMessage(null), 4000);
     }
+  };
+
+  // Exportera butiker till CSV
+  const handleExportStoresCsv = (customList?: Store[]) => {
+    const list = customList || dbData?.allStores || [];
+    if (list.length === 0) {
+      alert('Inga butiker finns att exportera.');
+      return;
+    }
+
+    const headers = [
+      'Namn',
+      'URL till logga',
+      'URL till alternativ logga',
+      'Kommentarer',
+      'Presentkort',
+      'Zupergift',
+      'Partnerbutik',
+      'Status',
+      'Partner poäng/100 kr',
+      'Presentkort poäng/100 kr',
+    ];
+
+    const escapeCsv = (val: unknown): string => {
+      if (val === null || val === undefined) return '""';
+      const str = String(val).replace(/"/g, '""');
+      return `"${str}"`;
+    };
+
+    const rows = list.map((store) => {
+      const edit = storeMetadataEdits[store.id];
+      const customLogo = (edit?.customLogoUrl !== undefined ? edit.customLogoUrl : store.customLogoUrl) || '';
+      const comment = (edit?.comment !== undefined ? edit.comment : store.comment) || '';
+      const isHidden = edit?.isHidden !== undefined ? edit.isHidden : Boolean(store.isHidden);
+
+      const status = store.isExcluded ? 'Borttagen' : isHidden ? 'Dold' : 'Aktiv';
+      const isPresentkort = store.hasSasGiftCard ? 'Ja' : 'Nej';
+      const isZupergift = store.zupergiftSupported ? 'Ja' : 'Nej';
+      const isPartner = store.hasPartnerLink ? 'Ja' : 'Nej';
+      const partnerBonus = store.partnerRule?.bonusPer100Kr ?? '';
+      const sasBonus = store.sasGiftCardBonusPer100Kr ?? '';
+
+      return [
+        escapeCsv(store.name),
+        escapeCsv(store.logoUrl || ''),
+        escapeCsv(customLogo),
+        escapeCsv(comment),
+        escapeCsv(isPresentkort),
+        escapeCsv(isZupergift),
+        escapeCsv(isPartner),
+        escapeCsv(status),
+        escapeCsv(partnerBonus),
+        escapeCsv(sasBonus),
+      ].join(';');
+    });
+
+    // UTF-8 BOM för full kompatibilitet med Excel (svenska tecken å, ä, ö)
+    const csvContent = '\uFEFF' + [headers.map(escapeCsv).join(';'), ...rows].join('\r\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    const dateStr = new Date().toISOString().split('T')[0];
+    const isFiltered = customList && customList.length !== (dbData?.allStores?.length || 0);
+    const suffix = isFiltered ? '-filtrerade' : '';
+    link.setAttribute('download', `eurobonus-jakten-butiker${suffix}-${dateStr}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   // Exclude/Delete or Restore a store (e.g. bankruptcy or removed from SAS partner site)
@@ -899,6 +971,18 @@ export default function AdminPage() {
                     Här kan du specificera en alternativ butikslogga eller skriva en speciell kommentar/villkor per butik som visas för besökare.
                   </p>
                 </div>
+
+                <div className="flex items-center gap-2 shrink-0 self-start sm:self-auto">
+                  <button
+                    type="button"
+                    onClick={() => handleExportStoresCsv()}
+                    className="px-4 py-2.5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white flex items-center gap-2 transition-all shadow-xs cursor-pointer"
+                    title="Exportera samtliga butiker till en CSV-fil för Excel eller kalkylprogram"
+                  >
+                    <Download className="w-4 h-4" />
+                    <span>Exportera CSV ({dbData?.allStores?.length || 0})</span>
+                  </button>
+                </div>
               </div>
 
               {/* Statistik-chips */}
@@ -1044,6 +1128,18 @@ export default function AdminPage() {
                     className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-300 text-xs bg-slate-50 focus:bg-white"
                   />
                 </div>
+
+                {filteredAllStores.length !== (dbData?.allStores?.length || 0) && (
+                  <button
+                    type="button"
+                    onClick={() => handleExportStoresCsv(filteredAllStores)}
+                    className="px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-50 hover:bg-emerald-100 text-emerald-800 flex items-center gap-1.5 transition-colors border border-emerald-200 self-start sm:self-auto"
+                    title="Exportera enbart butikerna i det nuvarande filtrerade urvalet till CSV"
+                  >
+                    <Download className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>Exportera filtrerade ({filteredAllStores.length})</span>
+                  </button>
+                )}
 
                 {/* Filterknappar */}
                 <div className="flex flex-wrap items-center gap-1.5 self-start sm:self-auto text-xs">
