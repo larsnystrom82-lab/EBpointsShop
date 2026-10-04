@@ -44,6 +44,7 @@ export interface Store {
   hasSasGiftCard?: boolean;
   sasGiftCardBonusPer100Kr?: number | null;
   isExcluded?: boolean;
+  isHidden?: boolean;
 }
 
 export interface Category {

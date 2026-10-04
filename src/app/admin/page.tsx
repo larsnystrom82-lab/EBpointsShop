@@ -78,10 +78,11 @@ export default function AdminPage() {
 
   // States for "Alla butiker" tab
   const [allStoresSearch, setAllStoresSearch] = useState('');
-  const [allStoresFilter, setAllStoresFilter] = useState<'all' | 'partner' | 'zupergift' | 'sas' | 'has_logo' | 'missing_logo' | 'has_comment' | 'excluded'>('all');
+  const [allStoresFilter, setAllStoresFilter] = useState<'all' | 'partner' | 'zupergift' | 'sas' | 'has_logo' | 'missing_logo' | 'has_comment' | 'hidden' | 'excluded'>('all');
   const [storeMetadataEdits, setStoreMetadataEdits] = useState<Record<string, {
     customLogoUrl: string;
     comment: string;
+    isHidden: boolean;
   }>>({});
   const [storeMetadataSaving, setStoreMetadataSaving] = useState<Record<string, boolean>>({});
 
@@ -323,6 +324,7 @@ export default function AdminPage() {
     try {
       const customLogoUrl = edit?.customLogoUrl !== undefined ? edit.customLogoUrl : (store.customLogoUrl || '');
       const comment = edit?.comment !== undefined ? edit.comment : (store.comment || '');
+      const isHidden = edit?.isHidden !== undefined ? edit.isHidden : Boolean(store.isHidden);
 
       const res = await fetch('/api/admin/store-metadata', {
         method: 'POST',
@@ -331,6 +333,7 @@ export default function AdminPage() {
           storeId,
           customLogoUrl: customLogoUrl.trim() || null,
           comment: comment.trim() || null,
+          isHidden,
         }),
       });
 
@@ -639,6 +642,7 @@ export default function AdminPage() {
         if (item.isExcluded) return false;
       }
 
+      if (allStoresFilter === 'hidden' && !item.isHidden) return false;
       if (allStoresFilter === 'partner' && !item.hasPartnerLink) return false;
       if (allStoresFilter === 'zupergift' && !item.zupergiftSupported) return false;
       if (allStoresFilter === 'sas' && !item.hasSasGiftCard) return false;
@@ -995,6 +999,22 @@ export default function AdminPage() {
 
                 <button
                   type="button"
+                  onClick={() => setAllStoresFilter('hidden')}
+                  className={`text-left rounded-2xl p-3 border transition-all ${
+                    allStoresFilter === 'hidden'
+                      ? 'bg-amber-600 text-white border-amber-600 shadow-xs ring-2 ring-amber-300'
+                      : 'bg-amber-50/60 hover:bg-amber-100/70 border-amber-100 text-amber-900'
+                  }`}
+                >
+                  <div className={`text-[11px] font-semibold flex items-center gap-1 ${allStoresFilter === 'hidden' ? 'text-amber-100' : 'text-amber-700'}`}>
+                    <EyeOff className="w-3 h-3" />
+                    <span>Dolda</span>
+                  </div>
+                  <div className="text-lg font-black">{dbData?.allStores?.filter((s) => !s.isExcluded && s.isHidden).length || 0}</div>
+                </button>
+
+                <button
+                  type="button"
                   onClick={() => setAllStoresFilter('excluded')}
                   className={`text-left rounded-2xl p-3 border transition-all ${
                     allStoresFilter === 'excluded'
@@ -1111,6 +1131,18 @@ export default function AdminPage() {
                   </button>
                   <button
                     type="button"
+                    onClick={() => setAllStoresFilter('hidden')}
+                    className={`px-3 py-1.5 rounded-lg font-bold transition-colors flex items-center gap-1.5 ${
+                      allStoresFilter === 'hidden'
+                        ? 'bg-amber-600 text-white shadow-xs'
+                        : 'bg-slate-100 text-amber-800 hover:bg-amber-100 border border-amber-200'
+                    }`}
+                  >
+                    <EyeOff className="w-3.5 h-3.5" />
+                    <span>Dolda ({dbData?.allStores?.filter((s) => !s.isExcluded && s.isHidden).length || 0})</span>
+                  </button>
+                  <button
+                    type="button"
                     onClick={() => setAllStoresFilter('excluded')}
                     className={`px-3 py-1.5 rounded-lg font-bold transition-colors flex items-center gap-1.5 ${
                       allStoresFilter === 'excluded'
@@ -1136,16 +1168,18 @@ export default function AdminPage() {
                     const edit = storeMetadataEdits[item.id];
                     const customLogoVal = edit?.customLogoUrl !== undefined ? edit.customLogoUrl : (item.customLogoUrl || '');
                     const commentVal = edit?.comment !== undefined ? edit.comment : (item.comment || '');
+                    const isHiddenVal = edit?.isHidden !== undefined ? edit.isHidden : Boolean(item.isHidden);
                     const isDirty = edit !== undefined;
                     const isSaving = Boolean(storeMetadataSaving[item.id]);
                     const previewLogoUrl = customLogoVal.trim() || item.logoUrl;
 
-                    const updateMetadataEdit = (patch: Partial<{ customLogoUrl: string; comment: string }>) => {
+                    const updateMetadataEdit = (patch: Partial<{ customLogoUrl: string; comment: string; isHidden: boolean }>) => {
                       setStoreMetadataEdits((prev) => ({
                         ...prev,
                         [item.id]: {
                           customLogoUrl: edit?.customLogoUrl !== undefined ? edit.customLogoUrl : (item.customLogoUrl || ''),
                           comment: edit?.comment !== undefined ? edit.comment : (item.comment || ''),
+                          isHidden: edit?.isHidden !== undefined ? edit.isHidden : Boolean(item.isHidden),
                           ...patch,
                         },
                       }));
@@ -1157,6 +1191,8 @@ export default function AdminPage() {
                         className={`p-4 sm:p-5 rounded-2xl border transition-all ${
                           item.isExcluded
                             ? 'border-rose-300 bg-rose-50/20 opacity-80'
+                            : isHiddenVal
+                            ? 'border-amber-300 bg-amber-50/25 shadow-xs'
                             : isDirty
                             ? 'border-blue-300 bg-blue-50/20 shadow-xs'
                             : 'border-slate-200 bg-white hover:border-slate-300'
@@ -1208,6 +1244,12 @@ export default function AdminPage() {
                                   </span>
                                 ) : (
                                   <>
+                                    {isHiddenVal && (
+                                      <span className="px-2 py-0.5 rounded-md bg-amber-100 text-amber-900 font-bold text-[10px] flex items-center gap-1" title="Dold i Eurobonus-jakten">
+                                        <EyeOff className="w-3 h-3 text-amber-700" />
+                                        Dold
+                                      </span>
+                                    )}
                                     {isStoreMissingLogo(item) && !customLogoVal && (
                                       <span className="px-2 py-0.5 rounded-md bg-rose-100 text-rose-800 font-bold text-[10px] flex items-center gap-1" title="Butiken saknar en giltig bildlogotyp">
                                         <AlertTriangle className="w-3 h-3 text-rose-600" />
@@ -1289,6 +1331,26 @@ export default function AdminPage() {
                               <p className="text-[10px] text-slate-400 mt-0.5">
                                 Visas som en informationsnotis för besökare på butikskortet.
                               </p>
+                            </div>
+
+                            {/* Dölj butiken i Eurobonus-jakten */}
+                            <div className="md:col-span-2 pt-2 border-t border-slate-100 flex items-center justify-between">
+                              <label className={`inline-flex items-center gap-2 cursor-pointer select-none text-xs ${item.isExcluded ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                                <input
+                                  type="checkbox"
+                                  disabled={item.isExcluded}
+                                  checked={isHiddenVal}
+                                  onChange={(e) => updateMetadataEdit({ isHidden: e.target.checked })}
+                                  className="w-4 h-4 rounded border-slate-300 text-amber-600 focus:ring-amber-500 cursor-pointer disabled:cursor-not-allowed"
+                                />
+                                <span className="font-semibold text-slate-700 flex items-center gap-1.5">
+                                  <EyeOff className="w-3.5 h-3.5 text-amber-600" />
+                                  Dölj butiken i Eurobonus-jakten
+                                </span>
+                              </label>
+                              <span className="text-[11px] text-slate-400 hidden sm:inline">
+                                {isHiddenVal ? 'Butiken visas inte för vanliga besökare' : 'Butiken är synlig på webbplatsen'}
+                              </span>
                             </div>
                           </div>
 

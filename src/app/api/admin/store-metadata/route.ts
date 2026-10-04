@@ -10,7 +10,7 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json();
-    const { storeId, customLogoUrl, comment } = body;
+    const { storeId, customLogoUrl, comment, isHidden } = body;
 
     if (!storeId || typeof storeId !== 'string') {
       return NextResponse.json({ error: 'Ogiltigt butiks-ID' }, { status: 400 });
@@ -23,10 +23,14 @@ export async function POST(request: Request) {
 
     const cleanLogoUrl = typeof customLogoUrl === 'string' && customLogoUrl.trim() ? customLogoUrl.trim() : null;
     const cleanComment = typeof comment === 'string' && comment.trim() ? comment.trim() : null;
+    const existingMeta = db.storeCustomMetadata[storeId] || {};
+    const cleanIsHidden = typeof isHidden === 'boolean' ? isHidden : Boolean(existingMeta.isHidden);
 
     db.storeCustomMetadata[storeId] = {
+      ...existingMeta,
       customLogoUrl: cleanLogoUrl,
       comment: cleanComment,
+      isHidden: cleanIsHidden,
       updatedAt: new Date().toISOString(),
       updatedBy: 'Admin',
     };
@@ -36,6 +40,7 @@ export async function POST(request: Request) {
     if (baseStore) {
       baseStore.customLogoUrl = cleanLogoUrl;
       baseStore.comment = cleanComment;
+      baseStore.isHidden = cleanIsHidden;
     }
 
     // Update in zupergiftStores if exists
@@ -43,6 +48,7 @@ export async function POST(request: Request) {
     if (zgStore) {
       (zgStore as any).customLogoUrl = cleanLogoUrl;
       (zgStore as any).comment = cleanComment;
+      zgStore.isHidden = cleanIsHidden;
     }
 
     // Update in sasGiftCards if exists
@@ -50,6 +56,7 @@ export async function POST(request: Request) {
     if (sasStore) {
       (sasStore as any).customLogoUrl = cleanLogoUrl;
       (sasStore as any).comment = cleanComment;
+      sasStore.isHidden = cleanIsHidden;
     }
 
     const storeName = baseStore?.name || zgStore?.name || sasStore?.name || storeId;
@@ -58,7 +65,7 @@ export async function POST(request: Request) {
       id: `audit-${Date.now()}`,
       timestamp: new Date().toISOString(),
       action: 'UPDATE_STORE_METADATA',
-      details: `Uppdaterade butik "${storeName}" (${storeId}): logga=${cleanLogoUrl || 'standard'}, kommentar=${cleanComment ? `"${cleanComment}"` : 'ingen'}.`,
+      details: `Uppdaterade butik "${storeName}" (${storeId}): logga=${cleanLogoUrl || 'standard'}, kommentar=${cleanComment ? `"${cleanComment}"` : 'ingen'}, dölj=${cleanIsHidden ? 'ja' : 'nej'}.`,
       user: 'Admin',
     });
 

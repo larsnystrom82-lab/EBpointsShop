@@ -32,13 +32,30 @@ export function buildAllStores(db: DatabaseSchema, options?: { includeExcluded?:
     return false;
   };
 
+  const isStoreHidden = (id: string, slug?: string, obj?: { isHidden?: boolean }): boolean => {
+    const m =
+      metadata[id] ||
+      metadata[id.toLowerCase()] ||
+      (slug ? metadata[slug] || metadata[slug.toLowerCase()] : undefined);
+    if (m?.isHidden !== undefined && m?.isHidden !== null) {
+      return Boolean(m.isHidden);
+    }
+    return Boolean(obj?.isHidden);
+  };
+
   const baseStores: Store[] = (db.stores || [])
-    .filter((s) => options?.includeExcluded || !isStoreExcluded(s.id, s.slug, s))
+    .filter((s) => {
+      if (options?.includeExcluded) return true;
+      if (isStoreExcluded(s.id, s.slug, s)) return false;
+      if (isStoreHidden(s.id, s.slug, s)) return false;
+      return true;
+    })
     .map((s) => {
       const meta = metadata[s.id] || metadata[s.slug];
       const customLogoUrl = meta?.customLogoUrl?.trim() || s.customLogoUrl || null;
       const comment = meta?.comment?.trim() || s.comment || null;
       const isExcluded = isStoreExcluded(s.id, s.slug, s);
+      const isHidden = isStoreHidden(s.id, s.slug, s);
 
       return {
         id: s.id,
@@ -49,13 +66,14 @@ export function buildAllStores(db: DatabaseSchema, options?: { includeExcluded?:
         customLogoUrl,
         comment,
         categories: s.categories || ['department'],
-        isActive: isExcluded ? false : (s.isActive ?? true),
+        isActive: isExcluded || isHidden ? false : (s.isActive ?? true),
         isExcluded,
+        isHidden,
         partnerRule: s.partnerRule,
         giftCardRule: s.giftCardRule,
         zupergiftSupported: Boolean(s.zupergiftSupported),
         isZupergiftOnly: false,
-        hasPartnerLink: isExcluded ? false : Boolean(s.partnerRule?.hasPartnerLink),
+        hasPartnerLink: isExcluded || isHidden ? false : Boolean(s.partnerRule?.hasPartnerLink),
         syncedAt: (s as any).syncedAt || db.lastPartnerSync || undefined,
       };
     });
@@ -63,17 +81,21 @@ export function buildAllStores(db: DatabaseSchema, options?: { includeExcluded?:
   const baseStoreIds = new Set(db.stores.map((s) => s.id));
 
   const extraZuperStores: Store[] = (db.zupergiftStores || [])
-    .filter(
-      (zs) =>
-        (options?.includeExcluded || (!zs.isHidden && !isStoreExcluded(zs.id, zs.slug, zs))) &&
-        !baseStoreIds.has(zs.id) &&
-        (!zs.matchedStoreId || !baseStoreIds.has(zs.matchedStoreId))
-    )
+    .filter((zs) => {
+      if (baseStoreIds.has(zs.id) || (zs.matchedStoreId && baseStoreIds.has(zs.matchedStoreId))) {
+        return false;
+      }
+      if (options?.includeExcluded) return true;
+      if (isStoreExcluded(zs.id, zs.slug, zs)) return false;
+      if (isStoreHidden(zs.id, zs.slug, zs)) return false;
+      return true;
+    })
     .map((zs) => {
       const meta = metadata[zs.id] || metadata[zs.slug];
       const customLogoUrl = meta?.customLogoUrl?.trim() || (zs as any).customLogoUrl || null;
       const comment = meta?.comment?.trim() || (zs as any).comment || null;
       const isExcluded = isStoreExcluded(zs.id, zs.slug, zs);
+      const isHidden = isStoreHidden(zs.id, zs.slug, zs);
 
       return {
         id: zs.id,
@@ -84,8 +106,9 @@ export function buildAllStores(db: DatabaseSchema, options?: { includeExcluded?:
         customLogoUrl,
         comment,
         categories: zs.category ? [zs.category] : ['department'],
-        isActive: isExcluded ? false : true,
+        isActive: isExcluded || isHidden ? false : true,
         isExcluded,
+        isHidden,
         partnerRule: {
           hasPartnerLink: false,
           bonusPer100Kr: 0,
@@ -102,7 +125,7 @@ export function buildAllStores(db: DatabaseSchema, options?: { includeExcluded?:
           isCampaign: false,
           startUrl: '',
         },
-        zupergiftSupported: !isExcluded,
+        zupergiftSupported: !isExcluded && !isHidden,
         isZupergiftOnly: true,
         hasPartnerLink: false,
         syncedAt: zs.syncedAt || db.lastZupergiftSync || undefined,
@@ -145,7 +168,8 @@ export function buildAllStores(db: DatabaseSchema, options?: { includeExcluded?:
 
   for (const gc of db.sasGiftCards || []) {
     const isExcluded = isStoreExcluded(gc.id, gc.slug, gc);
-    if (!options?.includeExcluded && (gc.isHidden || isExcluded)) {
+    const isHidden = isStoreHidden(gc.id, gc.slug, gc);
+    if (!options?.includeExcluded && (isHidden || isExcluded)) {
       continue;
     }
 
@@ -169,8 +193,9 @@ export function buildAllStores(db: DatabaseSchema, options?: { includeExcluded?:
       customLogoUrl,
       comment,
       categories: ['department'],
-      isActive: isExcluded ? false : true,
+      isActive: isExcluded || isHidden ? false : true,
       isExcluded,
+      isHidden,
       partnerRule: {
         hasPartnerLink: false,
         bonusPer100Kr: 0,

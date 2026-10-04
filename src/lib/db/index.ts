@@ -114,6 +114,7 @@ export interface StoreMetadataItem {
   customLogoUrl?: string | null;
   comment?: string | null;
   isExcluded?: boolean | null;
+  isHidden?: boolean | null;
   updatedAt?: string | null;
   updatedBy?: string | null;
 }
