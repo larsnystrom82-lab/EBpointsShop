@@ -16,7 +16,7 @@ async function testLiveZupergiftSync() {
   const syncData = await syncRes.json();
   console.log('Live Sync Result Message:', syncData.message);
   console.log('Total discovered stores count:', syncData.totalDiscovered);
-  console.log('Matched stores with Poängkollen:', syncData.matchedStores);
+  console.log('Matched stores with Eurobonus-jakten:', syncData.matchedStores);
 
   console.log('3. Fetching DB to check imported Zupergift stores...');
   const dataRes = await fetch('http://localhost:3000/api/admin/data', {

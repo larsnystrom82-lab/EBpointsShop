@@ -32,7 +32,7 @@ const CATEGORIES: {
     label: 'Förbättringsförslag',
     description: 'Idéer till nya funktioner, design eller beräkningar',
     icon: Lightbulb,
-    placeholder: 'Vad skulle göra Poängkollen ännu bättre för dig? Beskriv gärna din idé så utförligt som möjligt...',
+    placeholder: 'Vad skulle göra Eurobonus-jakten ännu bättre för dig? Beskriv gärna din idé så utförligt som möjligt...',
   },
   {
     id: 'store_missing',
@@ -267,7 +267,7 @@ export default function FeedbackPage() {
                   Tack för ditt förslag!
                 </h2>
                 <p className="text-sm sm:text-base text-slate-600 max-w-md mx-auto leading-relaxed">
-                  Vi uppskattar verkligen att du tog dig tid att hjälpa oss utveckla Poängkollen.
+                  Vi uppskattar verkligen att du tog dig tid att hjälpa oss utveckla Eurobonus-jakten.
                   Vi går igenom alla förslag regelbundet.
                 </p>
               </div>

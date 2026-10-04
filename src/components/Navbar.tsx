@@ -35,16 +35,16 @@ export const Navbar: React.FC<NavbarProps> = ({ onSearchClick }) => {
               }}
               className="flex items-center gap-2.5 text-slate-900 group cursor-pointer focus:outline-hidden focus-visible:ring-2 focus-visible:ring-blue-600 rounded-lg"
               title="Gå till första sidan: Jämför bonuspoäng"
-              aria-label="Poängkollen - Gå till första sidan: Jämför bonuspoäng"
+              aria-label="Eurobonus-jakten - Gå till första sidan: Jämför bonuspoäng"
             >
               <div
                 className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white shadow-xs group-hover:bg-blue-700 transition-colors"
-                title="Poängkollen-ikonen – Klicka för att gå till första sidan"
+                title="Eurobonus-jakten-ikonen – Klicka för att gå till första sidan"
               >
                 <Plane className="w-5 h-5 -rotate-45" />
               </div>
               <span className="text-xl font-extrabold tracking-tight text-slate-900 group-hover:text-blue-600 transition-colors">
-                Poängkollen
+                Eurobonus-jakten
               </span>
             </Link>
 
@@ -167,7 +167,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onSearchClick }) => {
                 : 'text-slate-700 hover:bg-slate-50 font-medium'
             }`}
           >
-            Om Poängkollen
+            Om Eurobonus-jakten
           </Link>
           <button
             type="button"

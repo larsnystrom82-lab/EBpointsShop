@@ -17,16 +17,16 @@ export const Footer: React.FC = () => {
               href="/"
               className="flex items-center gap-2 text-slate-900 group"
               title="Gå till första sidan: Jämför bonuspoäng"
-              aria-label="Poängkollen - Gå till första sidan: Jämför bonuspoäng"
+              aria-label="Eurobonus-jakten - Gå till första sidan: Jämför bonuspoäng"
             >
               <div
                 className="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center text-white shadow-xs group-hover:bg-blue-700 transition-colors"
-                title="Poängkollen-ikonen – Klicka för att gå till första sidan"
+                title="Eurobonus-jakten-ikonen – Klicka för att gå till första sidan"
               >
                 <Plane className="w-4 h-4 -rotate-45" />
               </div>
               <span className="text-lg font-extrabold tracking-tight text-slate-900 group-hover:text-blue-600 transition-colors">
-                Poängkollen
+                Eurobonus-jakten
               </span>
             </Link>
             <p className="text-xs sm:text-sm text-slate-600 max-w-md leading-relaxed">
@@ -62,7 +62,7 @@ export const Footer: React.FC = () => {
               </li>
               <li>
                 <Link href="/om" className="hover:text-blue-600 transition-colors font-medium text-slate-800">
-                  Om Poängkollen &amp; Villkor
+                  Om Eurobonus-jakten &amp; Villkor
                 </Link>
               </li>
               <li>
@@ -136,7 +136,7 @@ export const Footer: React.FC = () => {
             </p>
           </div>
           <p className="shrink-0 text-slate-400">
-            © {new Date().getFullYear()} Poängkollen
+            © {new Date().getFullYear()} Eurobonus-jakten
           </p>
         </div>
       </div>

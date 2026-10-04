@@ -342,7 +342,7 @@ export default function Home() {
         <div className="space-y-2">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-200/80 text-blue-700 text-xs font-semibold shadow-2xs">
             <Plane className="w-3.5 h-3.5 -rotate-45" />
-            <span>Första sidan · Poängkollen</span>
+            <span>Första sidan · Eurobonus-jakten</span>
           </div>
           <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-slate-900">
             Jämför bonuspoäng

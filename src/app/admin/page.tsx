@@ -358,7 +358,7 @@ export default function AdminPage() {
   const handleStoreAction = async (storeId: string, storeName: string, action: 'exclude' | 'restore') => {
     if (action === 'exclude') {
       const confirmed = confirm(
-        `Vill du ta bort "${storeName}" från Poängkollen?\n\nButiken tas bort från sajten och exkluderas från framtida synkningar (används t.ex. vid konkurs eller avslutat samarbete med SAS).`
+        `Vill du ta bort "${storeName}" från Eurobonus-jakten?\n\nButiken tas bort från sajten och exkluderas från framtida synkningar (används t.ex. vid konkurs eller avslutat samarbete med SAS).`
       );
       if (!confirmed) return;
     }
@@ -714,7 +714,7 @@ export default function AdminPage() {
 
           <div className="text-center">
             <a href="/" className="text-xs text-blue-600 hover:underline">
-              ← Tillbaka till Poängkollen
+              ← Tillbaka till Eurobonus-jakten
             </a>
           </div>
         </div>
@@ -739,7 +739,7 @@ export default function AdminPage() {
             <span className="bg-blue-600 text-white font-bold text-xs px-2.5 py-1 rounded-md tracking-wider uppercase">
               Admin
             </span>
-            <h1 className="text-lg font-bold">Poängkollen Administration</h1>
+            <h1 className="text-lg font-bold">Eurobonus-jakten Administration</h1>
           </div>
 
           <div className="flex items-center gap-4 text-xs">
@@ -1339,7 +1339,7 @@ export default function AdminPage() {
                                   type="button"
                                   onClick={() => handleStoreAction(item.id, item.name, 'exclude')}
                                   className="px-3 py-1.5 rounded-xl text-xs font-semibold text-rose-600 hover:bg-rose-50 hover:text-rose-700 border border-rose-200 flex items-center gap-1 transition-colors"
-                                  title="Ta bort butiken från Poängkollen (t.ex. vid konkurs eller avslutat samarbete med SAS)"
+                                  title="Ta bort butiken från Eurobonus-jakten (t.ex. vid konkurs eller avslutat samarbete med SAS)"
                                 >
                                   <Trash2 className="w-3.5 h-3.5" />
                                   <span>Ta bort</span>
@@ -1587,7 +1587,7 @@ export default function AdminPage() {
                               )}
                               {isMatchedWithLocal && (
                                 <span className="px-2 py-0.5 rounded-md bg-blue-100 text-blue-800 font-semibold text-[10px]">
-                                  Kopplad till Poängkollen
+                                  Kopplad till Eurobonus-jakten
                                 </span>
                               )}
                             </div>
