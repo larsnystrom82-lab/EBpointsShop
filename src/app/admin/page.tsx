@@ -80,7 +80,8 @@ export default function AdminPage() {
 
   // States for "Alla butiker" tab
   const [allStoresSearch, setAllStoresSearch] = useState('');
-  const [allStoresFilter, setAllStoresFilter] = useState<'all' | 'partner' | 'zupergift' | 'sas' | 'has_logo' | 'missing_logo' | 'has_comment' | 'hidden' | 'excluded'>('all');
+  const [allStoresFilter, setAllStoresFilter] = useState<'all' | 'partner' | 'zupergift' | 'sas' | 'has_logo' | 'custom_logo' | 'missing_logo' | 'has_comment' | 'hidden' | 'excluded'>('all');
+  const [excludeHidden, setExcludeHidden] = useState<boolean>(true);
   const [storeMetadataEdits, setStoreMetadataEdits] = useState<Record<string, {
     customLogoUrl: string;
     comment: string;
@@ -702,6 +703,26 @@ export default function AdminPage() {
     });
   }, [dbData?.sasGiftCards, sasGcSearch, sasGcFilter]);
 
+  // Aggregated counts for store statistics respecting excludeHidden setting
+  const storeCounts = useMemo(() => {
+    const all = dbData?.allStores || [];
+    const nonExcluded = all.filter((s) => !s.isExcluded);
+    const active = excludeHidden ? nonExcluded.filter((s) => !s.isHidden) : nonExcluded;
+
+    return {
+      all: active.length,
+      partner: active.filter((s) => s.hasPartnerLink).length,
+      zupergift: active.filter((s) => s.zupergiftSupported).length,
+      sas: active.filter((s) => s.hasSasGiftCard).length,
+      missingLogo: active.filter((s) => isStoreMissingLogo(s)).length,
+      customLogo: active.filter((s) => Boolean(s.customLogoUrl?.trim())).length,
+      hasLogo: active.filter((s) => !isStoreMissingLogo(s)).length,
+      hasComment: active.filter((s) => Boolean(s.comment?.trim())).length,
+      hidden: nonExcluded.filter((s) => s.isHidden).length,
+      excluded: all.filter((s) => s.isExcluded).length,
+    };
+  }, [dbData?.allStores, excludeHidden]);
+
   // Filtered list for "Alla butiker" tab
   const filteredAllStores = useMemo(() => {
     if (!dbData?.allStores) return [];
@@ -714,13 +735,27 @@ export default function AdminPage() {
         if (item.isExcluded) return false;
       }
 
-      if (allStoresFilter === 'hidden' && !item.isHidden) return false;
+      const edit = storeMetadataEdits[item.id];
+      const isHiddenVal = edit?.isHidden !== undefined ? edit.isHidden : Boolean(item.isHidden);
+      const customLogoVal = edit?.customLogoUrl !== undefined ? edit.customLogoUrl : (item.customLogoUrl || '');
+      const commentVal = edit?.comment !== undefined ? edit.comment : (item.comment || '');
+      const hasCustomLogo = Boolean(customLogoVal.trim());
+
+      // If viewing explicitly hidden stores
+      if (allStoresFilter === 'hidden') {
+        if (!isHiddenVal) return false;
+      } else if (allStoresFilter !== 'excluded') {
+        // If excludeHidden is checked, hide stores where isHidden is true
+        if (excludeHidden && isHiddenVal) return false;
+      }
+
       if (allStoresFilter === 'partner' && !item.hasPartnerLink) return false;
       if (allStoresFilter === 'zupergift' && !item.zupergiftSupported) return false;
       if (allStoresFilter === 'sas' && !item.hasSasGiftCard) return false;
-      if (allStoresFilter === 'has_logo' && isStoreMissingLogo(item)) return false;
-      if (allStoresFilter === 'missing_logo' && !isStoreMissingLogo(item)) return false;
-      if (allStoresFilter === 'has_comment' && !item.comment) return false;
+      if (allStoresFilter === 'has_logo' && isStoreMissingLogo({ ...item, customLogoUrl: customLogoVal })) return false;
+      if (allStoresFilter === 'missing_logo' && !isStoreMissingLogo({ ...item, customLogoUrl: customLogoVal })) return false;
+      if (allStoresFilter === 'custom_logo' && !hasCustomLogo) return false;
+      if (allStoresFilter === 'has_comment' && !commentVal.trim()) return false;
 
       if (allStoresSearch.trim()) {
         const q = allStoresSearch.toLowerCase();
@@ -728,12 +763,12 @@ export default function AdminPage() {
           item.name.toLowerCase().includes(q) ||
           item.slug.toLowerCase().includes(q) ||
           (item.categories && item.categories.some((c) => c.toLowerCase().includes(q))) ||
-          (item.comment && item.comment.toLowerCase().includes(q))
+          (commentVal && commentVal.toLowerCase().includes(q))
         );
       }
       return true;
     });
-  }, [dbData?.allStores, allStoresFilter, allStoresSearch]);
+  }, [dbData?.allStores, allStoresFilter, allStoresSearch, excludeHidden, storeMetadataEdits]);
 
   const categoryNameMap = useMemo(() => {
     const map = new Map<string, string>();
@@ -986,7 +1021,7 @@ export default function AdminPage() {
               </div>
 
               {/* Statistik-chips */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2.5 pt-1">
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5 pt-1">
                 <button
                   type="button"
                   onClick={() => setAllStoresFilter('all')}
@@ -997,7 +1032,7 @@ export default function AdminPage() {
                   }`}
                 >
                   <div className={`text-[11px] font-semibold ${allStoresFilter === 'all' ? 'text-slate-300' : 'text-slate-500'}`}>Aktiva butiker</div>
-                  <div className="text-lg font-black">{dbData?.allStores?.filter((s) => !s.isExcluded).length || 0}</div>
+                  <div className="text-lg font-black">{storeCounts.all}</div>
                 </button>
 
                 <button
@@ -1010,7 +1045,7 @@ export default function AdminPage() {
                   }`}
                 >
                   <div className={`text-[11px] font-semibold ${allStoresFilter === 'partner' ? 'text-blue-100' : 'text-blue-700'}`}>SAS Partner</div>
-                  <div className="text-lg font-black">{dbData?.allStores?.filter((s) => !s.isExcluded && s.hasPartnerLink).length || 0}</div>
+                  <div className="text-lg font-black">{storeCounts.partner}</div>
                 </button>
 
                 <button
@@ -1023,7 +1058,7 @@ export default function AdminPage() {
                   }`}
                 >
                   <div className={`text-[11px] font-semibold ${allStoresFilter === 'zupergift' ? 'text-amber-100' : 'text-amber-700'}`}>Zupergift</div>
-                  <div className="text-lg font-black">{dbData?.allStores?.filter((s) => !s.isExcluded && s.zupergiftSupported).length || 0}</div>
+                  <div className="text-lg font-black">{storeCounts.zupergift}</div>
                 </button>
 
                 <button
@@ -1036,7 +1071,7 @@ export default function AdminPage() {
                   }`}
                 >
                   <div className={`text-[11px] font-semibold ${allStoresFilter === 'sas' ? 'text-indigo-100' : 'text-indigo-700'}`}>SAS Presentkort</div>
-                  <div className="text-lg font-black">{dbData?.allStores?.filter((s) => !s.isExcluded && s.hasSasGiftCard).length || 0}</div>
+                  <div className="text-lg font-black">{storeCounts.sas}</div>
                 </button>
 
                 <button
@@ -1052,7 +1087,23 @@ export default function AdminPage() {
                     <AlertTriangle className="w-3 h-3" />
                     <span>Saknar logga</span>
                   </div>
-                  <div className="text-lg font-black">{dbData?.allStores?.filter((s) => !s.isExcluded && isStoreMissingLogo(s)).length || 0}</div>
+                  <div className="text-lg font-black">{storeCounts.missingLogo}</div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setAllStoresFilter('custom_logo')}
+                  className={`text-left rounded-2xl p-3 border transition-all ${
+                    allStoresFilter === 'custom_logo'
+                      ? 'bg-purple-700 text-white border-purple-700 shadow-xs ring-2 ring-purple-200'
+                      : 'bg-purple-50/80 hover:bg-purple-100 border-purple-200 text-purple-900'
+                  }`}
+                >
+                  <div className={`text-[11px] font-semibold flex items-center gap-1 ${allStoresFilter === 'custom_logo' ? 'text-purple-100' : 'text-purple-700'}`}>
+                    <ImageIcon className="w-3 h-3" />
+                    <span>Alternativ logga</span>
+                  </div>
+                  <div className="text-lg font-black">{storeCounts.customLogo}</div>
                 </button>
 
                 <button
@@ -1060,12 +1111,12 @@ export default function AdminPage() {
                   onClick={() => setAllStoresFilter('has_logo')}
                   className={`text-left rounded-2xl p-3 border transition-all ${
                     allStoresFilter === 'has_logo'
-                      ? 'bg-purple-600 text-white border-purple-600 shadow-xs'
-                      : 'bg-purple-50/60 hover:bg-purple-100/70 border-purple-100 text-purple-900'
+                      ? 'bg-slate-700 text-white border-slate-700 shadow-xs'
+                      : 'bg-slate-100 hover:bg-slate-200 border-slate-200 text-slate-800'
                   }`}
                 >
-                  <div className={`text-[11px] font-semibold ${allStoresFilter === 'has_logo' ? 'text-purple-100' : 'text-purple-700'}`}>Har logga</div>
-                  <div className="text-lg font-black">{dbData?.allStores?.filter((s) => !s.isExcluded && !isStoreMissingLogo(s)).length || 0}</div>
+                  <div className={`text-[11px] font-semibold ${allStoresFilter === 'has_logo' ? 'text-slate-200' : 'text-slate-600'}`}>Har logga</div>
+                  <div className="text-lg font-black">{storeCounts.hasLogo}</div>
                 </button>
 
                 <button
@@ -1078,7 +1129,7 @@ export default function AdminPage() {
                   }`}
                 >
                   <div className={`text-[11px] font-semibold ${allStoresFilter === 'has_comment' ? 'text-emerald-100' : 'text-emerald-700'}`}>Har notering</div>
-                  <div className="text-lg font-black">{dbData?.allStores?.filter((s) => !s.isExcluded && !!s.comment).length || 0}</div>
+                  <div className="text-lg font-black">{storeCounts.hasComment}</div>
                 </button>
 
                 <button
@@ -1094,7 +1145,7 @@ export default function AdminPage() {
                     <EyeOff className="w-3 h-3" />
                     <span>Dolda</span>
                   </div>
-                  <div className="text-lg font-black">{dbData?.allStores?.filter((s) => !s.isExcluded && s.isHidden).length || 0}</div>
+                  <div className="text-lg font-black">{storeCounts.hidden}</div>
                 </button>
 
                 <button
@@ -1110,7 +1161,7 @@ export default function AdminPage() {
                     <Trash2 className="w-3 h-3" />
                     <span>Borttagna</span>
                   </div>
-                  <div className="text-lg font-black">{dbData?.allStores?.filter((s) => s.isExcluded).length || 0}</div>
+                  <div className="text-lg font-black">{storeCounts.excluded}</div>
                 </button>
               </div>
 
@@ -1147,6 +1198,26 @@ export default function AdminPage() {
                     <Filter className="w-3.5 h-3.5" />
                     Visa:
                   </span>
+
+                  {/* Toggle för att exkludera dolda butiker */}
+                  <label
+                    className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs font-semibold cursor-pointer select-none transition-all mr-1 ${
+                      excludeHidden
+                        ? 'bg-amber-50 border-amber-300 text-amber-900 shadow-2xs ring-1 ring-amber-200'
+                        : 'bg-slate-50 border-slate-200 text-slate-500 hover:bg-slate-100'
+                    }`}
+                    title="När denna är aktiv visas inga dolda butiker i dina filter (t.ex. Saknar logga, Partner etc)"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={excludeHidden}
+                      onChange={(e) => setExcludeHidden(e.target.checked)}
+                      className="w-3.5 h-3.5 rounded border-slate-300 text-amber-600 focus:ring-amber-500 cursor-pointer"
+                    />
+                    <EyeOff className="w-3 h-3 text-amber-700" />
+                    <span>Exkludera dolda</span>
+                  </label>
+
                   <button
                     type="button"
                     onClick={() => setAllStoresFilter('all')}
@@ -1156,7 +1227,7 @@ export default function AdminPage() {
                         : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                     }`}
                   >
-                    Alla aktiva ({dbData?.allStores?.filter((s) => !s.isExcluded).length || 0})
+                    Alla {excludeHidden ? 'aktiva' : ''} ({storeCounts.all})
                   </button>
                   <button
                     type="button"
@@ -1168,7 +1239,30 @@ export default function AdminPage() {
                     }`}
                   >
                     <AlertTriangle className="w-3.5 h-3.5" />
-                    <span>Saknar logga ({dbData?.allStores?.filter((s) => !s.isExcluded && isStoreMissingLogo(s)).length || 0})</span>
+                    <span>Saknar logga ({storeCounts.missingLogo})</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAllStoresFilter('custom_logo')}
+                    className={`px-3 py-1.5 rounded-lg font-bold transition-colors flex items-center gap-1.5 ${
+                      allStoresFilter === 'custom_logo'
+                        ? 'bg-purple-700 text-white shadow-xs'
+                        : 'bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200'
+                    }`}
+                  >
+                    <ImageIcon className="w-3.5 h-3.5" />
+                    <span>Alternativ logga ({storeCounts.customLogo})</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAllStoresFilter('has_logo')}
+                    className={`px-3 py-1.5 rounded-lg font-bold transition-colors ${
+                      allStoresFilter === 'has_logo'
+                        ? 'bg-slate-700 text-white'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    Har logga ({storeCounts.hasLogo})
                   </button>
                   <button
                     type="button"
@@ -1179,7 +1273,7 @@ export default function AdminPage() {
                         : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                     }`}
                   >
-                    Partner ({dbData?.allStores?.filter((s) => !s.isExcluded && s.hasPartnerLink).length || 0})
+                    Partner ({storeCounts.partner})
                   </button>
                   <button
                     type="button"
@@ -1190,7 +1284,7 @@ export default function AdminPage() {
                         : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                     }`}
                   >
-                    Zupergift ({dbData?.allStores?.filter((s) => !s.isExcluded && s.zupergiftSupported).length || 0})
+                    Zupergift ({storeCounts.zupergift})
                   </button>
                   <button
                     type="button"
@@ -1201,18 +1295,7 @@ export default function AdminPage() {
                         : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                     }`}
                   >
-                    SAS Presentkort ({dbData?.allStores?.filter((s) => !s.isExcluded && s.hasSasGiftCard).length || 0})
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setAllStoresFilter('has_logo')}
-                    className={`px-3 py-1.5 rounded-lg font-bold transition-colors ${
-                      allStoresFilter === 'has_logo'
-                        ? 'bg-purple-700 text-white'
-                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                    }`}
-                  >
-                    Har logga ({dbData?.allStores?.filter((s) => !s.isExcluded && !isStoreMissingLogo(s)).length || 0})
+                    SAS Presentkort ({storeCounts.sas})
                   </button>
                   <button
                     type="button"
@@ -1223,7 +1306,7 @@ export default function AdminPage() {
                         : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                     }`}
                   >
-                    Har notering ({dbData?.allStores?.filter((s) => !s.isExcluded && !!s.comment).length || 0})
+                    Har notering ({storeCounts.hasComment})
                   </button>
                   <button
                     type="button"
@@ -1235,7 +1318,7 @@ export default function AdminPage() {
                     }`}
                   >
                     <EyeOff className="w-3.5 h-3.5" />
-                    <span>Dolda ({dbData?.allStores?.filter((s) => !s.isExcluded && s.isHidden).length || 0})</span>
+                    <span>Dolda ({storeCounts.hidden})</span>
                   </button>
                   <button
                     type="button"
@@ -1247,7 +1330,7 @@ export default function AdminPage() {
                     }`}
                   >
                     <Trash2 className="w-3.5 h-3.5" />
-                    <span>Borttagna ({dbData?.allStores?.filter((s) => s.isExcluded).length || 0})</span>
+                    <span>Borttagna ({storeCounts.excluded})</span>
                   </button>
                 </div>
               </div>
