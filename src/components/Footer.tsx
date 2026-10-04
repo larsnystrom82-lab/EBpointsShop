@@ -2,7 +2,8 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { Plane, ShieldCheck, ExternalLink, AlertCircle, Lightbulb } from 'lucide-react';
+import Image from 'next/image';
+import { ShieldCheck, ExternalLink, AlertCircle, Lightbulb } from 'lucide-react';
 import { useFeedback } from './FeedbackContext';
 
 export const Footer: React.FC = () => {
@@ -20,10 +21,16 @@ export const Footer: React.FC = () => {
               aria-label="Eurobonus-jakten - Gå till första sidan: Jämför bonuspoäng"
             >
               <div
-                className="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center text-white shadow-xs group-hover:bg-blue-700 transition-colors"
+                className="w-8 h-8 relative flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform"
                 title="Eurobonus-jakten-ikonen – Klicka för att gå till första sidan"
               >
-                <Plane className="w-4 h-4 -rotate-45" />
+                <Image
+                  src="/logo.png"
+                  alt="Eurobonus-jakten"
+                  width={32}
+                  height={32}
+                  className="w-8 h-8 object-contain"
+                />
               </div>
               <span className="text-lg font-extrabold tracking-tight text-slate-900 group-hover:text-blue-600 transition-colors">
                 Eurobonus-jakten

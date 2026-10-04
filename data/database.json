@@ -21176,5 +21176,6 @@
     }
   ],
   "lastSasGiftCardSync": "2026-10-02T23:23:05.841Z",
-  "storeCustomMetadata": {}
+  "storeCustomMetadata": {},
+  "excludedStoreIds": []
 }

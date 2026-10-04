@@ -2,8 +2,9 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { Plane, Search, Menu, X, Lightbulb } from 'lucide-react';
+import { Search, Menu, X, Lightbulb } from 'lucide-react';
 import { useFeedback } from './FeedbackContext';
 
 interface NavbarProps {
@@ -38,10 +39,17 @@ export const Navbar: React.FC<NavbarProps> = ({ onSearchClick }) => {
               aria-label="Eurobonus-jakten - Gå till första sidan: Jämför bonuspoäng"
             >
               <div
-                className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white shadow-xs group-hover:bg-blue-700 transition-colors"
+                className="w-9 h-9 relative flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform"
                 title="Eurobonus-jakten-ikonen – Klicka för att gå till första sidan"
               >
-                <Plane className="w-5 h-5 -rotate-45" />
+                <Image
+                  src="/logo.png"
+                  alt="Eurobonus-jakten"
+                  width={36}
+                  height={36}
+                  className="w-9 h-9 object-contain"
+                  priority
+                />
               </div>
               <span className="text-xl font-extrabold tracking-tight text-slate-900 group-hover:text-blue-600 transition-colors">
                 Eurobonus-jakten

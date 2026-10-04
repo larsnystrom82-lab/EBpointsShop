@@ -736,6 +736,7 @@ export default function AdminPage() {
       <header className="bg-slate-900 text-white border-b border-slate-800">
         <div className="max-w-6xl mx-auto px-4 py-4 sm:px-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
+            <img src="/logo.png" alt="" className="w-6 h-6 object-contain" />
             <span className="bg-blue-600 text-white font-bold text-xs px-2.5 py-1 rounded-md tracking-wider uppercase">
               Admin
             </span>

@@ -10,8 +10,9 @@ import { ErrorReportModal } from '@/components/ErrorReportModal';
 import { DEMO_STORES, DEMO_CATEGORIES, DEMO_CARDS } from '@/lib/fixtures/demo-data';
 import { Category, FilterState, OneTimeBonusFilter, RouteCalculationResult, SortOption, Store } from '@/types/domain';
 import type { SasGiftCardStoreItem } from '@/lib/db';
+import Image from 'next/image';
 import { generateCandidateRoutes, processAndRankRoutes } from '@/lib/engine/calculator';
-import { Info, Plane } from 'lucide-react';
+import { Info } from 'lucide-react';
 
 const STORAGE_KEY = 'poangkollen_user_preferences_v2';
 
@@ -341,7 +342,7 @@ export default function Home() {
         {/* Hero rubrik och förklaring */}
         <div className="space-y-2">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-200/80 text-blue-700 text-xs font-semibold shadow-2xs">
-            <Plane className="w-3.5 h-3.5 -rotate-45" />
+            <Image src="/logo.png" alt="" width={16} height={16} className="w-4 h-4 object-contain" />
             <span>Första sidan · Eurobonus-jakten</span>
           </div>
           <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-slate-900">
