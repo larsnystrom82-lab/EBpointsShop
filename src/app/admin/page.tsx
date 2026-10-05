@@ -31,6 +31,7 @@ import {
   Edit2,
   Check,
   X,
+  ChevronDown,
 } from 'lucide-react';
 import type { DatabaseSchema, DbStore, ZupergiftStoreItem } from '@/lib/db';
 import type { Store } from '@/types/domain';
@@ -84,6 +85,7 @@ export default function AdminPage() {
   // States for "Alla butiker" tab
   const [allStoresSearch, setAllStoresSearch] = useState('');
   const [allStoresFilter, setAllStoresFilter] = useState<'all' | 'partner' | 'zupergift' | 'sas' | 'has_logo' | 'custom_logo' | 'missing_logo' | 'has_comment' | 'hidden' | 'excluded'>('all');
+  const [allStoresCategoryFilter, setAllStoresCategoryFilter] = useState<string>('all');
   const [excludeHidden, setExcludeHidden] = useState<boolean>(true);
   const [storeMetadataEdits, setStoreMetadataEdits] = useState<Record<string, {
     customLogoUrl: string;
@@ -113,6 +115,7 @@ export default function AdminPage() {
   // Zupergift store filter & search
   const [zgSearch, setZgSearch] = useState('');
   const [zgFilter, setZgFilter] = useState<'all' | 'active' | 'hidden' | 'excluded'>('all');
+  const [zgCategoryFilter, setZgCategoryFilter] = useState<string>('all');
 
   // SAS Presentkort tab
   const [syncingSasGc, setSyncingSasGc] = useState<boolean>(false);
@@ -133,6 +136,7 @@ export default function AdminPage() {
   const [syncingPartner, setSyncingPartner] = useState<boolean>(false);
   const [storeSearch, setStoreSearch] = useState('');
   const [storeFilter, setStoreFilter] = useState<'all' | 'partner' | 'campaign' | 'zupergift' | 'fixed'>('all');
+  const [storeCategoryFilter, setStoreCategoryFilter] = useState<string>('all');
 
   // Load admin data
   const fetchAdminData = async () => {
@@ -708,6 +712,15 @@ export default function AdminPage() {
       if (zgFilter === 'hidden' && (!store.isHidden || store.isExcluded)) return false;
       if (zgFilter === 'excluded' && !store.isExcluded) return false;
 
+      // Category filter
+      if (zgCategoryFilter !== 'all') {
+        if (zgCategoryFilter === '__none__') {
+          if (store.category) return false;
+        } else {
+          if (store.category !== zgCategoryFilter) return false;
+        }
+      }
+
       // Search query
       if (zgSearch.trim()) {
         const q = zgSearch.toLowerCase();
@@ -716,7 +729,7 @@ export default function AdminPage() {
 
       return true;
     });
-  }, [dbData?.zupergiftStores, zgFilter, zgSearch]);
+  }, [dbData?.zupergiftStores, zgFilter, zgCategoryFilter, zgSearch]);
 
   // Filtered SAS stores list for Stores tab
   const filteredStores = useMemo(() => {
@@ -735,6 +748,16 @@ export default function AdminPage() {
         if (!isFixed) return false;
       }
 
+      // Category filter
+      if (storeCategoryFilter !== 'all') {
+        const cats = Array.isArray(store.categories) ? store.categories : [];
+        if (storeCategoryFilter === '__none__') {
+          if (cats.length > 0) return false;
+        } else {
+          if (!cats.includes(storeCategoryFilter)) return false;
+        }
+      }
+
       if (storeSearch.trim()) {
         const q = storeSearch.toLowerCase();
         return (
@@ -745,7 +768,7 @@ export default function AdminPage() {
       }
       return true;
     });
-  }, [dbData?.stores, storeFilter, storeSearch]);
+  }, [dbData?.stores, storeFilter, storeCategoryFilter, storeSearch]);
 
   // Filtered SAS gift card stores for SAS Presentkort tab
   const filteredSasGiftCards = useMemo(() => {
@@ -790,14 +813,37 @@ export default function AdminPage() {
     };
   }, [dbData?.allStores, excludeHidden]);
 
+  const categoriesList = useMemo(() => {
+    return dbData?.categories && dbData.categories.length > 0 ? dbData.categories : DEMO_CATEGORIES;
+  }, [dbData?.categories]);
+
   const categoryNameMap = useMemo(() => {
     const map = new Map<string, string>();
-    const list = dbData?.categories && dbData.categories.length > 0 ? dbData.categories : DEMO_CATEGORIES;
-    for (const c of list) {
+    for (const c of categoriesList) {
       map.set(c.id, c.name);
     }
     return map;
-  }, [dbData?.categories]);
+  }, [categoriesList]);
+
+  // Aggregated counts per category for the catalog
+  const categoryStoreCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    const all = dbData?.allStores || [];
+    const nonExcluded = all.filter((s) => !s.isExcluded);
+    const active = excludeHidden ? nonExcluded.filter((s) => !s.isHidden) : nonExcluded;
+
+    for (const store of active) {
+      const cats = Array.isArray(store.categories) ? store.categories : [];
+      if (cats.length === 0) {
+        counts['__none__'] = (counts['__none__'] || 0) + 1;
+      } else {
+        for (const catId of cats) {
+          counts[catId] = (counts[catId] || 0) + 1;
+        }
+      }
+    }
+    return counts;
+  }, [dbData?.allStores, excludeHidden]);
 
   // Filtered list for "Alla butiker" tab
   const filteredAllStores = useMemo(() => {
@@ -827,6 +873,18 @@ export default function AdminPage() {
       if (allStoresFilter === 'custom_logo' && !item.customLogoUrl?.trim()) return false;
       if (allStoresFilter === 'has_comment' && !item.comment?.trim()) return false;
 
+      // Category filter
+      if (allStoresCategoryFilter !== 'all') {
+        const storeCategories = Array.isArray(item.categories)
+          ? item.categories
+          : (item.categories ? [item.categories] : []);
+        if (allStoresCategoryFilter === '__none__') {
+          if (storeCategories.length > 0) return false;
+        } else {
+          if (!storeCategories.includes(allStoresCategoryFilter)) return false;
+        }
+      }
+
       if (allStoresSearch.trim()) {
         const q = allStoresSearch.trim().toLowerCase();
         const edit = storeMetadataEdits[item.id];
@@ -853,7 +911,7 @@ export default function AdminPage() {
       }
       return true;
     });
-  }, [dbData?.allStores, allStoresFilter, allStoresSearch, excludeHidden, categoryNameMap, storeMetadataEdits]);
+  }, [dbData?.allStores, allStoresFilter, allStoresCategoryFilter, allStoresSearch, excludeHidden, categoryNameMap, storeMetadataEdits]);
 
   if (isAuthenticated === false) {
     return (
@@ -1243,24 +1301,68 @@ export default function AdminPage() {
 
               {/* Sök och filterrad */}
               <div className="flex flex-col sm:flex-row gap-3 items-center justify-between pt-2 border-t border-slate-100">
-                <div className="relative w-full sm:w-80">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                    <Search className="w-4 h-4" />
+                <div className="flex flex-col sm:flex-row gap-2.5 w-full sm:w-auto flex-1">
+                  <div className="relative w-full sm:w-80">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                      <Search className="w-4 h-4" />
+                    </div>
+                    <input
+                      type="text"
+                      value={allStoresSearch}
+                      onChange={(e) => setAllStoresSearch(e.target.value)}
+                      placeholder="Sök bland alla butiker (namn, kategori)..."
+                      className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-300 text-xs bg-slate-50 focus:bg-white"
+                    />
                   </div>
-                  <input
-                    type="text"
-                    value={allStoresSearch}
-                    onChange={(e) => setAllStoresSearch(e.target.value)}
-                    placeholder="Sök bland alla butiker (namn, kategori)..."
-                    className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-300 text-xs bg-slate-50 focus:bg-white"
-                  />
+
+                  {/* Kategori-väljare */}
+                  <div className="relative w-full sm:w-60">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                      <Tag className="w-3.5 h-3.5" />
+                    </div>
+                    <select
+                      value={allStoresCategoryFilter}
+                      onChange={(e) => setAllStoresCategoryFilter(e.target.value)}
+                      className={`w-full pl-9 pr-8 py-2 rounded-xl border text-xs font-semibold appearance-none cursor-pointer transition-colors ${
+                        allStoresCategoryFilter !== 'all'
+                          ? 'bg-blue-50 border-blue-300 text-blue-900 ring-1 ring-blue-200'
+                          : 'bg-slate-50 border-slate-300 text-slate-700 hover:bg-white'
+                      }`}
+                      title="Filtrera butiker efter kategori"
+                    >
+                      <option value="all">Alla kategorier ({storeCounts.all})</option>
+                      {categoriesList.map((cat) => (
+                        <option key={cat.id} value={cat.id}>
+                          {cat.name} ({categoryStoreCounts[cat.id] || 0})
+                        </option>
+                      ))}
+                      <option value="__none__">
+                        Utan kategori ({categoryStoreCounts['__none__'] || 0})
+                      </option>
+                    </select>
+                    <div className="absolute inset-y-0 right-0 pr-2.5 flex items-center pointer-events-none text-slate-400">
+                      <ChevronDown className="w-3.5 h-3.5" />
+                    </div>
+                  </div>
+
+                  {allStoresCategoryFilter !== 'all' && (
+                    <button
+                      type="button"
+                      onClick={() => setAllStoresCategoryFilter('all')}
+                      className="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-semibold flex items-center gap-1 transition-colors self-start sm:self-center shrink-0 cursor-pointer"
+                      title="Nollställ kategorifilter"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                      <span>Rensa kategori</span>
+                    </button>
+                  )}
                 </div>
 
                 {filteredAllStores.length !== (dbData?.allStores?.length || 0) && (
                   <button
                     type="button"
                     onClick={() => handleExportStoresCsv(filteredAllStores)}
-                    className="px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-50 hover:bg-emerald-100 text-emerald-800 flex items-center gap-1.5 transition-colors border border-emerald-200 self-start sm:self-auto"
+                    className="px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-50 hover:bg-emerald-100 text-emerald-800 flex items-center gap-1.5 transition-colors border border-emerald-200 self-start sm:self-auto shrink-0"
                     title="Exportera enbart butikerna i det nuvarande filtrerade urvalet till CSV"
                   >
                     <Download className="w-3.5 h-3.5 text-emerald-600" />
@@ -1921,17 +2023,61 @@ export default function AdminPage() {
 
               {/* Sök och filterrad */}
               <div className="flex flex-col sm:flex-row gap-3 items-center justify-between pt-2">
-                <div className="relative w-full sm:w-72">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                    <Search className="w-4 h-4" />
+                <div className="flex flex-col sm:flex-row gap-2.5 w-full sm:w-auto">
+                  <div className="relative w-full sm:w-72">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                      <Search className="w-4 h-4" />
+                    </div>
+                    <input
+                      type="text"
+                      value={zgSearch}
+                      onChange={(e) => setZgSearch(e.target.value)}
+                      placeholder="Sök bland Zupergift-butiker..."
+                      className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-300 text-xs bg-slate-50 focus:bg-white"
+                    />
                   </div>
-                  <input
-                    type="text"
-                    value={zgSearch}
-                    onChange={(e) => setZgSearch(e.target.value)}
-                    placeholder="Sök bland Zupergift-butiker..."
-                    className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-300 text-xs bg-slate-50 focus:bg-white"
-                  />
+
+                  {/* Kategori-väljare för Zupergift */}
+                  <div className="relative w-full sm:w-56">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                      <Tag className="w-3.5 h-3.5" />
+                    </div>
+                    <select
+                      value={zgCategoryFilter}
+                      onChange={(e) => setZgCategoryFilter(e.target.value)}
+                      className={`w-full pl-9 pr-8 py-2 rounded-xl border text-xs font-semibold appearance-none cursor-pointer transition-colors ${
+                        zgCategoryFilter !== 'all'
+                          ? 'bg-blue-50 border-blue-300 text-blue-900 ring-1 ring-blue-200'
+                          : 'bg-slate-50 border-slate-300 text-slate-700 hover:bg-white'
+                      }`}
+                      title="Filtrera Zupergift-butiker efter kategori"
+                    >
+                      <option value="all">Alla kategorier ({dbData?.zupergiftStores.length || 0})</option>
+                      {categoriesList.map((cat) => {
+                        const count = (dbData?.zupergiftStores || []).filter((s) => !s.isExcluded && s.category === cat.id).length;
+                        return (
+                          <option key={cat.id} value={cat.id}>
+                            {cat.name} ({count})
+                          </option>
+                        );
+                      })}
+                    </select>
+                    <div className="absolute inset-y-0 right-0 pr-2.5 flex items-center pointer-events-none text-slate-400">
+                      <ChevronDown className="w-3.5 h-3.5" />
+                    </div>
+                  </div>
+
+                  {zgCategoryFilter !== 'all' && (
+                    <button
+                      type="button"
+                      onClick={() => setZgCategoryFilter('all')}
+                      className="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-semibold flex items-center gap-1 transition-colors self-start sm:self-center shrink-0 cursor-pointer"
+                      title="Nollställ kategorifilter"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                      <span>Rensa</span>
+                    </button>
+                  )}
                 </div>
 
                 {/* Filterflikar */}
@@ -2452,17 +2598,61 @@ export default function AdminPage() {
 
             {/* Sök och filterrad */}
             <div className="flex flex-col sm:flex-row gap-3 items-center justify-between pt-2">
-              <div className="relative w-full sm:w-72">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                  <Search className="w-4 h-4" />
+              <div className="flex flex-col sm:flex-row gap-2.5 w-full sm:w-auto">
+                <div className="relative w-full sm:w-72">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                    <Search className="w-4 h-4" />
+                  </div>
+                  <input
+                    type="text"
+                    value={storeSearch}
+                    onChange={(e) => setStoreSearch(e.target.value)}
+                    placeholder="Sök bland butiker..."
+                    className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-300 text-xs bg-slate-50 focus:bg-white"
+                  />
                 </div>
-                <input
-                  type="text"
-                  value={storeSearch}
-                  onChange={(e) => setStoreSearch(e.target.value)}
-                  placeholder="Sök bland butiker..."
-                  className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-300 text-xs bg-slate-50 focus:bg-white"
-                />
+
+                {/* Kategori-väljare för butiker */}
+                <div className="relative w-full sm:w-56">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                    <Tag className="w-3.5 h-3.5" />
+                  </div>
+                  <select
+                    value={storeCategoryFilter}
+                    onChange={(e) => setStoreCategoryFilter(e.target.value)}
+                    className={`w-full pl-9 pr-8 py-2 rounded-xl border text-xs font-semibold appearance-none cursor-pointer transition-colors ${
+                      storeCategoryFilter !== 'all'
+                        ? 'bg-blue-50 border-blue-300 text-blue-900 ring-1 ring-blue-200'
+                        : 'bg-slate-50 border-slate-300 text-slate-700 hover:bg-white'
+                    }`}
+                    title="Filtrera partnerbutiker efter kategori"
+                  >
+                    <option value="all">Alla kategorier ({dbData?.stores.length || 0})</option>
+                    {categoriesList.map((cat) => {
+                      const count = (dbData?.stores || []).filter((s) => !s.isExcluded && (s.categories || []).includes(cat.id)).length;
+                      return (
+                        <option key={cat.id} value={cat.id}>
+                          {cat.name} ({count})
+                        </option>
+                      );
+                    })}
+                  </select>
+                  <div className="absolute inset-y-0 right-0 pr-2.5 flex items-center pointer-events-none text-slate-400">
+                    <ChevronDown className="w-3.5 h-3.5" />
+                  </div>
+                </div>
+
+                {storeCategoryFilter !== 'all' && (
+                  <button
+                    type="button"
+                    onClick={() => setStoreCategoryFilter('all')}
+                    className="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-semibold flex items-center gap-1 transition-colors self-start sm:self-center shrink-0 cursor-pointer"
+                    title="Nollställ kategorifilter"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                    <span>Rensa</span>
+                  </button>
+                )}
               </div>
 
               {/* Filterflikar */}
