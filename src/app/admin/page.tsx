@@ -32,6 +32,7 @@ import {
   Check,
   X,
   ChevronDown,
+  Upload,
 } from 'lucide-react';
 import type { DatabaseSchema, DbStore, ZupergiftStoreItem } from '@/lib/db';
 import type { Store } from '@/types/domain';
@@ -104,6 +105,8 @@ export default function AdminPage() {
   const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
   const [editingCategoryName, setEditingCategoryName] = useState('');
   const [savingCategory, setSavingCategory] = useState(false);
+  const [selectedCategoryForUpload, setSelectedCategoryForUpload] = useState<{ id: string; name: string } | null>(null);
+  const categoryFileInputRef = React.useRef<HTMLInputElement | null>(null);
 
   // Form states for Zupergift point settings
   const [zgRate, setZgRate] = useState<number>(30);
@@ -381,7 +384,7 @@ export default function AdminPage() {
   };
 
   // Exportera butiker till CSV
-  const handleExportStoresCsv = (customList?: Store[]) => {
+  const handleExportStoresCsv = (customList?: Store[], customFilePrefix?: string) => {
     const list = customList || dbData?.allStores || [];
     if (list.length === 0) {
       alert('Inga butiker finns att exportera.');
@@ -450,12 +453,100 @@ export default function AdminPage() {
     link.href = url;
     const dateStr = new Date().toISOString().split('T')[0];
     const isFiltered = customList && customList.length !== (dbData?.allStores?.length || 0);
-    const suffix = isFiltered ? '-filtrerade' : '';
+    const suffix = customFilePrefix ? `-${customFilePrefix}` : isFiltered ? '-filtrerade' : '';
     link.setAttribute('download', `eurobonus-jakten-butiker${suffix}-${dateStr}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
+  };
+
+  // Exportera butiker i en specifik kategori
+  const handleExportCategoryStores = (catId: string, catName: string) => {
+    const list = (dbData?.allStores || []).filter((s) => !s.isExcluded && (s.categories || []).includes(catId));
+    if (list.length === 0) {
+      alert(`Det finns inga butiker kopplade till kategorin "${catName}".`);
+      return;
+    }
+    handleExportStoresCsv(list, `kategori-${catId}`);
+  };
+
+  // Öppna filväljare för att ladda upp butiks-ID:n till en specifik kategori
+  const handleTriggerUploadStoresForCategory = (catId: string, catName: string) => {
+    setSelectedCategoryForUpload({ id: catId, name: catName });
+    if (categoryFileInputRef.current) {
+      categoryFileInputRef.current.value = '';
+      categoryFileInputRef.current.click();
+    }
+  };
+
+  // Läs och ladda upp butiks-ID:n från textfil
+  const handleCategoryFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !selectedCategoryForUpload) return;
+
+    // Återställ filväljarens värde så samma fil kan väljas igen vid behov
+    e.target.value = '';
+
+    try {
+      const text = await file.text();
+      // Separera på radbrytningar, kommatecken, semikolon eller tabb
+      const rawLines = text
+        .split(/[\r\n,;\t]+/)
+        .map((s) => s.trim().replace(/^["']|["']$/g, ''))
+        .filter(Boolean);
+
+      // Filtrera bort rubrikrad om den förekommer
+      const headerWords = new Set(['id', 'butiks-id', 'butiks_id', 'butiksid', 'slug', 'store_id', 'storeid', 'butik', 'butiker', 'name', 'namn']);
+      const candidateIds = rawLines.filter((line) => !headerWords.has(line.toLowerCase()));
+
+      // Deduplicera
+      const uniqueIds = Array.from(new Set(candidateIds));
+
+      if (uniqueIds.length === 0) {
+        alert(`Inga giltiga butiks-ID:n hittades i filen "${file.name}".`);
+        return;
+      }
+
+      const confirmed = confirm(
+        `Filen "${file.name}" innehåller ${uniqueIds.length} butiks-ID:n.\n\nVill du lägga till dessa butiker i kategorin "${selectedCategoryForUpload.name}"?`
+      );
+      if (!confirmed) return;
+
+      setLoading(true);
+      const res = await fetch('/api/admin/category', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'add-stores',
+          categoryId: selectedCategoryForUpload.id,
+          storeIds: uniqueIds,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        let msg = `${data.addedCount} butiker lades till i kategorin "${selectedCategoryForUpload.name}".`;
+        if (data.alreadyInCount > 0) {
+          msg += `\n(${data.alreadyInCount} butiker ingick redan i kategorin).`;
+        }
+        if (data.notFoundIds && data.notFoundIds.length > 0) {
+          msg += `\n\n⚠️ ${data.notFoundIds.length} butiks-ID:n kunde inte matchas i katalogen:\n${data.notFoundIds.slice(0, 10).join(', ')}${data.notFoundIds.length > 10 ? ` (+${data.notFoundIds.length - 10} till)` : ''}`;
+        }
+        alert(msg);
+        setStatusMessage({ text: `${data.addedCount} butiker lades till i "${selectedCategoryForUpload.name}".`, type: 'success' });
+        await fetchAdminData();
+      } else {
+        alert(data.error || 'Kunde inte lägga till butiker i kategorin.');
+        setStatusMessage({ text: data.error || 'Fel vid tillägg av butiker', type: 'error' });
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Ett fel uppstod vid inläsning av filen.');
+    } finally {
+      setLoading(false);
+      setSelectedCategoryForUpload(null);
+      setTimeout(() => setStatusMessage(null), 5000);
+    }
   };
 
   // Exclude/Delete or Restore a store (e.g. bankruptcy or removed from SAS partner site)
@@ -3091,14 +3182,16 @@ export default function AdminPage() {
 
               <div className="border border-slate-200 rounded-2xl overflow-hidden divide-y divide-slate-100">
                 {(dbData?.categories || DEMO_CATEGORIES).map((cat) => {
-                  const partnerCount = dbData?.stores.filter((s) => s.categories?.includes(cat.id)).length || 0;
-                  const zgCount = dbData?.zupergiftStores.filter((z) => z.category === cat.id).length || 0;
-                  const total = partnerCount + zgCount;
+                  const allMatchingStores = (dbData?.allStores || []).filter((s) => !s.isExcluded && (s.categories || []).includes(cat.id));
+                  const total = allMatchingStores.length;
+                  const partnerCount = allMatchingStores.filter((s) => s.hasPartnerLink).length;
+                  const zgCount = allMatchingStores.filter((s) => s.zupergiftSupported).length;
+                  const sasCount = allMatchingStores.filter((s) => s.hasSasGiftCard).length;
 
                   return (
                     <div
                       key={cat.id}
-                      className={`p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs transition-colors ${
+                      className={`p-4 flex flex-col lg:flex-row lg:items-center justify-between gap-3 text-xs transition-colors ${
                         editingCategoryId === cat.id ? 'bg-blue-50/60 ring-2 ring-blue-500/20 rounded-xl' : 'hover:bg-slate-50'
                       }`}
                     >
@@ -3155,32 +3248,54 @@ export default function AdminPage() {
                               <Tag className="w-4 h-4 text-slate-500" />
                             </div>
                             <div>
-                              <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-2 flex-wrap">
                                 <span className="font-bold text-slate-900 text-sm">{cat.name}</span>
                                 <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 font-mono text-[10px]">
                                   {cat.id}
                                 </span>
                               </div>
-                              <div className="text-[11px] text-slate-400 mt-0.5 flex items-center gap-2">
-                                <span>{partnerCount} SAS Partnerbutiker</span>
+                              <div className="text-[11px] text-slate-400 mt-0.5 flex items-center gap-2 flex-wrap">
+                                <span>{partnerCount} SAS Partner</span>
                                 <span>•</span>
-                                <span>{zgCount} Zupergift-butiker</span>
+                                <span>{zgCount} Zupergift</span>
+                                <span>•</span>
+                                <span>{sasCount} SAS Presentkort</span>
                               </div>
                             </div>
                           </div>
 
-                          <div className="flex items-center gap-3 self-end sm:self-auto shrink-0">
-                            <div className="text-right mr-2">
+                          <div className="flex items-center gap-2 self-end lg:self-auto shrink-0 flex-wrap">
+                            <div className="text-right mr-1">
                               <span className="font-bold text-slate-700 block text-xs">
                                 {total} {total === 1 ? 'butik' : 'butiker'}
                               </span>
-                              <span className="text-[10px] text-slate-400">totalt kopplade</span>
+                              <span className="text-[10px] text-slate-400">kopplade</span>
                             </div>
 
                             <button
                               type="button"
+                              onClick={() => handleExportCategoryStores(cat.id, cat.name)}
+                              className="px-2.5 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-semibold text-xs flex items-center gap-1.5 border border-emerald-200 transition-colors touch-target cursor-pointer"
+                              title={`Exportera butiker i kategorin "${cat.name}" till CSV`}
+                            >
+                              <Download className="w-3.5 h-3.5 text-emerald-600" />
+                              <span>Exportera ({total})</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => handleTriggerUploadStoresForCategory(cat.id, cat.name)}
+                              className="px-2.5 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold text-xs flex items-center gap-1.5 border border-indigo-200 transition-colors touch-target cursor-pointer"
+                              title={`Ladda upp en textfil med butiks-ID:n för att lägga till i "${cat.name}"`}
+                            >
+                              <Upload className="w-3.5 h-3.5 text-indigo-600" />
+                              <span>Ladda upp ID:n</span>
+                            </button>
+
+                            <button
+                              type="button"
                               onClick={() => handleStartEditCategory(cat)}
-                              className="px-3 py-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold text-xs flex items-center gap-1.5 border border-blue-200 transition-colors touch-target"
+                              className="px-2.5 py-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold text-xs flex items-center gap-1.5 border border-blue-200 transition-colors touch-target cursor-pointer"
                               title={`Ändra namn på "${cat.name}"`}
                             >
                               <Edit2 className="w-3.5 h-3.5" />
@@ -3190,7 +3305,7 @@ export default function AdminPage() {
                             <button
                               type="button"
                               onClick={() => handleDeleteCategory(cat.id, cat.name)}
-                              className="px-3 py-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-700 font-semibold text-xs flex items-center gap-1.5 border border-red-200 transition-colors touch-target"
+                              className="px-2.5 py-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-700 font-semibold text-xs flex items-center gap-1.5 border border-red-200 transition-colors touch-target cursor-pointer"
                               title={`Ta bort kategorin "${cat.name}"`}
                             >
                               <Trash2 className="w-3.5 h-3.5" />
@@ -3203,6 +3318,15 @@ export default function AdminPage() {
                   );
                 })}
               </div>
+
+              {/* Dold filväljare för uppladdning av butiks-ID:n till kategori */}
+              <input
+                ref={categoryFileInputRef}
+                type="file"
+                accept=".txt,.csv"
+                onChange={handleCategoryFileUpload}
+                className="hidden"
+              />
             </div>
           </div>
         )}
