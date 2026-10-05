@@ -5,10 +5,23 @@ import { Search, X, Check, Store as StoreIcon, ChevronDown, CheckSquare, Square 
 import Image from 'next/image';
 import { Store } from '@/types/domain';
 
+export interface StoreFilterGroup {
+  key: string;
+  displayName: string;
+  isAliasGroup: boolean;
+  storeIds: string[];
+  stores: Store[];
+  logoUrl?: string;
+  zupergiftSupported: boolean;
+  hasPartnerLink: boolean;
+  hasSasGiftCard: boolean;
+}
+
 interface StoreMultiSelectDropdownProps {
   allStores: Store[];
   selectedStoreIds: string[];
   onToggleStore: (storeId: string) => void;
+  onToggleStores?: (storeIds: string[]) => void;
   onClearSelection: () => void;
   onSelectAll?: (storeIds?: string[]) => void;
   label?: string;
@@ -19,6 +32,7 @@ export const StoreMultiSelectDropdown: React.FC<StoreMultiSelectDropdownProps> =
   allStores,
   selectedStoreIds,
   onToggleStore,
+  onToggleStores,
   onClearSelection,
   onSelectAll,
   label = 'Välj butik',
@@ -62,36 +76,91 @@ export const StoreMultiSelectDropdown: React.FC<StoreMultiSelectDropdownProps> =
     }
   }, [isOpen]);
 
-  // Separate stores into Selected and Unselected
-  const { selectedStores, unselectedStores } = useMemo(() => {
-    const selected: Store[] = [];
-    const unselected: Store[] = [];
-
-    const selectedSet = new Set(selectedStoreIds);
+  // Group stores by alias if set; stores sharing the same alias appear ONLY ONCE in filter
+  const filterGroups: StoreFilterGroup[] = useMemo(() => {
+    const aliasGroupMap = new Map<string, StoreFilterGroup>();
+    const result: StoreFilterGroup[] = [];
 
     for (const store of allStores) {
-      if (selectedSet.has(store.id)) {
-        selected.push(store);
+      const aliasClean = store.alias?.trim();
+      if (aliasClean) {
+        const aliasKey = aliasClean.toLowerCase();
+        let existing = aliasGroupMap.get(aliasKey);
+        if (!existing) {
+          existing = {
+            key: `alias:${aliasKey}`,
+            displayName: aliasClean,
+            isAliasGroup: true,
+            storeIds: [store.id],
+            stores: [store],
+            logoUrl: store.logoUrl,
+            zupergiftSupported: Boolean(store.zupergiftSupported),
+            hasPartnerLink: Boolean(store.hasPartnerLink),
+            hasSasGiftCard: Boolean(store.hasSasGiftCard),
+          };
+          aliasGroupMap.set(aliasKey, existing);
+          result.push(existing);
+        } else {
+          existing.storeIds.push(store.id);
+          existing.stores.push(store);
+          // Prefer logo of the store whose name matches the alias, or first available logo
+          if (store.name.toLowerCase() === aliasKey || (!existing.logoUrl && store.logoUrl)) {
+            existing.logoUrl = store.logoUrl;
+          }
+          if (store.zupergiftSupported) existing.zupergiftSupported = true;
+          if (store.hasPartnerLink) existing.hasPartnerLink = true;
+          if (store.hasSasGiftCard) existing.hasSasGiftCard = true;
+        }
       } else {
-        unselected.push(store);
+        result.push({
+          key: `store:${store.id}`,
+          displayName: store.name,
+          isAliasGroup: false,
+          storeIds: [store.id],
+          stores: [store],
+          logoUrl: store.logoUrl,
+          zupergiftSupported: Boolean(store.zupergiftSupported),
+          hasPartnerLink: Boolean(store.hasPartnerLink),
+          hasSasGiftCard: Boolean(store.hasSasGiftCard),
+        });
       }
     }
 
-    return { selectedStores: selected, unselectedStores: unselected };
-  }, [allStores, selectedStoreIds]);
+    return result;
+  }, [allStores]);
 
-  // Filter based on search query
+  // Separate filter groups into Selected and Unselected
+  const { selectedGroups, unselectedGroups } = useMemo(() => {
+    const selected: StoreFilterGroup[] = [];
+    const unselected: StoreFilterGroup[] = [];
+
+    const selectedSet = new Set(selectedStoreIds);
+
+    for (const group of filterGroups) {
+      const isSelected = group.storeIds.some((id) => selectedSet.has(id));
+      if (isSelected) {
+        selected.push(group);
+      } else {
+        unselected.push(group);
+      }
+    }
+
+    return { selectedGroups: selected, unselectedGroups: unselected };
+  }, [filterGroups, selectedStoreIds]);
+
+  // Filter groups based on search query
   const query = searchQuery.trim().toLowerCase();
 
-  const filterStore = (store: Store) => {
+  const filterGroup = (group: StoreFilterGroup) => {
     if (!query) return true;
-    if (store.name.toLowerCase().includes(query)) return true;
-    if (store.aliases?.some((a) => a.toLowerCase().includes(query))) return true;
+    if (group.displayName.toLowerCase().includes(query)) return true;
+    if (group.stores.some((s) => s.name.toLowerCase().includes(query))) return true;
+    if (group.stores.some((s) => s.aliases?.some((a) => a.toLowerCase().includes(query)))) return true;
     return false;
   };
 
-  const filteredSelected = useMemo(() => selectedStores.filter(filterStore), [selectedStores, query]);
-  const filteredUnselected = useMemo(() => unselectedStores.filter(filterStore), [unselectedStores, query]);
+  const filteredSelected = useMemo(() => selectedGroups.filter(filterGroup), [selectedGroups, query]);
+  const filteredUnselected = useMemo(() => unselectedGroups.filter(filterGroup), [unselectedGroups, query]);
 
   const totalMatching = filteredSelected.length + filteredUnselected.length;
 
@@ -104,19 +173,38 @@ export const StoreMultiSelectDropdown: React.FC<StoreMultiSelectDropdownProps> =
     return name.slice(0, 2).toUpperCase();
   };
 
-  const handleImageError = (storeId: string) => {
-    setImgErrors((prev) => ({ ...prev, [storeId]: true }));
+  const handleImageError = (key: string) => {
+    setImgErrors((prev) => ({ ...prev, [key]: true }));
+  };
+
+  const handleToggleGroup = (group: StoreFilterGroup) => {
+    if (onToggleStores) {
+      onToggleStores(group.storeIds);
+      return;
+    }
+    const isSelected = group.storeIds.some((id) => selectedStoreIds.includes(id));
+    if (onSelectAll) {
+      if (isSelected) {
+        const toRemove = new Set(group.storeIds);
+        onSelectAll(selectedStoreIds.filter((id) => !toRemove.has(id)));
+      } else {
+        const toAdd = new Set([...selectedStoreIds, ...group.storeIds]);
+        onSelectAll(Array.from(toAdd));
+      }
+    } else {
+      for (const id of group.storeIds) {
+        onToggleStore(id);
+      }
+    }
   };
 
   const handleSelectAll = () => {
     if (!onSelectAll) return;
     if (query) {
-      // Om användaren har skrivit en sökfras, välj bara de butiker som matchar sökningen
-      const matchingIds = [...filteredSelected, ...filteredUnselected].map((s) => s.id);
+      const matchingIds = [...filteredSelected, ...filteredUnselected].flatMap((g) => g.storeIds);
       const newSelection = Array.from(new Set([...selectedStoreIds, ...matchingIds]));
       onSelectAll(newSelection);
     } else {
-      // Annars välj alla tillgängliga butiker i listan
       const allIds = allStores.map((s) => s.id);
       onSelectAll(allIds);
     }
@@ -136,9 +224,9 @@ export const StoreMultiSelectDropdown: React.FC<StoreMultiSelectDropdownProps> =
         <span className="text-[11px] text-slate-500 font-medium">
           {selectedStoreIds.length === 0
             ? isCategoryFiltered
-              ? `Alla i kategorin (${allStores.length} st)`
-              : `Alla (${allStores.length} st)`
-            : `${selectedStoreIds.length} av ${allStores.length} valda`}
+              ? `Alla i kategorin (${filterGroups.length} st)`
+              : `Alla (${filterGroups.length} st)`
+            : `${selectedGroups.length} av ${filterGroups.length} valda`}
         </span>
       </div>
 
@@ -165,41 +253,44 @@ export const StoreMultiSelectDropdown: React.FC<StoreMultiSelectDropdownProps> =
                 Alla butiker
               </span>
               <span className="text-xs text-slate-400 ml-1.5 hidden sm:inline">
-                ({allStores.length} st {isCategoryFiltered ? 'i vald kategori' : 'tillgängliga'})
+                ({filterGroups.length} st {isCategoryFiltered ? 'i vald kategori' : 'tillgängliga'})
               </span>
             </div>
           ) : (
             <div className="flex flex-wrap gap-1.5 items-center overflow-hidden">
-              {selectedStores.slice(0, 2).map((store) => (
+              {selectedGroups.slice(0, 2).map((group) => (
                 <span
-                  key={store.id}
+                  key={group.key}
                   className="inline-flex items-center gap-1 bg-blue-100/80 text-blue-900 font-semibold px-2 py-0.5 rounded-lg text-xs shrink-0"
                 >
-                  <span className="max-w-[100px] truncate">{store.name}</span>
+                  <span className="max-w-[110px] truncate">{group.displayName}</span>
+                  {group.stores.length > 1 && (
+                    <span className="text-[10px] opacity-75 font-normal">({group.stores.length})</span>
+                  )}
                   <span
                     role="button"
                     tabIndex={0}
                     onClick={(e) => {
                       e.stopPropagation();
-                      onToggleStore(store.id);
+                      handleToggleGroup(group);
                     }}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' || e.key === ' ') {
                         e.stopPropagation();
-                        onToggleStore(store.id);
+                        handleToggleGroup(group);
                       }
                     }}
                     className="hover:text-blue-950 p-0.5 rounded-full hover:bg-blue-200/60"
-                    aria-label={`Ta bort ${store.name}`}
+                    aria-label={`Ta bort ${group.displayName}`}
                   >
                     <X className="w-3 h-3" />
                   </span>
                 </span>
               ))}
 
-              {selectedStores.length > 2 && (
+              {selectedGroups.length > 2 && (
                 <span className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-slate-200 text-slate-700 text-xs font-bold shrink-0">
-                  +{selectedStores.length - 2} till
+                  +{selectedGroups.length - 2} till
                 </span>
               )}
             </div>
@@ -248,7 +339,7 @@ export const StoreMultiSelectDropdown: React.FC<StoreMultiSelectDropdownProps> =
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Sök butik (t.ex. Cervera, IKEA, Elgiganten)..."
+                placeholder="Sök butik eller alias (t.ex. TV4 Play, Cervera, IKEA)..."
                 className="w-full pl-9 pr-8 py-2 text-sm rounded-xl border border-slate-200 bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100 transition-all"
               />
               {searchQuery && (
@@ -267,10 +358,10 @@ export const StoreMultiSelectDropdown: React.FC<StoreMultiSelectDropdownProps> =
             <div className="flex items-center justify-between text-xs text-slate-500 mt-2 px-1 font-medium">
               <span>
                 {query
-                  ? `Matchar ${totalMatching} butiker`
+                  ? `Matchar ${totalMatching} val`
                   : isCategoryFiltered
-                  ? `${allStores.length} butiker i vald kategori`
-                  : `${allStores.length} butiker totalt`}
+                  ? `${filterGroups.length} val i vald kategori`
+                  : `${filterGroups.length} val totalt`}
               </span>
               <div className="flex items-center gap-3">
                 {selectedStoreIds.length > 0 && (
@@ -279,7 +370,7 @@ export const StoreMultiSelectDropdown: React.FC<StoreMultiSelectDropdownProps> =
                     onClick={onClearSelection}
                     className="text-red-600 hover:text-red-700 font-semibold hover:underline"
                   >
-                    Rensa alla ({selectedStoreIds.length})
+                    Rensa alla ({selectedGroups.length})
                   </button>
                 )}
                 {canSelectAll && (
@@ -303,7 +394,7 @@ export const StoreMultiSelectDropdown: React.FC<StoreMultiSelectDropdownProps> =
                 <div className="px-2 py-1 flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-blue-900 bg-blue-50/80 rounded-lg">
                   <span className="flex items-center gap-1.5">
                     <CheckSquare className="w-3.5 h-3.5 text-blue-600" />
-                    Valda butiker ({filteredSelected.length})
+                    Valda ({filteredSelected.length})
                   </span>
                   <span className="text-[10px] text-blue-600 normal-case font-medium">
                     Visas i toppen
@@ -311,43 +402,48 @@ export const StoreMultiSelectDropdown: React.FC<StoreMultiSelectDropdownProps> =
                 </div>
 
                 <div className="space-y-0.5 pt-1">
-                  {filteredSelected.map((store) => (
+                  {filteredSelected.map((group) => (
                     <button
-                      key={store.id}
+                      key={group.key}
                       type="button"
-                      onClick={() => onToggleStore(store.id)}
+                      onClick={() => handleToggleGroup(group)}
                       className="w-full flex items-center justify-between p-2 rounded-xl bg-blue-50/50 hover:bg-blue-100/60 border border-blue-200/70 transition-colors text-left group touch-target"
                     >
                       <div className="flex items-center gap-2.5 min-w-0">
-                        {/* Kryssruta - Ickryssad */}
+                        {/* Kryssruta - Ikryssad */}
                         <div className="w-5 h-5 rounded-md bg-blue-600 border border-blue-600 flex items-center justify-center text-white shrink-0 shadow-xs">
                           <Check className="w-3.5 h-3.5 stroke-[3]" />
                         </div>
 
                         {/* Butikslogo eller Monogram */}
                         <div className="w-7 h-7 rounded-lg bg-white border border-slate-200/90 flex items-center justify-center shrink-0 overflow-hidden p-0.5">
-                          {store.logoUrl && !imgErrors[store.id] ? (
+                          {group.logoUrl && !imgErrors[group.key] ? (
                             <Image
-                              src={store.logoUrl}
+                              src={group.logoUrl}
                               alt=""
                               width={24}
                               height={24}
                               className="max-h-6 w-auto object-contain"
-                              onError={() => handleImageError(store.id)}
+                              onError={() => handleImageError(group.key)}
                             />
                           ) : (
                             <span className="text-[10px] font-extrabold text-blue-800">
-                              {getMonogram(store.name)}
+                              {getMonogram(group.displayName)}
                             </span>
                           )}
                         </div>
 
                         {/* Namn och taggar */}
                         <div className="min-w-0">
-                          <div className="text-xs font-bold text-slate-900 truncate">
-                            {store.name}
+                          <div className="text-xs font-bold text-slate-900 truncate flex items-center gap-1.5">
+                            <span>{group.displayName}</span>
+                            {group.stores.length > 1 && (
+                              <span className="text-[10px] font-medium text-blue-700 bg-blue-100/70 px-1.5 py-0.2 rounded-md shrink-0">
+                                {group.stores.length} erbjudanden
+                              </span>
+                            )}
                           </div>
-                          {store.zupergiftSupported && (
+                          {group.zupergiftSupported && (
                             <span className="text-[10px] font-medium text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded">
                               Zupergift
                             </span>
@@ -368,8 +464,8 @@ export const StoreMultiSelectDropdown: React.FC<StoreMultiSelectDropdownProps> =
             <div className={filteredSelected.length > 0 ? 'pt-2 space-y-1' : 'space-y-1'}>
               <div className="px-2 py-1 text-[11px] font-bold uppercase tracking-wider text-slate-400">
                 {filteredSelected.length > 0
-                  ? `Fler butiker (${filteredUnselected.length})`
-                  : `Alla butiker (${filteredUnselected.length})`}
+                  ? `Fler val (${filteredUnselected.length})`
+                  : `Alla val (${filteredUnselected.length})`}
               </div>
 
               {filteredUnselected.length === 0 && filteredSelected.length === 0 ? (
@@ -385,11 +481,11 @@ export const StoreMultiSelectDropdown: React.FC<StoreMultiSelectDropdownProps> =
                 </div>
               ) : (
                 <div className="space-y-0.5">
-                  {filteredUnselected.map((store) => (
+                  {filteredUnselected.map((group) => (
                     <button
-                      key={store.id}
+                      key={group.key}
                       type="button"
-                      onClick={() => onToggleStore(store.id)}
+                      onClick={() => handleToggleGroup(group)}
                       className="w-full flex items-center justify-between p-2 rounded-xl hover:bg-slate-50 border border-transparent hover:border-slate-200 transition-colors text-left group touch-target"
                     >
                       <div className="flex items-center gap-2.5 min-w-0">
@@ -400,28 +496,33 @@ export const StoreMultiSelectDropdown: React.FC<StoreMultiSelectDropdownProps> =
 
                         {/* Butikslogo eller Monogram */}
                         <div className="w-7 h-7 rounded-lg bg-slate-100 border border-slate-200/80 flex items-center justify-center shrink-0 overflow-hidden p-0.5">
-                          {store.logoUrl && !imgErrors[store.id] ? (
+                          {group.logoUrl && !imgErrors[group.key] ? (
                             <Image
-                              src={store.logoUrl}
+                              src={group.logoUrl}
                               alt=""
                               width={24}
                               height={24}
                               className="max-h-6 w-auto object-contain"
-                              onError={() => handleImageError(store.id)}
+                              onError={() => handleImageError(group.key)}
                             />
                           ) : (
                             <span className="text-[10px] font-bold text-slate-600">
-                              {getMonogram(store.name)}
+                              {getMonogram(group.displayName)}
                             </span>
                           )}
                         </div>
 
                         {/* Namn och taggar */}
                         <div className="min-w-0">
-                          <div className="text-xs font-semibold text-slate-800 truncate group-hover:text-blue-900">
-                            {store.name}
+                          <div className="text-xs font-semibold text-slate-800 truncate group-hover:text-blue-900 flex items-center gap-1.5">
+                            <span>{group.displayName}</span>
+                            {group.stores.length > 1 && (
+                              <span className="text-[10px] font-medium text-slate-500 bg-slate-100 px-1.5 py-0.2 rounded-md shrink-0">
+                                {group.stores.length} erbjudanden
+                              </span>
+                            )}
                           </div>
-                          {store.zupergiftSupported && (
+                          {group.zupergiftSupported && (
                             <span className="text-[10px] font-normal text-slate-500">
                               Zupergift
                             </span>
@@ -444,7 +545,7 @@ export const StoreMultiSelectDropdown: React.FC<StoreMultiSelectDropdownProps> =
             <span className="text-xs text-slate-500 font-medium px-1">
               {selectedStoreIds.length === 0
                 ? 'Jämför alla butiker'
-                : `${selectedStoreIds.length} butiker valda`}
+                : `${selectedGroups.length} val (${selectedStoreIds.length} butiker)`}
             </span>
             <button
               type="button"

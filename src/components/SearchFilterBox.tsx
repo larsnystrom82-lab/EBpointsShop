@@ -9,6 +9,7 @@ interface SearchFilterBoxProps {
   allStores: Store[];
   selectedStoreIds: string[];
   onToggleStore: (storeId: string) => void;
+  onToggleStores?: (storeIds: string[]) => void;
   onClearStores: () => void;
   onSelectAllStores?: (storeIds?: string[]) => void;
   searchQuery?: string;
@@ -44,6 +45,7 @@ export const SearchFilterBox: React.FC<SearchFilterBoxProps> = ({
   allStores,
   selectedStoreIds,
   onToggleStore,
+  onToggleStores,
   onClearStores,
   onSelectAllStores,
   searchQuery = '',
@@ -129,6 +131,7 @@ export const SearchFilterBox: React.FC<SearchFilterBoxProps> = ({
             allStores={storesForDropdown}
             selectedStoreIds={selectedStoreIds}
             onToggleStore={onToggleStore}
+            onToggleStores={onToggleStores}
             onClearSelection={onClearStores}
             onSelectAll={onSelectAllStores}
             label="Välj butik"

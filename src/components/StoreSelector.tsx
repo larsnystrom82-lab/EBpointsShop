@@ -1,15 +1,26 @@
 'use client';
 
-import React, { useState, useId } from 'react';
+import React, { useState, useId, useMemo } from 'react';
 import { Store, Category } from '@/types/domain';
 import { Search, X, Check, Store as StoreIcon, ListFilter } from 'lucide-react';
 import Image from 'next/image';
+
+export interface StoreFilterGroup {
+  key: string;
+  displayName: string;
+  isAliasGroup: boolean;
+  storeIds: string[];
+  stores: Store[];
+  logoUrl?: string;
+  categories: string[];
+}
 
 interface StoreSelectorProps {
   allStores: Store[];
   categories: Category[];
   selectedStoreIds: string[];
   onToggleStore: (storeId: string) => void;
+  onToggleStores?: (storeIds: string[]) => void;
   onClearStores: () => void;
   onSelectStores: (storeIds: string[]) => void;
 }
@@ -19,6 +30,7 @@ export const StoreSelector: React.FC<StoreSelectorProps> = ({
   categories,
   selectedStoreIds,
   onToggleStore,
+  onToggleStores,
   onClearStores,
   onSelectStores,
 }) => {
@@ -27,31 +39,95 @@ export const StoreSelector: React.FC<StoreSelectorProps> = ({
   const [showAlphabeticalModal, setShowAlphabeticalModal] = useState(false);
   const searchInputId = useId();
 
-  // Search logic: F01 standard name and aliases, case-insensitive
+  // Group stores by alias if present (so stores with same alias appear only once in filter)
+  const filterGroups: StoreFilterGroup[] = useMemo(() => {
+    const aliasGroupMap = new Map<string, StoreFilterGroup>();
+    const result: StoreFilterGroup[] = [];
+
+    for (const store of allStores) {
+      if (!store.isActive) continue;
+      const aliasClean = store.alias?.trim();
+      if (aliasClean) {
+        const aliasKey = aliasClean.toLowerCase();
+        let existing = aliasGroupMap.get(aliasKey);
+        if (!existing) {
+          existing = {
+            key: `alias:${aliasKey}`,
+            displayName: aliasClean,
+            isAliasGroup: true,
+            storeIds: [store.id],
+            stores: [store],
+            logoUrl: store.logoUrl,
+            categories: [...(store.categories || [])],
+          };
+          aliasGroupMap.set(aliasKey, existing);
+          result.push(existing);
+        } else {
+          existing.storeIds.push(store.id);
+          existing.stores.push(store);
+          if (store.name.toLowerCase() === aliasKey || (!existing.logoUrl && store.logoUrl)) {
+            existing.logoUrl = store.logoUrl;
+          }
+          for (const c of store.categories || []) {
+            if (!existing.categories.includes(c)) existing.categories.push(c);
+          }
+        }
+      } else {
+        result.push({
+          key: `store:${store.id}`,
+          displayName: store.name,
+          isAliasGroup: false,
+          storeIds: [store.id],
+          stores: [store],
+          logoUrl: store.logoUrl,
+          categories: [...(store.categories || [])],
+        });
+      }
+    }
+
+    return result;
+  }, [allStores]);
+
+  // Search logic: matches displayName, underlying store names, or aliases
   const normalizedSearch = searchTerm.trim().toLowerCase();
 
-  const filteredStores = allStores.filter((store) => {
-    if (!store.isActive) return false;
+  const filteredGroups = useMemo(() => {
+    return filterGroups.filter((group) => {
+      // Category filter
+      if (selectedCategory && !group.categories.includes(selectedCategory)) {
+        return false;
+      }
 
-    // Category filter
-    if (selectedCategory && !store.categories.includes(selectedCategory)) {
+      if (!normalizedSearch) return true;
+
+      if (group.displayName.toLowerCase().includes(normalizedSearch)) return true;
+      if (group.stores.some((s) => s.name.toLowerCase().includes(normalizedSearch))) return true;
+      if (group.stores.some((s) => s.aliases?.some((a) => a.toLowerCase().includes(normalizedSearch)))) return true;
+
       return false;
+    });
+  }, [filterGroups, selectedCategory, normalizedSearch]);
+
+  const handleToggleGroup = (group: StoreFilterGroup) => {
+    if (onToggleStores) {
+      onToggleStores(group.storeIds);
+      return;
     }
-
-    if (!normalizedSearch) return true;
-
-    // Check store name
-    if (store.name.toLowerCase().includes(normalizedSearch)) return true;
-
-    // Check store aliases
-    if (store.aliases.some((alias) => alias.toLowerCase().includes(normalizedSearch))) {
-      return true;
+    const isSelected = group.storeIds.some((id) => selectedStoreIds.includes(id));
+    if (isSelected) {
+      const toRemove = new Set(group.storeIds);
+      onSelectStores(selectedStoreIds.filter((id) => !toRemove.has(id)));
+    } else {
+      const toAdd = new Set([...selectedStoreIds, ...group.storeIds]);
+      onSelectStores(Array.from(toAdd));
     }
+  };
 
-    return false;
-  });
-
-  const selectedStores = allStores.filter((s) => selectedStoreIds.includes(s.id));
+  // Selected filter groups (deduplicated by alias)
+  const selectedGroups = useMemo(() => {
+    const selectedSet = new Set(selectedStoreIds);
+    return filterGroups.filter((group) => group.storeIds.some((id) => selectedSet.has(id)));
+  }, [filterGroups, selectedStoreIds]);
 
   return (
     <div className="bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-slate-200">
@@ -78,11 +154,11 @@ export const StoreSelector: React.FC<StoreSelectorProps> = ({
         </button>
       </div>
 
-      {/* Valda butiker som borttagbara taggar (F03) */}
+      {/* Valda butiker som borttagbara taggar */}
       <div className="mb-4">
         <div className="flex items-center justify-between text-xs font-medium text-slate-600 mb-2">
-          <span>Valda butiker ({selectedStores.length}):</span>
-          {selectedStores.length > 0 && (
+          <span>Valda ({selectedGroups.length}):</span>
+          {selectedGroups.length > 0 && (
             <button
               type="button"
               onClick={onClearStores}
@@ -93,21 +169,21 @@ export const StoreSelector: React.FC<StoreSelectorProps> = ({
           )}
         </div>
 
-        {selectedStores.length === 0 ? (
+        {selectedGroups.length === 0 ? (
           <div className="p-3 rounded-xl bg-slate-50 border border-dashed border-slate-300 text-xs sm:text-sm text-slate-500 text-center">
             Inga butiker valda ännu. Sök nedan eller välj ur listan för att börja jämföra.
           </div>
         ) : (
           <div className="flex flex-wrap gap-2">
-            {selectedStores.map((store) => (
+            {selectedGroups.map((group) => (
               <span
-                key={store.id}
+                key={group.key}
                 className="inline-flex items-center gap-2 pl-2.5 pr-2 py-1.5 rounded-full bg-blue-50 border border-blue-200 text-blue-900 text-xs sm:text-sm font-semibold shadow-2xs"
               >
-                {store.logoUrl ? (
+                {group.logoUrl ? (
                   <span className="w-5 h-5 relative shrink-0 overflow-hidden rounded-xs">
                     <Image
-                      src={store.logoUrl}
+                      src={group.logoUrl}
                       alt=""
                       width={20}
                       height={20}
@@ -117,12 +193,15 @@ export const StoreSelector: React.FC<StoreSelectorProps> = ({
                 ) : (
                   <StoreIcon className="w-4 h-4 text-blue-600" />
                 )}
-                <span>{store.name}</span>
+                <span>{group.displayName}</span>
+                {group.stores.length > 1 && (
+                  <span className="text-[10px] text-blue-700 font-normal opacity-80">({group.stores.length})</span>
+                )}
                 <button
                   type="button"
-                  onClick={() => onToggleStore(store.id)}
+                  onClick={() => handleToggleGroup(group)}
                   className="w-5 h-5 rounded-full hover:bg-blue-200 inline-flex items-center justify-center text-blue-700 hover:text-blue-900 transition-colors"
-                  aria-label={`Ta bort ${store.name}`}
+                  aria-label={`Ta bort ${group.displayName}`}
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
@@ -135,7 +214,7 @@ export const StoreSelector: React.FC<StoreSelectorProps> = ({
       {/* Sökfält med alias-stöd */}
       <div className="relative mb-3">
         <label htmlFor={searchInputId} className="sr-only">
-          Sök butik eller domän
+          Sök butik eller alias
         </label>
         <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
           <Search className="w-4 h-4" />
@@ -145,7 +224,7 @@ export const StoreSelector: React.FC<StoreSelectorProps> = ({
           type="search"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          placeholder="Sök butik eller domän (t.ex. Cervera, Elgiganten, Bagaren & Kocken)..."
+          placeholder="Sök butik eller alias (t.ex. TV4 Play, Cervera, Elgiganten)..."
           className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 text-sm focus:bg-white focus:border-blue-600 focus:ring-2 focus:ring-blue-100 transition-all touch-target"
         />
         {searchTerm && (
@@ -160,7 +239,7 @@ export const StoreSelector: React.FC<StoreSelectorProps> = ({
         )}
       </div>
 
-      {/* Kategoriflikar (F02) */}
+      {/* Kategoriflikar */}
       <div className="flex items-center gap-1.5 overflow-x-auto pb-2 mb-3 scrollbar-none text-xs">
         <button
           type="button"
@@ -191,13 +270,13 @@ export const StoreSelector: React.FC<StoreSelectorProps> = ({
 
       {/* Butiksgalleri med logotyper och tydlig markering */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5 max-h-64 overflow-y-auto pr-1">
-        {filteredStores.map((store) => {
-          const isSelected = selectedStoreIds.includes(store.id);
+        {filteredGroups.map((group) => {
+          const isSelected = group.storeIds.some((id) => selectedStoreIds.includes(id));
           return (
             <button
-              key={store.id}
+              key={group.key}
               type="button"
-              onClick={() => onToggleStore(store.id)}
+              onClick={() => handleToggleGroup(group)}
               className={`p-3 rounded-xl border text-left flex flex-col items-center justify-center gap-2 transition-all relative touch-target ${
                 isSelected
                   ? 'border-blue-600 bg-blue-50/50 shadow-xs ring-2 ring-blue-500/20'
@@ -210,29 +289,34 @@ export const StoreSelector: React.FC<StoreSelectorProps> = ({
                 </div>
               )}
               <div className="w-24 h-10 relative flex items-center justify-center">
-                {store.logoUrl ? (
+                {group.logoUrl ? (
                   <Image
-                    src={store.logoUrl}
-                    alt={store.name}
+                    src={group.logoUrl}
+                    alt={group.displayName}
                     width={96}
                     height={40}
                     className="max-h-9 w-auto object-contain"
                   />
                 ) : (
-                  <div className="w-full h-8 bg-slate-100 rounded flex items-center justify-center text-xs text-slate-500 font-semibold">
-                    {store.name}
+                  <div className="w-full h-8 bg-slate-100 rounded flex items-center justify-center text-xs text-slate-500 font-semibold text-center px-1">
+                    {group.displayName}
                   </div>
                 )}
               </div>
               <span className="text-xs font-semibold text-slate-900 text-center line-clamp-1">
-                {store.name}
+                {group.displayName}
               </span>
+              {group.stores.length > 1 && (
+                <span className="text-[10px] text-blue-700 bg-blue-50 px-1.5 py-0.2 rounded-md font-medium">
+                  {group.stores.length} erbjudanden
+                </span>
+              )}
             </button>
           );
         })}
       </div>
 
-      {/* Alfabetisk modal (F02) */}
+      {/* Alfabetisk modal (A-Ö) */}
       {showAlphabeticalModal && (
         <div
           role="dialog"
@@ -255,15 +339,15 @@ export const StoreSelector: React.FC<StoreSelectorProps> = ({
             </div>
 
             <div className="overflow-y-auto space-y-2 pr-1 flex-1">
-              {[...allStores]
-                .sort((a, b) => a.name.localeCompare(b.name, 'sv'))
-                .map((store) => {
-                  const isSelected = selectedStoreIds.includes(store.id);
+              {[...filterGroups]
+                .sort((a, b) => a.displayName.localeCompare(b.displayName, 'sv'))
+                .map((group) => {
+                  const isSelected = group.storeIds.some((id) => selectedStoreIds.includes(id));
                   return (
                     <button
-                      key={store.id}
+                      key={group.key}
                       type="button"
-                      onClick={() => onToggleStore(store.id)}
+                      onClick={() => handleToggleGroup(group)}
                       className={`w-full flex items-center justify-between p-3 rounded-xl border text-sm font-medium transition-colors ${
                         isSelected
                           ? 'border-blue-600 bg-blue-50 text-blue-900'
@@ -272,9 +356,9 @@ export const StoreSelector: React.FC<StoreSelectorProps> = ({
                     >
                       <div className="flex items-center gap-3">
                         <div className="w-16 h-7 relative flex items-center justify-center shrink-0">
-                          {store.logoUrl && (
+                          {group.logoUrl && (
                             <Image
-                              src={store.logoUrl}
+                              src={group.logoUrl}
                               alt=""
                               width={64}
                               height={28}
@@ -282,7 +366,14 @@ export const StoreSelector: React.FC<StoreSelectorProps> = ({
                             />
                           )}
                         </div>
-                        <span>{store.name}</span>
+                        <span className="flex items-center gap-2">
+                          <span>{group.displayName}</span>
+                          {group.stores.length > 1 && (
+                            <span className="text-[10px] text-blue-700 bg-blue-100/70 px-1.5 py-0.2 rounded-md font-semibold">
+                              {group.stores.length} erbjudanden
+                            </span>
+                          )}
+                        </span>
                       </div>
                       <div
                         className={`w-5 h-5 rounded flex items-center justify-center border ${
@@ -302,7 +393,7 @@ export const StoreSelector: React.FC<StoreSelectorProps> = ({
                 onClick={() => setShowAlphabeticalModal(false)}
                 className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold touch-target"
               >
-                Klar ({selectedStoreIds.length} butiker valda)
+                Klar ({selectedGroups.length} valda)
               </button>
             </div>
           </div>

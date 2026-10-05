@@ -54,6 +54,7 @@ export function buildAllStores(db: DatabaseSchema, options?: { includeExcluded?:
       const meta = metadata[s.id] || metadata[s.slug];
       const customLogoUrl = meta?.customLogoUrl?.trim() || s.customLogoUrl || null;
       const comment = meta?.comment?.trim() || s.comment || null;
+      const alias = meta?.alias !== undefined ? (meta.alias?.trim() || null) : (s.alias?.trim() || null);
       const isExcluded = isStoreExcluded(s.id, s.slug, s);
       const isHidden = isStoreHidden(s.id, s.slug, s);
 
@@ -61,7 +62,11 @@ export function buildAllStores(db: DatabaseSchema, options?: { includeExcluded?:
         id: s.id,
         name: s.name,
         slug: s.slug,
-        aliases: (meta?.aliases && meta.aliases.length > 0) ? meta.aliases : (s.aliases || []),
+        alias: alias || null,
+        aliases: Array.from(new Set([
+          ...((meta?.aliases && meta.aliases.length > 0) ? meta.aliases : (s.aliases || [])),
+          ...(alias ? [alias] : []),
+        ])),
         logoUrl: customLogoUrl || s.logoUrl || `/logos/${s.id}.svg`,
         customLogoUrl,
         comment,
@@ -94,6 +99,7 @@ export function buildAllStores(db: DatabaseSchema, options?: { includeExcluded?:
       const meta = metadata[zs.id] || metadata[zs.slug];
       const customLogoUrl = meta?.customLogoUrl?.trim() || (zs as any).customLogoUrl || null;
       const comment = meta?.comment?.trim() || (zs as any).comment || null;
+      const alias = meta?.alias !== undefined ? (meta.alias?.trim() || null) : ((zs as any).alias?.trim() || null);
       const isExcluded = isStoreExcluded(zs.id, zs.slug, zs);
       const isHidden = isStoreHidden(zs.id, zs.slug, zs);
 
@@ -101,7 +107,11 @@ export function buildAllStores(db: DatabaseSchema, options?: { includeExcluded?:
         id: zs.id,
         name: zs.name,
         slug: zs.slug,
-        aliases: (meta?.aliases && meta.aliases.length > 0) ? meta.aliases : [zs.slug, `${zs.id}.se`],
+        alias: alias || null,
+        aliases: Array.from(new Set([
+          ...((meta?.aliases && meta.aliases.length > 0) ? meta.aliases : [zs.slug, `${zs.id}.se`]),
+          ...(alias ? [alias] : []),
+        ])),
         logoUrl: customLogoUrl || `/logos/${zs.id}.svg`,
         customLogoUrl,
         comment,
@@ -183,12 +193,17 @@ export function buildAllStores(db: DatabaseSchema, options?: { includeExcluded?:
     const meta = metadata[gc.id] || metadata[gc.slug];
     const customLogoUrl = meta?.customLogoUrl?.trim() || (gc as any).customLogoUrl || null;
     const comment = meta?.comment?.trim() || (gc as any).comment || null;
+    const alias = meta?.alias !== undefined ? (meta.alias?.trim() || null) : ((gc as any).alias?.trim() || null);
 
     const newStore: Store = {
       id: gc.id,
       name: gc.name,
       slug: gc.slug,
-      aliases: (meta?.aliases && meta.aliases.length > 0) ? meta.aliases : [gc.slug, `${gc.id}.se`],
+      alias: alias || null,
+      aliases: Array.from(new Set([
+        ...((meta?.aliases && meta.aliases.length > 0) ? meta.aliases : [gc.slug, `${gc.id}.se`]),
+        ...(alias ? [alias] : []),
+      ])),
       logoUrl: customLogoUrl || `/logos/${gc.id}.svg`,
       customLogoUrl,
       comment,

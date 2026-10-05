@@ -40,6 +40,7 @@ export interface Store {
   giftCardRule?: StoreGiftCardRule;
   customLogoUrl?: string | null;
   comment?: string | null;
+  alias?: string | null;
   hasPartnerLink?: boolean;
   hasSasGiftCard?: boolean;
   sasGiftCardBonusPer100Kr?: number | null;

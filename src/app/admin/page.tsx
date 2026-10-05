@@ -87,6 +87,7 @@ export default function AdminPage() {
     comment: string;
     isHidden: boolean;
     categories: string[];
+    alias: string;
     aliasesText: string;
   }>>({});
   const [storeMetadataSaving, setStoreMetadataSaving] = useState<Record<string, boolean>>({});
@@ -331,6 +332,7 @@ export default function AdminPage() {
       const comment = edit?.comment !== undefined ? edit.comment : (store.comment || '');
       const isHidden = edit?.isHidden !== undefined ? edit.isHidden : Boolean(store.isHidden);
       const categories = edit?.categories !== undefined ? edit.categories : (store.categories || ['department']);
+      const alias = edit?.alias !== undefined ? edit.alias : (store.alias || '');
       const aliasesText = edit?.aliasesText !== undefined ? edit.aliasesText : (store.aliases || []).join(', ');
       const aliases = aliasesText.split(',').map((a) => a.trim()).filter(Boolean);
 
@@ -343,6 +345,7 @@ export default function AdminPage() {
           comment: comment.trim() || null,
           isHidden,
           categories,
+          alias: alias.trim() || null,
           aliases,
         }),
       });
@@ -376,12 +379,12 @@ export default function AdminPage() {
     }
 
     const headers = [
-      'Namn',
+      'Ursprungligt butiksnamn',
+      'Alias',
       'URL till logga',
       'URL till alternativ logga',
       'Kommentarer',
       'Kategorier',
-      'Alias',
       'Presentkort',
       'Zupergift',
       'Partnerbutik',
@@ -402,7 +405,7 @@ export default function AdminPage() {
       const comment = (edit?.comment !== undefined ? edit.comment : store.comment) || '';
       const isHidden = edit?.isHidden !== undefined ? edit.isHidden : Boolean(store.isHidden);
       const categories = (edit?.categories !== undefined ? edit.categories : store.categories) || [];
-      const aliasesText = edit?.aliasesText !== undefined ? edit.aliasesText : (store.aliases || []).join(', ');
+      const alias = (edit?.alias !== undefined ? edit.alias : (store.alias || '')) || '';
 
       const status = store.isExcluded ? 'Borttagen' : isHidden ? 'Dold' : 'Aktiv';
       const isPresentkort = store.hasSasGiftCard ? 'Ja' : 'Nej';
@@ -413,11 +416,11 @@ export default function AdminPage() {
 
       return [
         escapeCsv(store.name),
+        escapeCsv(alias),
         escapeCsv(store.logoUrl || ''),
         escapeCsv(customLogo),
         escapeCsv(comment),
         escapeCsv(categories.join(', ')),
-        escapeCsv(aliasesText),
         escapeCsv(isPresentkort),
         escapeCsv(isZupergift),
         escapeCsv(isPartner),
@@ -770,6 +773,7 @@ export default function AdminPage() {
         return (
           item.name.toLowerCase().includes(q) ||
           item.slug.toLowerCase().includes(q) ||
+          (item.alias && item.alias.toLowerCase().includes(q)) ||
           (item.aliases && item.aliases.some((a) => a.toLowerCase().includes(q))) ||
           (item.categories && item.categories.some((c) => {
             const catName = categoryNameMap.get(c) || c;
@@ -1361,12 +1365,13 @@ export default function AdminPage() {
                     const commentVal = edit?.comment !== undefined ? edit.comment : (item.comment || '');
                     const isHiddenVal = edit?.isHidden !== undefined ? edit.isHidden : Boolean(item.isHidden);
                     const categoriesVal = edit?.categories !== undefined ? edit.categories : (item.categories || ['department']);
+                    const aliasVal = edit?.alias !== undefined ? edit.alias : (item.alias || '');
                     const aliasesTextVal = edit?.aliasesText !== undefined ? edit.aliasesText : (item.aliases || []).join(', ');
                     const isDirty = edit !== undefined;
                     const isSaving = Boolean(storeMetadataSaving[item.id]);
                     const previewLogoUrl = customLogoVal.trim() || item.logoUrl;
 
-                    const updateMetadataEdit = (patch: Partial<{ customLogoUrl: string; comment: string; isHidden: boolean; categories: string[]; aliasesText: string }>) => {
+                    const updateMetadataEdit = (patch: Partial<{ customLogoUrl: string; comment: string; isHidden: boolean; categories: string[]; alias: string; aliasesText: string }>) => {
                       setStoreMetadataEdits((prev) => ({
                         ...prev,
                         [item.id]: {
@@ -1374,6 +1379,7 @@ export default function AdminPage() {
                           comment: edit?.comment !== undefined ? edit.comment : (item.comment || ''),
                           isHidden: edit?.isHidden !== undefined ? edit.isHidden : Boolean(item.isHidden),
                           categories: edit?.categories !== undefined ? edit.categories : (item.categories || ['department']),
+                          alias: edit?.alias !== undefined ? edit.alias : (item.alias || ''),
                           aliasesText: edit?.aliasesText !== undefined ? edit.aliasesText : (item.aliases || []).join(', '),
                           ...patch,
                         },
@@ -1439,6 +1445,12 @@ export default function AdminPage() {
                                   </span>
                                 ) : (
                                   <>
+                                    {aliasVal.trim() && (
+                                      <span className="px-2 py-0.5 rounded-md bg-blue-100 text-blue-900 font-bold text-[10px] flex items-center gap-1" title="Visas som alias i filter">
+                                        <Filter className="w-3 h-3 text-blue-700" />
+                                        Alias: {aliasVal.trim()}
+                                      </span>
+                                    )}
                                     {isHiddenVal && (
                                       <span className="px-2 py-0.5 rounded-md bg-amber-100 text-amber-900 font-bold text-[10px] flex items-center gap-1" title="Dold i Eurobonus-jakten">
                                         <EyeOff className="w-3 h-3 text-amber-700" />
@@ -1465,8 +1477,9 @@ export default function AdminPage() {
                                 )}
                               </div>
 
-                              <div className="text-[11px] text-slate-400 font-mono">
-                                ID: {item.id}
+                              <div className="text-[11px] text-slate-500 font-mono flex items-center gap-2 flex-wrap">
+                                <span className="bg-slate-100 px-1.5 py-0.5 rounded text-[10px] font-semibold text-slate-600">Ursprungligt butiksnamn: {item.name}</span>
+                                <span>ID: {item.id}</span>
                               </div>
 
                               {/* Integrations-badges & Kategorier */}
@@ -1495,7 +1508,7 @@ export default function AdminPage() {
                               </div>
                               {aliasesTextVal.trim() && (
                                 <div className="text-[10px] text-slate-500 pt-0.5 flex items-center gap-1">
-                                  <span className="font-bold text-slate-600">Alias:</span>
+                                  <span className="font-bold text-slate-600">Sökord:</span>
                                   <span className="font-mono text-slate-600 truncate max-w-[260px]" title={aliasesTextVal}>
                                     {aliasesTextVal}
                                   </span>
@@ -1600,11 +1613,30 @@ export default function AdminPage() {
                               </p>
                             </div>
 
-                            {/* Alias / Populära söknamn */}
+                            {/* Alias (Visningsnamn / gruppering i filter) */}
                             <div>
                               <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1 flex items-center gap-1">
-                                <Search className="w-3.5 h-3.5 text-blue-600" />
-                                <span>Alias / Populära söknamn</span>
+                                <Filter className="w-3.5 h-3.5 text-blue-600" />
+                                <span>Alias (grupperingsnamn i filter)</span>
+                              </label>
+                              <input
+                                type="text"
+                                disabled={item.isExcluded}
+                                value={aliasVal}
+                                onChange={(e) => updateMetadataEdit({ alias: e.target.value })}
+                                placeholder="t.ex. TV4 Play"
+                                className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs text-slate-800 placeholder-slate-400 focus:border-blue-600 focus:ring-1 focus:ring-blue-100 bg-slate-50 focus:bg-white disabled:opacity-50"
+                              />
+                              <p className="text-[10px] text-slate-400 mt-1">
+                                Butiker med samma alias visas bara en gång i sökfältet/filtret. I resultatet visas det ursprungliga namnet.
+                              </p>
+                            </div>
+
+                            {/* Extra söknamn / synonymer */}
+                            <div>
+                              <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1 flex items-center gap-1">
+                                <Search className="w-3.5 h-3.5 text-slate-500" />
+                                <span>Extra sökord / synonymer</span>
                               </label>
                               <input
                                 type="text"
@@ -1615,7 +1647,7 @@ export default function AdminPage() {
                                 className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs text-slate-800 placeholder-slate-400 focus:border-blue-600 focus:ring-1 focus:ring-blue-100 bg-slate-50 focus:bg-white disabled:opacity-50"
                               />
                               <p className="text-[10px] text-slate-400 mt-1">
-                                Kommaseparerade alternativa söknamn som gör att butiken hittas vid sökning.
+                                Kommaseparerade alternativa sökord som gör att butiken hittas vid sökning.
                               </p>
                             </div>
 

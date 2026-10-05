@@ -60,6 +60,7 @@ export interface DbStore {
   isZupergiftOnly?: boolean;
   customLogoUrl?: string | null;
   comment?: string | null;
+  alias?: string | null;
   isExcluded?: boolean; // Borttagen av admin (t.ex. konkurs eller borttagen från SAS)
   isHidden?: boolean;
 }
@@ -116,6 +117,7 @@ export interface StoreMetadataItem {
   isExcluded?: boolean | null;
   isHidden?: boolean | null;
   categories?: string[] | null;
+  alias?: string | null;
   aliases?: string[] | null;
   updatedAt?: string | null;
   updatedBy?: string | null;

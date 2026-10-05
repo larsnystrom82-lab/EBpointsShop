@@ -131,12 +131,23 @@ export default function Home() {
     }
   };
 
-  const handleToggleStore = (storeId: string) => {
-    const updated = selectedStoreIds.includes(storeId)
-      ? selectedStoreIds.filter((id) => id !== storeId)
-      : [...selectedStoreIds, storeId];
+  const handleToggleStores = (storeIds: string[]) => {
+    const anySelected = storeIds.some((id) => selectedStoreIds.includes(id));
+    let updated: string[];
+    if (anySelected) {
+      const toRemove = new Set(storeIds);
+      updated = selectedStoreIds.filter((id) => !toRemove.has(id));
+    } else {
+      const currentSet = new Set(selectedStoreIds);
+      for (const id of storeIds) currentSet.add(id);
+      updated = Array.from(currentSet);
+    }
     setSelectedStoreIds(updated);
     savePreferences({ selectedStoreIds: updated });
+  };
+
+  const handleToggleStore = (storeId: string) => {
+    handleToggleStores([storeId]);
   };
 
   const handleClearStores = () => {
@@ -235,12 +246,13 @@ export default function Home() {
     if (query) {
       list = list.filter((store) => {
         const matchesName = store.name.toLowerCase().includes(query);
-        const matchesAlias = store.aliases?.some((a) => a.toLowerCase().includes(query));
+        const matchesSingleAlias = store.alias ? store.alias.toLowerCase().includes(query) : false;
+        const matchesAliases = store.aliases?.some((a) => a.toLowerCase().includes(query));
         const matchesCategory = store.categories.some((c) => {
           const cat = DEMO_CATEGORIES.find((item) => item.id === c);
           return cat && cat.name.toLowerCase().includes(query);
         });
-        return matchesName || matchesAlias || matchesCategory;
+        return matchesName || matchesSingleAlias || matchesAliases || matchesCategory;
       });
     }
 
@@ -359,6 +371,7 @@ export default function Home() {
           allStores={allStores}
           selectedStoreIds={selectedStoreIds}
           onToggleStore={handleToggleStore}
+          onToggleStores={handleToggleStores}
           onClearStores={handleClearStores}
           onSelectAllStores={handleSelectAllStores}
           searchQuery={searchQuery}

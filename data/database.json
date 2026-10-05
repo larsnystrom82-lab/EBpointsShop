@@ -15908,7 +15908,8 @@
         "startUrl": ""
       },
       "zupergiftSupported": true,
-      "isZupergiftOnly": false
+      "isZupergiftOnly": false,
+      "alias": "TV4 Play"
     },
     {
       "id": "tyngre",
@@ -18797,7 +18798,8 @@
       "isHidden": false,
       "isExcluded": false,
       "syncedAt": "2026-10-02T11:10:41.783Z",
-      "matchedStoreId": "tv4-play"
+      "matchedStoreId": "tv4-play",
+      "alias": "TV4 Play"
     },
     {
       "id": "tv4-play-sport-fotboll",
@@ -18805,7 +18807,8 @@
       "slug": "tv4-play-sport-fotboll",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z"
+      "syncedAt": "2026-10-02T11:10:41.783Z",
+      "alias": "TV4 Play"
     },
     {
       "id": "tv4-play-utan-reklam",
@@ -18813,7 +18816,8 @@
       "slug": "tv4-play-utan-reklam",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z"
+      "syncedAt": "2026-10-02T11:10:41.783Z",
+      "alias": "TV4 Play"
     },
     {
       "id": "tv4-play-med-reklam",
@@ -18821,7 +18825,8 @@
       "slug": "tv4-play-med-reklam",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z"
+      "syncedAt": "2026-10-02T11:10:41.783Z",
+      "alias": "TV4 Play"
     },
     {
       "id": "kaplans-auktioner",
@@ -19001,7 +19006,8 @@
       "slug": "tv-4-play-sport",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z"
+      "syncedAt": "2026-10-02T11:10:41.783Z",
+      "alias": "TV4 Play"
     },
     {
       "id": "ostermalms-saluhall",
@@ -20454,7 +20460,8 @@
       "note": "",
       "syncedAt": "2026-10-02T23:23:05.841Z",
       "updatedAt": null,
-      "matchedStoreId": "tv4-play-med-reklam"
+      "matchedStoreId": "tv4-play-med-reklam",
+      "alias": "TV4 Play"
     },
     {
       "id": "polarn-o-pyret",
@@ -20938,7 +20945,8 @@
       "note": "",
       "syncedAt": "2026-10-02T23:23:05.841Z",
       "updatedAt": null,
-      "matchedStoreId": "tv4-play-utan-reklam"
+      "matchedStoreId": "tv4-play-utan-reklam",
+      "alias": "TV4 Play"
     },
     {
       "id": "tv4-play-sport-9089",
@@ -20952,7 +20960,8 @@
       "note": "",
       "syncedAt": "2026-10-02T23:23:05.841Z",
       "updatedAt": null,
-      "matchedStoreId": "tv-4-play-sport"
+      "matchedStoreId": "tv-4-play-sport",
+      "alias": "TV4 Play"
     },
     {
       "id": "tv4-play-sport",
@@ -20966,7 +20975,8 @@
       "note": "",
       "syncedAt": "2026-10-02T23:23:05.841Z",
       "updatedAt": null,
-      "matchedStoreId": "tv4-play-sport-fotboll"
+      "matchedStoreId": "tv4-play-sport-fotboll",
+      "alias": "TV4 Play"
     },
     {
       "id": "tv4-play-sport-total",
@@ -20980,7 +20990,8 @@
       "note": "",
       "syncedAt": "2026-10-02T23:23:05.841Z",
       "updatedAt": null,
-      "matchedStoreId": "tv4-play"
+      "matchedStoreId": "tv4-play",
+      "alias": "TV4 Play"
     },
     {
       "id": "sf-anytime-valfri-hyrfilm-12-manader-1-film",
@@ -21176,6 +21187,47 @@
     }
   ],
   "lastSasGiftCardSync": "2026-10-02T23:23:05.841Z",
-  "storeCustomMetadata": {},
+  "storeCustomMetadata": {
+    "tv4-play": {
+      "alias": "TV4 Play",
+      "updatedAt": "2026-10-05T07:13:07.577Z",
+      "updatedBy": "Admin"
+    },
+    "tv4-play-med-reklam": {
+      "alias": "TV4 Play",
+      "updatedAt": "2026-10-05T07:13:07.580Z",
+      "updatedBy": "Admin"
+    },
+    "tv4-play-utan-reklam": {
+      "alias": "TV4 Play",
+      "updatedAt": "2026-10-05T07:13:07.580Z",
+      "updatedBy": "Admin"
+    },
+    "tv-4-play-sport": {
+      "alias": "TV4 Play",
+      "updatedAt": "2026-10-05T07:13:07.580Z",
+      "updatedBy": "Admin"
+    },
+    "tv4-play-sport-9089": {
+      "alias": "TV4 Play",
+      "updatedAt": "2026-10-05T07:13:07.580Z",
+      "updatedBy": "Admin"
+    },
+    "tv4-play-sport-fotboll": {
+      "alias": "TV4 Play",
+      "updatedAt": "2026-10-05T07:13:07.580Z",
+      "updatedBy": "Admin"
+    },
+    "tv4-play-sport": {
+      "alias": "TV4 Play",
+      "updatedAt": "2026-10-05T07:13:07.580Z",
+      "updatedBy": "Admin"
+    },
+    "tv4-play-sport-total": {
+      "alias": "TV4 Play",
+      "updatedAt": "2026-10-05T07:13:07.580Z",
+      "updatedBy": "Admin"
+    }
+  },
   "excludedStoreIds": []
 }

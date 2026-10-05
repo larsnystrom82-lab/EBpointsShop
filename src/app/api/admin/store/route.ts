@@ -18,6 +18,7 @@ export async function POST(request: Request) {
       zupergiftSupported,
       categories,
       category,
+      alias,
       aliases,
       rewardType,
       fixedBonusPoints,
@@ -30,6 +31,10 @@ export async function POST(request: Request) {
     const store = db.stores.find((s) => s.id === storeId);
     if (!store) {
       return NextResponse.json({ error: 'Butik hittades inte' }, { status: 404 });
+    }
+
+    if (alias !== undefined) {
+      store.alias = typeof alias === 'string' ? (alias.trim() || null) : null;
     }
 
     if (Array.isArray(categories)) {
