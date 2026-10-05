@@ -19,6 +19,7 @@ export async function GET() {
   const allStores = buildAllStores(db, { includeExcluded: true });
 
   const headers = [
+    'Butiks-ID',
     'Ursprungligt butiksnamn',
     'Alias',
     'URL till logga',
@@ -43,6 +44,7 @@ export async function GET() {
     const categoriesStr = (store.categories || []).join(', ');
 
     return [
+      escapeCsv(store.id),
       escapeCsv(store.name),
       escapeCsv(store.alias || ''),
       escapeCsv(store.logoUrl || ''),

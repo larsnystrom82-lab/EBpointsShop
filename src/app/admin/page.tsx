@@ -389,6 +389,7 @@ export default function AdminPage() {
     }
 
     const headers = [
+      'Butiks-ID',
       'Ursprungligt butiksnamn',
       'Alias',
       'URL till logga',
@@ -425,6 +426,7 @@ export default function AdminPage() {
       const sasBonus = store.sasGiftCardBonusPer100Kr ?? '';
 
       return [
+        escapeCsv(store.id),
         escapeCsv(store.name),
         escapeCsv(alias),
         escapeCsv(store.logoUrl || ''),
