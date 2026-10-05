@@ -740,6 +740,15 @@ export default function AdminPage() {
     };
   }, [dbData?.allStores, excludeHidden]);
 
+  const categoryNameMap = useMemo(() => {
+    const map = new Map<string, string>();
+    const list = dbData?.categories && dbData.categories.length > 0 ? dbData.categories : DEMO_CATEGORIES;
+    for (const c of list) {
+      map.set(c.id, c.name);
+    }
+    return map;
+  }, [dbData?.categories]);
+
   // Filtered list for "Alla butiker" tab
   const filteredAllStores = useMemo(() => {
     if (!dbData?.allStores) return [];
@@ -769,31 +778,32 @@ export default function AdminPage() {
       if (allStoresFilter === 'has_comment' && !item.comment?.trim()) return false;
 
       if (allStoresSearch.trim()) {
-        const q = allStoresSearch.toLowerCase();
-        return (
-          item.name.toLowerCase().includes(q) ||
-          item.slug.toLowerCase().includes(q) ||
-          (item.alias && item.alias.toLowerCase().includes(q)) ||
-          (item.aliases && item.aliases.some((a) => a.toLowerCase().includes(q))) ||
-          (item.categories && item.categories.some((c) => {
-            const catName = categoryNameMap.get(c) || c;
-            return c.toLowerCase().includes(q) || catName.toLowerCase().includes(q);
-          })) ||
-          (item.comment && item.comment.toLowerCase().includes(q))
-        );
+        const q = allStoresSearch.trim().toLowerCase();
+        const edit = storeMetadataEdits[item.id];
+        const currentAlias = edit?.alias !== undefined ? edit.alias : (item.alias || '');
+        const currentComment = edit?.comment !== undefined ? edit.comment : (item.comment || '');
+        const currentCategories = edit?.categories !== undefined ? edit.categories : (item.categories || []);
+        const currentAliases = edit?.aliasesText !== undefined
+          ? edit.aliasesText.split(',').map((a) => a.trim()).filter(Boolean)
+          : (item.aliases || []);
+
+        const nameMatch = (item.name || '').toLowerCase().includes(q);
+        const slugMatch = (item.slug || '').toLowerCase().includes(q);
+        const idMatch = (item.id || '').toLowerCase().includes(q);
+        const aliasMatch = (currentAlias || '').toLowerCase().includes(q);
+        const aliasesMatch = Array.isArray(currentAliases) && currentAliases.some((a) => typeof a === 'string' && a.toLowerCase().includes(q));
+        const categoriesMatch = Array.isArray(currentCategories) && currentCategories.some((c) => {
+          const catName = categoryNameMap.get(c) || c;
+          return (typeof c === 'string' && c.toLowerCase().includes(q)) ||
+                 (typeof catName === 'string' && catName.toLowerCase().includes(q));
+        });
+        const commentMatch = (currentComment || '').toLowerCase().includes(q);
+
+        return nameMatch || slugMatch || idMatch || aliasMatch || aliasesMatch || categoriesMatch || commentMatch;
       }
       return true;
     });
-  }, [dbData?.allStores, allStoresFilter, allStoresSearch, excludeHidden]);
-
-  const categoryNameMap = useMemo(() => {
-    const map = new Map<string, string>();
-    const list = dbData?.categories && dbData.categories.length > 0 ? dbData.categories : DEMO_CATEGORIES;
-    for (const c of list) {
-      map.set(c.id, c.name);
-    }
-    return map;
-  }, [dbData?.categories]);
+  }, [dbData?.allStores, allStoresFilter, allStoresSearch, excludeHidden, categoryNameMap, storeMetadataEdits]);
 
   if (isAuthenticated === false) {
     return (
