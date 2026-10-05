@@ -28,6 +28,9 @@ import {
   Building,
   Download,
   FileSpreadsheet,
+  Edit2,
+  Check,
+  X,
 } from 'lucide-react';
 import type { DatabaseSchema, DbStore, ZupergiftStoreItem } from '@/lib/db';
 import type { Store } from '@/types/domain';
@@ -96,6 +99,9 @@ export default function AdminPage() {
   const [newCategoryName, setNewCategoryName] = useState('');
   const [newCategoryId, setNewCategoryId] = useState('');
   const [creatingCategory, setCreatingCategory] = useState(false);
+  const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
+  const [editingCategoryName, setEditingCategoryName] = useState('');
+  const [savingCategory, setSavingCategory] = useState(false);
 
   // Form states for Zupergift point settings
   const [zgRate, setZgRate] = useState<number>(30);
@@ -577,6 +583,50 @@ export default function AdminPage() {
     } catch {
       setStatusMessage({ text: 'Ett fel uppstod vid borttagning av kategori', type: 'error' });
     } finally {
+      setTimeout(() => setStatusMessage(null), 4000);
+    }
+  };
+
+  const handleStartEditCategory = (cat: { id: string; name: string }) => {
+    setEditingCategoryId(cat.id);
+    setEditingCategoryName(cat.name);
+  };
+
+  const handleCancelEditCategory = () => {
+    setEditingCategoryId(null);
+    setEditingCategoryName('');
+  };
+
+  const handleSaveCategoryName = async (catId: string) => {
+    if (!editingCategoryName.trim()) {
+      alert('Kategorinamnet kan inte vara tomt.');
+      return;
+    }
+
+    setSavingCategory(true);
+    try {
+      const res = await fetch('/api/admin/category', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'update',
+          id: catId,
+          name: editingCategoryName.trim(),
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setStatusMessage({ text: data.message || `Kategorinamnet har ändrats till "${editingCategoryName.trim()}".`, type: 'success' });
+        setEditingCategoryId(null);
+        setEditingCategoryName('');
+        await fetchAdminData();
+      } else {
+        setStatusMessage({ text: data.error || 'Kunde inte uppdatera kategori', type: 'error' });
+      }
+    } catch {
+      setStatusMessage({ text: 'Ett fel uppstod vid uppdatering av kategori', type: 'error' });
+    } finally {
+      setSavingCategory(false);
       setTimeout(() => setStatusMessage(null), 4000);
     }
   };
@@ -2856,45 +2906,107 @@ export default function AdminPage() {
                   return (
                     <div
                       key={cat.id}
-                      className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs hover:bg-slate-50 transition-colors"
+                      className={`p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs transition-colors ${
+                        editingCategoryId === cat.id ? 'bg-blue-50/60 ring-2 ring-blue-500/20 rounded-xl' : 'hover:bg-slate-50'
+                      }`}
                     >
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center shrink-0 font-bold">
-                          <Tag className="w-4 h-4 text-slate-500" />
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <span className="font-bold text-slate-900 text-sm">{cat.name}</span>
-                            <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 font-mono text-[10px]">
-                              {cat.id}
-                            </span>
+                      {editingCategoryId === cat.id ? (
+                        <div className="flex-1 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                          <div className="flex items-center gap-3 flex-1">
+                            <div className="w-8 h-8 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center shrink-0 font-bold">
+                              <Tag className="w-4 h-4 text-blue-600" />
+                            </div>
+                            <div className="flex-1 flex flex-col sm:flex-row sm:items-center gap-2">
+                              <input
+                                type="text"
+                                value={editingCategoryName}
+                                onChange={(e) => setEditingCategoryName(e.target.value)}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') handleSaveCategoryName(cat.id);
+                                  if (e.key === 'Escape') handleCancelEditCategory();
+                                }}
+                                autoFocus
+                                placeholder="Kategorinamn..."
+                                className="px-3 py-1.5 rounded-xl border border-blue-500 ring-2 ring-blue-100 text-sm font-bold text-slate-900 bg-white flex-1 min-w-[200px]"
+                              />
+                              <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-500 font-mono text-[10px] shrink-0 self-start sm:self-auto" title="ID förblir detsamma så alla butikskopplingar bevaras">
+                                ID: {cat.id}
+                              </span>
+                            </div>
                           </div>
-                          <div className="text-[11px] text-slate-400 mt-0.5 flex items-center gap-2">
-                            <span>{partnerCount} SAS Partnerbutiker</span>
-                            <span>•</span>
-                            <span>{zgCount} Zupergift-butiker</span>
+
+                          <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
+                            <button
+                              type="button"
+                              onClick={() => handleSaveCategoryName(cat.id)}
+                              disabled={savingCategory || !editingCategoryName.trim()}
+                              className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold text-xs flex items-center gap-1.5 transition-colors shadow-xs"
+                            >
+                              <Check className="w-3.5 h-3.5" />
+                              <span>{savingCategory ? 'Sparar...' : 'Spara'}</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={handleCancelEditCategory}
+                              disabled={savingCategory}
+                              className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold text-xs flex items-center gap-1.5 transition-colors"
+                            >
+                              <X className="w-3.5 h-3.5" />
+                              <span>Avbryt</span>
+                            </button>
                           </div>
                         </div>
-                      </div>
+                      ) : (
+                        <>
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center shrink-0 font-bold">
+                              <Tag className="w-4 h-4 text-slate-500" />
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <span className="font-bold text-slate-900 text-sm">{cat.name}</span>
+                                <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 font-mono text-[10px]">
+                                  {cat.id}
+                                </span>
+                              </div>
+                              <div className="text-[11px] text-slate-400 mt-0.5 flex items-center gap-2">
+                                <span>{partnerCount} SAS Partnerbutiker</span>
+                                <span>•</span>
+                                <span>{zgCount} Zupergift-butiker</span>
+                              </div>
+                            </div>
+                          </div>
 
-                      <div className="flex items-center gap-3 self-end sm:self-auto shrink-0">
-                        <div className="text-right mr-2">
-                          <span className="font-bold text-slate-700 block text-xs">
-                            {total} {total === 1 ? 'butik' : 'butiker'}
-                          </span>
-                          <span className="text-[10px] text-slate-400">totalt kopplade</span>
-                        </div>
+                          <div className="flex items-center gap-3 self-end sm:self-auto shrink-0">
+                            <div className="text-right mr-2">
+                              <span className="font-bold text-slate-700 block text-xs">
+                                {total} {total === 1 ? 'butik' : 'butiker'}
+                              </span>
+                              <span className="text-[10px] text-slate-400">totalt kopplade</span>
+                            </div>
 
-                        <button
-                          type="button"
-                          onClick={() => handleDeleteCategory(cat.id, cat.name)}
-                          className="px-3 py-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-700 font-semibold text-xs flex items-center gap-1.5 border border-red-200 transition-colors touch-target"
-                          title={`Ta bort kategorin "${cat.name}"`}
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                          <span>Ta bort</span>
-                        </button>
-                      </div>
+                            <button
+                              type="button"
+                              onClick={() => handleStartEditCategory(cat)}
+                              className="px-3 py-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold text-xs flex items-center gap-1.5 border border-blue-200 transition-colors touch-target"
+                              title={`Ändra namn på "${cat.name}"`}
+                            >
+                              <Edit2 className="w-3.5 h-3.5" />
+                              <span>Ändra namn</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteCategory(cat.id, cat.name)}
+                              className="px-3 py-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-700 font-semibold text-xs flex items-center gap-1.5 border border-red-200 transition-colors touch-target"
+                              title={`Ta bort kategorin "${cat.name}"`}
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                              <span>Ta bort</span>
+                            </button>
+                          </div>
+                        </>
+                      )}
                     </div>
                   );
                 })}

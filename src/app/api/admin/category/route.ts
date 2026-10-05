@@ -95,6 +95,54 @@ export async function POST(request: Request) {
       });
     }
 
+    if (action === 'update' || action === 'rename') {
+      if (!id || typeof id !== 'string') {
+        return NextResponse.json({ error: 'Kategori-ID saknas' }, { status: 400 });
+      }
+
+      if (!name || typeof name !== 'string' || !name.trim()) {
+        return NextResponse.json({ error: 'Kategorinamn kan inte vara tomt' }, { status: 400 });
+      }
+
+      const trimmedName = name.trim();
+      const catToUpdate = db.categories.find((c) => c.id === id);
+      if (!catToUpdate) {
+        return NextResponse.json({ error: 'Kategorin hittades inte' }, { status: 404 });
+      }
+
+      // Check if another category has the same name
+      const duplicateName = db.categories.some(
+        (c) => c.id !== id && c.name.toLowerCase() === trimmedName.toLowerCase()
+      );
+      if (duplicateName) {
+        return NextResponse.json(
+          { error: `En annan kategori heter redan "${trimmedName}"` },
+          { status: 400 }
+        );
+      }
+
+      const oldName = catToUpdate.name;
+      catToUpdate.name = trimmedName;
+
+      // Audit event
+      db.auditEvents.unshift({
+        id: `audit-${Date.now()}`,
+        timestamp: new Date().toISOString(),
+        action: 'CATEGORY_UPDATED',
+        details: `Ändrade namn på kategori "${oldName}" till "${trimmedName}" (ID: ${id})`,
+        user: 'Admin',
+      });
+
+      saveDatabase(db);
+
+      return NextResponse.json({
+        success: true,
+        message: `Kategorinamnet ändrades till "${trimmedName}"`,
+        category: catToUpdate,
+        categories: db.categories,
+      });
+    }
+
     if (action === 'delete') {
       if (!id || typeof id !== 'string') {
         return NextResponse.json({ error: 'Kategori-ID saknas' }, { status: 400 });
