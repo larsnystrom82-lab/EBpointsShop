@@ -907,7 +907,8 @@ export default function AdminPage() {
   }, [dbData?.allStores, excludeHidden]);
 
   const categoriesList = useMemo(() => {
-    return dbData?.categories && dbData.categories.length > 0 ? dbData.categories : DEMO_CATEGORIES;
+    const list = dbData?.categories && dbData.categories.length > 0 ? dbData.categories : DEMO_CATEGORIES;
+    return [...list].sort((a, b) => a.name.localeCompare(b.name, 'sv', { sensitivity: 'base' }));
   }, [dbData?.categories]);
 
   const categoryNameMap = useMemo(() => {
@@ -3181,7 +3182,7 @@ export default function AdminPage() {
               </div>
 
               <div className="border border-slate-200 rounded-2xl overflow-hidden divide-y divide-slate-100">
-                {(dbData?.categories || DEMO_CATEGORIES).map((cat) => {
+                {categoriesList.map((cat) => {
                   const allMatchingStores = (dbData?.allStores || []).filter((s) => !s.isExcluded && (s.categories || []).includes(cat.id));
                   const total = allMatchingStores.length;
                   const partnerCount = allMatchingStores.filter((s) => s.hasPartnerLink).length;

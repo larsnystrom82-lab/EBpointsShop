@@ -39,9 +39,9 @@ export async function GET() {
     },
     stores: baseStores,
     allStores,
-    categories:
+    categories: (
       db.categories && db.categories.length > 0
-        ? db.categories
+        ? [...db.categories]
         : [
             { id: 'food', name: 'Mat & Restaurang', order: 1, isActive: true },
             { id: 'kitchen', name: 'Hem & Kök', order: 2, isActive: true },
@@ -54,7 +54,8 @@ export async function GET() {
             { id: 'baby', name: 'Barn & Baby', order: 9, isActive: true },
             { id: 'gifts', name: 'Present & Upplevelser', order: 10, isActive: true },
             { id: 'department', name: 'Varuhus & Övrigt', order: 11, isActive: true },
-          ],
+          ]
+    ).sort((a, b) => a.name.localeCompare(b.name, 'sv', { sensitivity: 'base' })),
     lastZupergiftSync: db.lastZupergiftSync,
     lastPartnerSync: db.lastPartnerSync || null,
     sasGiftCards: activeSasGiftCards,

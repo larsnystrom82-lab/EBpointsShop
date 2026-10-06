@@ -30,7 +30,9 @@ export default function Home() {
   // Dynamic stores list (loaded from API with DEMO_STORES fallback)
   const [allStores, setAllStores] = useState<Store[]>(DEMO_STORES);
   const [selectedStoreIds, setSelectedStoreIds] = useState<string[]>([]);
-  const [categories, setCategories] = useState<Category[]>(DEMO_CATEGORIES);
+  const [categories, setCategories] = useState<Category[]>(() =>
+    [...DEMO_CATEGORIES].sort((a, b) => a.name.localeCompare(b.name, 'sv', { sensitivity: 'base' }))
+  );
   const [zupergiftRate, setZupergiftRate] = useState<number | undefined>(undefined);
   const [zupergiftIsCampaign, setZupergiftIsCampaign] = useState<boolean>(false);
   const [sasGiftCards, setSasGiftCards] = useState<SasGiftCardStoreItem[]>([]);
@@ -93,7 +95,9 @@ export default function Home() {
           setAllStores(data.allStores);
         }
         if (data?.categories && Array.isArray(data.categories) && data.categories.length > 0) {
-          setCategories(data.categories);
+          setCategories(
+            [...data.categories].sort((a, b) => a.name.localeCompare(b.name, 'sv', { sensitivity: 'base' }))
+          );
         }
         if (data?.zupergiftConfig?.ratePer100Kr !== undefined) {
           setZupergiftRate(data.zupergiftConfig.ratePer100Kr);

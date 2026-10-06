@@ -121,6 +121,11 @@ export const SearchFilterBox: React.FC<SearchFilterBoxProps> = ({
     );
   }, [allStores, selectedCategoryIds, selectedStoreIds]);
 
+  // Sortera kategorier i alfabetisk ordning A-Ö
+  const sortedCategories = useMemo(() => {
+    return [...categories].sort((a, b) => a.name.localeCompare(b.name, 'sv', { sensitivity: 'base' }));
+  }, [categories]);
+
   return (
     <div className="bg-white rounded-3xl p-5 sm:p-7 shadow-xs border border-slate-200/90 space-y-5">
       {/* Översta raden: Butiker, Kategori, Köpbelopp, Sortera */}
@@ -182,7 +187,7 @@ export const SearchFilterBox: React.FC<SearchFilterBoxProps> = ({
           {/* Kategori dropdown meny */}
           {categoryDropdownOpen && (
             <div className="absolute top-full left-0 mt-1.5 w-64 bg-white rounded-xl shadow-lg border border-slate-200 p-2 z-50 space-y-1">
-              {categories.map((cat) => {
+              {sortedCategories.map((cat) => {
                 const isSelected = selectedCategoryIds.includes(cat.id);
                 return (
                   <button
