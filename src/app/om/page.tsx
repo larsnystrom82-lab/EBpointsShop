@@ -180,10 +180,7 @@ export default function OmPage() {
 
           <div className="text-xs sm:text-sm text-slate-600 leading-relaxed space-y-3">
             <p>
-              <strong>Eurobonus-jakten är en fristående och oberoende konsumenttjänst.</strong> Tjänsten
-              drivs inte av, ägs inte av och är inte formellt associerad med Scandinavian Airlines
-              System (SAS AB), SAS EuroBonus AB, LoyaltyKey eller någon av de listade butikerna eller
-              kreditkortsinstituten. Alla varumärken tillhör sina respektive ägare.
+              <strong>Eurobonus-jakten är en oberoende jämförelsetjänst</strong> och är inte ansluten till, sponsrad av eller godkänd av SAS eller de företag som visas. Varumärkesnamn och logotyper tillhör respektive rättighetsinnehavare och används för att identifiera de företag och tjänster som jämförs. Tjänsten drivs inte av, ägs inte av och är inte formellt associerad med Scandinavian Airlines System (SAS AB), SAS EuroBonus AB, LoyaltyKey eller någon av de listade butikerna eller kreditkortsinstituten.
             </p>
             <p>
               Beräkningar, poängkurser och råd tillhandahålls uteslutande som informationsstöd.

@@ -128,23 +128,29 @@ export const Footer: React.FC = () => {
           </div>
         </div>
 
-        {/* Disclaimer banner */}
-        <div className="border-t border-slate-200/80 pt-6 mt-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-xs text-slate-500">
-          <div className="flex items-start gap-2 max-w-3xl">
-            <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-            <p>
-              <strong className="text-slate-700">Viktigt: </strong>
-              Poängsatser och villkor ändras löpande av SAS och butikerna. Kontrollera alltid
-              respektive butiks fullständiga villkor före genomförande av köp.{' '}
-              <Link href="/om#villkor" className="text-blue-600 underline hover:text-blue-800">
-                Läs mer om villkor och undantag
-              </Link>
-              .
+        {/* Ansvarsfriskrivning & Oberoende */}
+        <div className="border-t border-slate-200/80 pt-6 mt-6 space-y-4 text-xs text-slate-500 leading-relaxed">
+          <p className="text-slate-500">
+            Eurobonus-jakten är en oberoende jämförelsetjänst och är inte ansluten till, sponsrad av eller godkänd av SAS eller de företag som visas. Varumärkesnamn och logotyper tillhör respektive rättighetsinnehavare och används för att identifiera de företag och tjänster som jämförs.
+          </p>
+
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pt-2 border-t border-slate-100">
+            <div className="flex items-start gap-2 max-w-3xl">
+              <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+              <p>
+                <strong className="text-slate-700">Viktigt: </strong>
+                Poängsatser och villkor ändras löpande av SAS och butikerna. Kontrollera alltid
+                respektive butiks fullständiga villkor före genomförande av köp.{' '}
+                <Link href="/om#villkor" className="text-blue-600 underline hover:text-blue-800">
+                  Läs mer om villkor och undantag
+                </Link>
+                .
+              </p>
+            </div>
+            <p className="shrink-0 text-slate-400">
+              © {new Date().getFullYear()} Eurobonus-jakten
             </p>
           </div>
-          <p className="shrink-0 text-slate-400">
-            © {new Date().getFullYear()} Eurobonus-jakten
-          </p>
         </div>
       </div>
     </footer>
