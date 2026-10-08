@@ -455,7 +455,7 @@ export default function AdminPage() {
     const dateStr = new Date().toISOString().split('T')[0];
     const isFiltered = customList && customList.length !== (dbData?.allStores?.length || 0);
     const suffix = customFilePrefix ? `-${customFilePrefix}` : isFiltered ? '-filtrerade' : '';
-    link.setAttribute('download', `eurobonus-jakten-butiker${suffix}-${dateStr}.csv`);
+    link.setAttribute('download', `bonuslotsen-se-butiker${suffix}-${dateStr}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -554,7 +554,7 @@ export default function AdminPage() {
   const handleStoreAction = async (storeId: string, storeName: string, action: 'exclude' | 'restore') => {
     if (action === 'exclude') {
       const confirmed = confirm(
-        `Vill du ta bort "${storeName}" från Eurobonus-jakten?\n\nButiken tas bort från sajten och exkluderas från framtida synkningar (används t.ex. vid konkurs eller avslutat samarbete med SAS).`
+        `Vill du ta bort "${storeName}" från bonuslotsen.se?\n\nButiken tas bort från sajten och exkluderas från framtida synkningar (används t.ex. vid konkurs eller avslutat samarbete med SAS).`
       );
       if (!confirmed) return;
     }
@@ -1054,7 +1054,7 @@ export default function AdminPage() {
 
           <div className="text-center">
             <a href="/" className="text-xs text-blue-600 hover:underline">
-              ← Tillbaka till Eurobonus-jakten
+              ← Tillbaka till bonuslotsen.se
             </a>
           </div>
         </div>
@@ -1080,7 +1080,7 @@ export default function AdminPage() {
             <span className="bg-blue-600 text-white font-bold text-xs px-2.5 py-1 rounded-md tracking-wider uppercase">
               Admin
             </span>
-            <h1 className="text-lg font-bold">Eurobonus-jakten Administration</h1>
+            <h1 className="text-lg font-bold">bonuslotsen.se Administration</h1>
           </div>
 
           <div className="flex items-center gap-4 text-xs">
@@ -1709,7 +1709,7 @@ export default function AdminPage() {
                                       </span>
                                     )}
                                     {isHiddenVal && (
-                                      <span className="px-2 py-0.5 rounded-md bg-amber-100 text-amber-900 font-bold text-[10px] flex items-center gap-1" title="Dold i Eurobonus-jakten">
+                                      <span className="px-2 py-0.5 rounded-md bg-amber-100 text-amber-900 font-bold text-[10px] flex items-center gap-1" title="Dold i bonuslotsen.se">
                                         <EyeOff className="w-3 h-3 text-amber-700" />
                                         Dold
                                       </span>
@@ -1908,7 +1908,7 @@ export default function AdminPage() {
                               </p>
                             </div>
 
-                            {/* Dölj butiken i Eurobonus-jakten */}
+                            {/* Dölj butiken i bonuslotsen.se */}
                             <div className="md:col-span-2 pt-2 border-t border-slate-100 flex items-center justify-between">
                               <label className={`inline-flex items-center gap-2 cursor-pointer select-none text-xs ${item.isExcluded ? 'opacity-50 cursor-not-allowed' : ''}`}>
                                 <input
@@ -1920,7 +1920,7 @@ export default function AdminPage() {
                                 />
                                 <span className="font-semibold text-slate-700 flex items-center gap-1.5">
                                   <EyeOff className="w-3.5 h-3.5 text-amber-600" />
-                                  Dölj butiken i Eurobonus-jakten
+                                  Dölj butiken i bonuslotsen.se
                                 </span>
                               </label>
                               <span className="text-[11px] text-slate-400 hidden sm:inline">
@@ -1977,7 +1977,7 @@ export default function AdminPage() {
                                   type="button"
                                   onClick={() => handleStoreAction(item.id, item.name, 'exclude')}
                                   className="px-3 py-1.5 rounded-xl text-xs font-semibold text-rose-600 hover:bg-rose-50 hover:text-rose-700 border border-rose-200 flex items-center gap-1 transition-colors"
-                                  title="Ta bort butiken från Eurobonus-jakten (t.ex. vid konkurs eller avslutat samarbete med SAS)"
+                                  title="Ta bort butiken från bonuslotsen.se (t.ex. vid konkurs eller avslutat samarbete med SAS)"
                                 >
                                   <Trash2 className="w-3.5 h-3.5" />
                                   <span>Ta bort</span>
@@ -2269,7 +2269,7 @@ export default function AdminPage() {
                               )}
                               {isMatchedWithLocal && (
                                 <span className="px-2 py-0.5 rounded-md bg-blue-100 text-blue-800 font-semibold text-[10px]">
-                                  Kopplad till Eurobonus-jakten
+                                  Kopplad till bonuslotsen.se
                                 </span>
                               )}
                             </div>

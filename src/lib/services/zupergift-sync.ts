@@ -210,6 +210,6 @@ export async function syncZupergiftCatalog(): Promise<{
     totalDiscovered: discoveredMap.size,
     newStoresAdded,
     matchedStores: matchedStoresList,
-    message: `Live-synk lyckades: ${discoveredMap.size} butiker identifierade hos Zupergift (${newStoresAdded} nya). ${matchedStoresList.length} butiker är aktiva i Eurobonus-jakten.`,
+    message: `Live-synk lyckades: ${discoveredMap.size} butiker identifierade hos Zupergift (${newStoresAdded} nya). ${matchedStoresList.length} butiker är aktiva i bonuslotsen.se.`,
   };
 }

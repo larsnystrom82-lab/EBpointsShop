@@ -20,9 +20,9 @@ import { FeedbackTriggerButton } from '@/components/FeedbackTriggerButton';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Om Eurobonus-jakten – Syfte, oberoende och villkor',
+  title: 'Om bonuslotsen.se – Syfte, oberoende och villkor',
   description:
-    'Läs om syftet med Eurobonus-jakten, hur vi hjälper EuroBonus-medlemmar att maximera poängintjäningen vid vardagsköp, samt viktig information om att alltid kontrollera butikers villkor.',
+    'Läs om syftet med bonuslotsen.se, hur vi hjälper EuroBonus-medlemmar att maximera poängintjäningen vid vardagsköp, samt viktig information om att alltid kontrollera butikers villkor.',
 };
 
 export default function OmPage() {
@@ -38,7 +38,7 @@ export default function OmPage() {
             <span>100 % Oberoende konsumenttjänst</span>
           </div>
           <h1 className="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight leading-tight">
-            Om <span className="text-blue-600">Eurobonus-jakten</span>
+            Om <span className="text-blue-600">bonuslotsen.se</span>
           </h1>
           <p className="text-base sm:text-xl text-slate-600 leading-relaxed font-normal">
             Ett gratis och oberoende verktyg skapat för att hjälpa dig navigera i SAS
@@ -90,7 +90,7 @@ export default function OmPage() {
             </div>
             <div>
               <h2 className="text-2xl font-extrabold text-slate-900">
-                Vad är syftet med Eurobonus-jakten?
+                Vad är syftet med bonuslotsen.se?
               </h2>
               <p className="text-sm text-slate-500 font-medium">
                 Vår vision är att göra EuroBonus-intjäning i vardagen enkel, transparent och tillgänglig.
@@ -127,8 +127,8 @@ export default function OmPage() {
               </li>
             </ul>
             <p>
-              <strong>Eurobonus-jakten skapades för att lösa detta.</strong> Istället för att du ska behöva
-              öppna fem flikar, räkna i huvudet eller missa förmånliga kampanjer ger Eurobonus-jakten dig
+              <strong>bonuslotsen.se skapades för att lösa detta.</strong> Istället för att du ska behöva
+              öppna fem flikar, räkna i huvudet eller missa förmånliga kampanjer ger bonuslotsen.se dig
               svaret på en sekund. Skriv in butiken och summan du planerar att handla för – så visar
               vi den mest lönsamma vägen.
             </p>
@@ -153,7 +153,7 @@ export default function OmPage() {
                 Kontrollera alltid villkoren hos butiken och SAS
               </h2>
               <p className="text-sm sm:text-base text-amber-900/90 mt-1 leading-relaxed">
-                Eurobonus-jakten tillhandahåller beräkningar i god tro baserat på kända data, men
+                bonuslotsen.se tillhandahåller beräkningar i god tro baserat på kända data, men
                 regler och poängsatser kan ändras när som helst. Läs alltid villkorstexten noggrant
                 innan du genomför ett köp.
               </p>
@@ -180,11 +180,11 @@ export default function OmPage() {
 
           <div className="text-xs sm:text-sm text-slate-600 leading-relaxed space-y-3">
             <p>
-              <strong>Eurobonus-jakten är en oberoende jämförelsetjänst</strong> och är inte ansluten till, sponsrad av eller godkänd av SAS eller de företag som visas. Varumärkesnamn och logotyper tillhör respektive rättighetsinnehavare och används för att identifiera de företag och tjänster som jämförs. Tjänsten drivs inte av, ägs inte av och är inte formellt associerad med Scandinavian Airlines System (SAS AB), SAS EuroBonus AB, LoyaltyKey eller någon av de listade butikerna eller kreditkortsinstituten.
+              <strong>bonuslotsen.se är en oberoende jämförelsetjänst</strong> och är inte ansluten till, sponsrad av eller godkänd av SAS eller de företag som visas. Varumärkesnamn och logotyper tillhör respektive rättighetsinnehavare och används för att identifiera de företag och tjänster som jämförs. Tjänsten drivs inte av, ägs inte av och är inte formellt associerad med Scandinavian Airlines System (SAS AB), SAS EuroBonus AB, LoyaltyKey eller någon av de listade butikerna eller kreditkortsinstituten.
             </p>
             <p>
               Beräkningar, poängkurser och råd tillhandahålls uteslutande som informationsstöd.
-              Eurobonus-jakten påtar sig inget juridiskt ansvar för eventuella felaktigheter i data,
+              bonuslotsen.se påtar sig inget juridiskt ansvar för eventuella felaktigheter i data,
               uteblivna poängregistreringar, nekade transaktioner eller ändringar i butikers eller
               flygbolags villkor.
             </p>
@@ -209,7 +209,7 @@ export default function OmPage() {
           <div className="space-y-2 text-center sm:text-left">
             <div className="flex items-center justify-center sm:justify-start gap-2 text-blue-600 font-bold text-sm">
               <MessageSquareWarning className="w-5 h-5" />
-              <span>Hjälp oss hålla Eurobonus-jakten 100 % korrekt</span>
+              <span>Hjälp oss hålla bonuslotsen.se 100 % korrekt</span>
             </div>
             <h3 className="text-lg sm:text-xl font-extrabold text-slate-900">
               Har en butik ändrat poängsats eller villkor?

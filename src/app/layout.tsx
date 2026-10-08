@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Jämför bonuspoäng – Eurobonus-jakten',
+  title: 'Jämför bonuspoäng – bonuslotsen.se',
   description: 'Jämför EuroBonus-intjäning mellan butiker och köpvägar för ditt angivna köpbelopp. Se poäng via partnerköp, presentkort och dina kort.',
   icons: {
     icon: [

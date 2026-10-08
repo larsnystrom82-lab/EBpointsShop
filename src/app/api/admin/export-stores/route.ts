@@ -68,7 +68,7 @@ export async function GET() {
     status: 200,
     headers: {
       'Content-Type': 'text/csv; charset=utf-8',
-      'Content-Disposition': `attachment; filename="eurobonus-jakten-butiker-${dateStr}.csv"`,
+      'Content-Disposition': `attachment; filename="bonuslotsen-se-butiker-${dateStr}.csv"`,
       'Cache-Control': 'no-store',
     },
   });

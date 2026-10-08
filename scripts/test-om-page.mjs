@@ -45,8 +45,8 @@ async function run() {
   const pageCheck = await page.evaluate(() => {
     const bodyText = document.body.innerText;
     return {
-      hasHero: bodyText.includes('Om Eurobonus-jakten'),
-      hasSyfte: bodyText.includes('Vad är syftet med Eurobonus-jakten?'),
+      hasHero: bodyText.includes('Om bonuslotsen.se'),
+      hasSyfte: bodyText.includes('Vad är syftet med bonuslotsen.se?'),
       hasVillkorHeading: bodyText.includes('Kontrollera alltid villkoren hos butiken och SAS'),
       hasChecklist: bodyText.includes('Checklista: Detta måste du kontrollera före varje köp'),
       hasUndantag: bodyText.includes('Undantagna varor och kategorier'),

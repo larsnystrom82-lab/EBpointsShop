@@ -19,7 +19,7 @@ export interface ZupergiftStoreItem {
   category?: string;
   isHidden: boolean; // Dold av admin (visas inte för besökare)
   isExcluded: boolean; // Borttagen av admin (exkluderas även vid framtida synkningar)
-  matchedStoreId?: string; // Motsvarande lokal butik i Eurobonus-jakten
+  matchedStoreId?: string; // Motsvarande lokal butik i bonuslotsen.se
   syncedAt: string;
 }
 

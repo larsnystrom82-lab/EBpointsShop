@@ -21,7 +21,7 @@ export const Header: React.FC<HeaderProps> = ({ onLoadSmegDemo }) => {
               </span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
-              Eurobonus-jakten <span className="text-blue-400 font-normal text-lg sm:text-xl">· EuroBonus-jämförelse</span>
+              bonuslotsen.se <span className="text-blue-400 font-normal text-lg sm:text-xl">· EuroBonus-jämförelse</span>
             </h1>
             <p className="mt-1 text-sm sm:text-base text-slate-300 max-w-2xl">
               Jämför EuroBonus-intjäning mellan butiker och köpvägar för ditt angivna köpbelopp.

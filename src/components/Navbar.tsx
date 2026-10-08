@@ -36,15 +36,15 @@ export const Navbar: React.FC<NavbarProps> = ({ onSearchClick }) => {
               }}
               className="flex items-center gap-2.5 text-slate-900 group cursor-pointer focus:outline-hidden focus-visible:ring-2 focus-visible:ring-blue-600 rounded-lg"
               title="Gå till första sidan: Jämför bonuspoäng"
-              aria-label="Eurobonus-jakten - Gå till första sidan: Jämför bonuspoäng"
+              aria-label="bonuslotsen.se - Gå till första sidan: Jämför bonuspoäng"
             >
               <div
                 className="w-9 h-9 relative flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform"
-                title="Eurobonus-jakten-ikonen – Klicka för att gå till första sidan"
+                title="bonuslotsen.se-ikonen – Klicka för att gå till första sidan"
               >
                 <Image
                   src="/logo.png"
-                  alt="Eurobonus-jakten"
+                  alt="bonuslotsen.se"
                   width={36}
                   height={36}
                   className="w-9 h-9 object-contain"
@@ -52,7 +52,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onSearchClick }) => {
                 />
               </div>
               <span className="text-xl font-extrabold tracking-tight text-slate-900 group-hover:text-blue-600 transition-colors">
-                Eurobonus-jakten
+                bonuslotsen.se
               </span>
             </Link>
 
@@ -175,7 +175,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onSearchClick }) => {
                 : 'text-slate-700 hover:bg-slate-50 font-medium'
             }`}
           >
-            Om Eurobonus-jakten
+            Om bonuslotsen.se
           </Link>
           <button
             type="button"

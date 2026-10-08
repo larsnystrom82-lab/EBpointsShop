@@ -36,7 +36,7 @@ const CATEGORIES: {
     label: 'Förbättringsförslag',
     description: 'Idéer till nya funktioner, design eller beräkningar',
     icon: Lightbulb,
-    placeholder: 'Vad skulle göra Eurobonus-jakten ännu bättre för dig? Beskriv gärna din idé så utförligt som möjligt...',
+    placeholder: 'Vad skulle göra bonuslotsen.se ännu bättre för dig? Beskriv gärna din idé så utförligt som möjligt...',
   },
   {
     id: 'store_missing',
@@ -193,7 +193,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({
                 Lämna förslag &amp; feedback
               </h2>
               <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
-                Dina idéer hjälper oss att utveckla Eurobonus-jakten och göra EuroBonus-intjäning ännu
+                Dina idéer hjälper oss att utveckla bonuslotsen.se och göra EuroBonus-intjäning ännu
                 enklare för alla.
               </p>
             </div>
@@ -331,7 +331,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({
               </h3>
               <p className="text-xs sm:text-sm text-slate-600 max-w-sm mx-auto leading-relaxed">
                 Ditt förslag har sparats och skickats till utvecklingsteamet. Vi granskar all
-                feedback löpande för att göra Eurobonus-jakten ännu mer användbar.
+                feedback löpande för att göra bonuslotsen.se ännu mer användbar.
               </p>
             </div>
             <div className="pt-4">
