@@ -693,5 +693,32 @@ describe('EuroBonus Beräkningsmotor – Acceptanstester A03–A16', () => {
     expect(onlyCampRanked.length).toBe(1);
     expect(onlyCampRanked[0].storeId).toBe('active-store');
   });
+
+  it('Steg 2 för Zupergift-butiker länkar direkt till butikens presentkort på Zupergift', () => {
+    const mcDonalds: Store = {
+      id: 'mcdonald-s',
+      name: "McDonald's",
+      slug: 'mcdonald-s',
+      aliases: ['mcdonalds'],
+      categories: ['food'],
+      isActive: true,
+      zupergiftSupported: true,
+      zupergiftSlug: 'mcdonald-s',
+      zupergiftUrl: 'https://zupergift.com/se/mcdonald-s',
+    };
+
+    const routes = generateCandidateRoutes({
+      store: mcDonalds,
+      purchaseAmountKr: 200,
+    });
+
+    const zupergiftRoute = routes.find((r) => r.routeType === 'zupergift_chain');
+    expect(zupergiftRoute).toBeDefined();
+    expect(zupergiftRoute?.steps).toHaveLength(3);
+
+    const step2 = zupergiftRoute?.steps.find((s) => s.stepNumber === 2);
+    expect(step2?.externalUrl).toBe('https://zupergift.com/se/mcdonald-s');
+    expect(step2?.title).toBe("Växla till McDonald's-presentkort");
+  });
 });
 

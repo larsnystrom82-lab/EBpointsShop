@@ -396,35 +396,40 @@ export function generateCandidateRoutes(options: RouteGenerationOptions): RouteC
 
     const cardOutcomes = computeCardOutcomes(baseBonusPoints, baseTierPoints, totalOutlayOre, totalOutlayOre);
 
-    results.push({
-      id: `${store.id}-zupergift-chain`,
-      storeId: store.id,
-      storeName: store.name,
-      storeLogoUrl: store.logoUrl,
-      routeType: 'zupergift_chain',
-      routeTitle: 'Zupergift-kedja (SAS → Zupergift → Butik)',
-      routeSummary: `Köp Zupergift för ${purchaseAmountKr.toLocaleString('sv-SE')} kr och växla till ${store.name}-presentkort.`,
-      primaryCategory: store.categories?.[0] || 'department',
-      categories: store.categories || ['department'],
-      steps: [
-        {
-          stepNumber: 1,
-          title: 'Köp Zupergift med SAS EuroBonus',
-          description: `Köp Zupergift-presentkort för ${purchaseAmountKr.toLocaleString('sv-SE')} kr på SAS EuroBonus Shop (${ratePer100Kr}p / 100 kr).`,
-          externalUrl: 'https://www.saseurobonusshop.com/se/zupergift-presentkort',
-        },
-        {
-          stepNumber: 2,
-          title: `Växla till ${store.name}-presentkort`,
-          description: `Gå till Zupergift och växla koden till ett ${store.name}-presentkort.`,
-          externalUrl: 'https://zupergift.com/se/alla-presentkort',
-        },
-        {
-          stepNumber: 3,
-          title: `Genomför köpet hos ${store.name}`,
-          description: 'Lös in presentkortet i kassan.',
-        },
-      ],
+      const zupergiftSlug = store.zupergiftSlug || store.slug || store.id;
+      const zupergiftItemUrl =
+        store.zupergiftUrl ||
+        (zupergiftSlug ? `https://zupergift.com/se/${zupergiftSlug}` : 'https://zupergift.com/se/alla-presentkort');
+
+      results.push({
+        id: `${store.id}-zupergift-chain`,
+        storeId: store.id,
+        storeName: store.name,
+        storeLogoUrl: store.logoUrl,
+        routeType: 'zupergift_chain',
+        routeTitle: 'Zupergift-kedja (SAS → Zupergift → Butik)',
+        routeSummary: `Köp Zupergift för ${purchaseAmountKr.toLocaleString('sv-SE')} kr och växla till ${store.name}-presentkort.`,
+        primaryCategory: store.categories?.[0] || 'department',
+        categories: store.categories || ['department'],
+        steps: [
+          {
+            stepNumber: 1,
+            title: 'Köp Zupergift med SAS EuroBonus',
+            description: `Köp Zupergift-presentkort för ${purchaseAmountKr.toLocaleString('sv-SE')} kr på SAS EuroBonus Shop (${ratePer100Kr}p / 100 kr).`,
+            externalUrl: 'https://www.saseurobonusshop.com/se/zupergift-presentkort',
+          },
+          {
+            stepNumber: 2,
+            title: `Växla till ${store.name}-presentkort`,
+            description: `Gå till Zupergift och växla koden till ett ${store.name}-presentkort.`,
+            externalUrl: zupergiftItemUrl,
+          },
+          {
+            stepNumber: 3,
+            title: `Genomför köpet hos ${store.name}`,
+            description: 'Lös in presentkortet i kassan.',
+          },
+        ],
       totalSteps: 3,
       purchaseAmountOre,
       totalOutlayOre,

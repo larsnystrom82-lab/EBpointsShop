@@ -37,6 +37,8 @@ export interface Store {
   categories: string[];
   isActive: boolean;
   zupergiftSupported?: boolean;
+  zupergiftSlug?: string;
+  zupergiftUrl?: string;
   isZupergiftOnly?: boolean;
   syncedAt?: string;
   partnerRule?: StorePartnerRule;

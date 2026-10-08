@@ -151,6 +151,8 @@ export function buildAllStores(db: DatabaseSchema, options?: { includeExcluded?:
           startUrl: '',
         },
         zupergiftSupported: !isExcluded && !isHidden,
+        zupergiftSlug: zs.slug,
+        zupergiftUrl: `https://zupergift.com/se/${zs.slug}`,
         isZupergiftOnly: true,
         hasPartnerLink: false,
         syncedAt: zs.syncedAt || db.lastZupergiftSync || undefined,
@@ -271,6 +273,20 @@ export function buildAllStores(db: DatabaseSchema, options?: { includeExcluded?:
     sasMap.set(gc.slug, gc);
   }
 
+  // Enrich all stores with Zupergift item info (slug & direct presentkort URL)
+  const zgMap = new Map<string, { slug: string }>();
+  for (const zg of db.zupergiftStores || []) {
+    if (zg.isHidden || zg.isExcluded) continue;
+    if (zg.matchedStoreId) {
+      zgMap.set(zg.matchedStoreId.toLowerCase(), zg);
+    }
+    zgMap.set(zg.id.toLowerCase(), zg);
+    zgMap.set(zg.slug.toLowerCase(), zg);
+    zgMap.set(cleanStoreSlug(zg.id), zg);
+    zgMap.set(cleanStoreSlug(zg.slug), zg);
+    zgMap.set(zg.name.trim().toLowerCase(), zg);
+  }
+
   for (const s of allStores) {
     const gc = sasMap.get(s.id) || sasMap.get(s.slug);
     if (gc) {
@@ -279,6 +295,20 @@ export function buildAllStores(db: DatabaseSchema, options?: { includeExcluded?:
     } else {
       s.hasSasGiftCard = false;
       s.sasGiftCardBonusPer100Kr = null;
+    }
+
+    if (s.zupergiftSupported) {
+      const zg =
+        (s.zupergiftSlug ? zgMap.get(s.zupergiftSlug.toLowerCase()) : undefined) ||
+        zgMap.get(s.id.toLowerCase()) ||
+        zgMap.get(s.slug.toLowerCase()) ||
+        zgMap.get(cleanStoreSlug(s.id)) ||
+        zgMap.get(cleanStoreSlug(s.slug)) ||
+        zgMap.get(s.name.trim().toLowerCase());
+
+      const resolvedSlug = zg?.slug || s.zupergiftSlug || s.slug || s.id;
+      s.zupergiftSlug = resolvedSlug;
+      s.zupergiftUrl = `https://zupergift.com/se/${resolvedSlug}`;
     }
   }
 
