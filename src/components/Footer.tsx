@@ -58,11 +58,6 @@ export const Footer: React.FC = () => {
                 </Link>
               </li>
               <li>
-                <Link href="/#butiker" className="hover:text-blue-600 transition-colors">
-                  Alla butiker
-                </Link>
-              </li>
-              <li>
                 <Link href="/lankar" className="hover:text-blue-600 transition-colors">
                   Verktyg &amp; Länkar
                 </Link>

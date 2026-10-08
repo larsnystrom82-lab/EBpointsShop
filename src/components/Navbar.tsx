@@ -69,12 +69,6 @@ export const Navbar: React.FC<NavbarProps> = ({ onSearchClick }) => {
                 Jämför bonuspoäng
               </Link>
               <Link
-                href="/#butiker"
-                className="px-3 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors"
-              >
-                Butiker
-              </Link>
-              <Link
                 href="/lankar"
                 className={`px-3 py-2 text-sm font-semibold transition-colors ${
                   isLankar
@@ -149,13 +143,6 @@ export const Navbar: React.FC<NavbarProps> = ({ onSearchClick }) => {
             }`}
           >
             Jämför bonuspoäng (Startsida)
-          </Link>
-          <Link
-            href="/#butiker"
-            onClick={() => setMobileMenuOpen(false)}
-            className="block px-3 py-2 rounded-lg text-base font-medium text-slate-700 hover:bg-slate-50"
-          >
-            Butiker
           </Link>
           <Link
             href="/lankar"
