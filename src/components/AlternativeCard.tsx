@@ -436,9 +436,24 @@ export const AlternativeCard: React.FC<AlternativeCardProps> = ({
                   <span className="w-5 h-5 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center shrink-0 text-xs">
                     {step.stepNumber}
                   </span>
-                  <div className="flex-1">
-                    <span className="font-semibold text-slate-900">{step.title}: </span>
-                    <span className="text-slate-600">{step.description}</span>
+                  <div className="flex-1 space-y-1">
+                    <div>
+                      <span className="font-semibold text-slate-900">{step.title}: </span>
+                      <span className="text-slate-600">{step.description}</span>
+                    </div>
+                    {step.externalUrl && (
+                      <div className="pt-0.5">
+                        <a
+                          href={step.externalUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 text-xs text-blue-600 hover:text-blue-800 font-semibold underline underline-offset-2 hover:underline transition-colors"
+                        >
+                          <span>{step.externalUrl}</span>
+                          <ExternalLink className="w-3.5 h-3.5 shrink-0" />
+                        </a>
+                      </div>
+                    )}
                   </div>
                 </li>
               ))}
@@ -486,7 +501,7 @@ export const AlternativeCard: React.FC<AlternativeCardProps> = ({
               rel="noopener noreferrer"
               className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-semibold transition-colors flex items-center gap-2 touch-target shadow-xs"
             >
-              <span>Gå till butiken</span>
+              <span>{route.routeType === 'direct_partner' ? 'Gå till butiken via SAS Online Shopping' : 'Gå till butiken'}</span>
               <ExternalLink className="w-3.5 h-3.5" />
             </a>
           </div>

@@ -227,7 +227,7 @@ export function generateCandidateRoutes(options: RouteGenerationOptions): RouteC
         {
           stepNumber: 1,
           title: 'Gå till SAS Online Shopping',
-          description: `Klicka på butikslänken för ${store.name} och godkänn cookies.`,
+          description: `Gå till butikssidan på SAS Online Shopping (https://onlineshopping.flysas.com/), klicka på butikslänken för ${store.name} och godkänn cookies.`,
           externalUrl: directUrl,
         },
         {
