@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://bonuslotsen.se'),
+  metadataBase: new URL('https://www.bonuslotsen.se'),
   title: {
     default: 'Jämför bonuspoäng – bonuslotsen.se',
     template: '%s – bonuslotsen.se',
@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Jämför bonuspoäng – bonuslotsen.se',
     description: 'Hitta den smartaste vägen till flest EuroBonus-extrapoäng på dina vardagsinköp.',
-    url: 'https://bonuslotsen.se',
+    url: 'https://www.bonuslotsen.se',
     siteName: 'bonuslotsen.se',
     locale: 'sv_SE',
     type: 'website',

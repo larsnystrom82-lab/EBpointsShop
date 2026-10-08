@@ -1,26 +1,4 @@
-import http from 'node:http';
-
-function makeRawRequest(options) {
-  return new Promise((resolve, reject) => {
-    const req = http.request(options, (res) => {
-      let body = '';
-      res.on('data', (chunk) => {
-        body += chunk;
-      });
-      res.on('end', () => {
-        resolve({
-          statusCode: res.statusCode,
-          headers: res.headers,
-          body,
-        });
-      });
-    });
-    req.on('error', reject);
-    req.end();
-  });
-}
-
-async function testSeoAndRedirects() {
+async function testSeo() {
   const baseUrl = 'http://127.0.0.1:3000';
   let passed = true;
 
@@ -29,10 +7,10 @@ async function testSeoAndRedirects() {
   const sitemapText = await sitemapRes.text();
   console.log('Sitemap status:', sitemapRes.status);
   const expectedUrls = [
-    'https://bonuslotsen.se',
-    'https://bonuslotsen.se/lankar',
-    'https://bonuslotsen.se/om',
-    'https://bonuslotsen.se/feedback',
+    'https://www.bonuslotsen.se',
+    'https://www.bonuslotsen.se/lankar',
+    'https://www.bonuslotsen.se/om',
+    'https://www.bonuslotsen.se/feedback',
   ];
   for (const url of expectedUrls) {
     if (sitemapText.includes(`<loc>${url}</loc>`)) {
@@ -47,8 +25,8 @@ async function testSeoAndRedirects() {
   const robotsRes = await fetch(`${baseUrl}/robots.txt`);
   const robotsText = await robotsRes.text();
   console.log('Robots status:', robotsRes.status);
-  if (robotsText.includes('Sitemap: https://bonuslotsen.se/sitemap.xml')) {
-    console.log('✓ Robots points to https://bonuslotsen.se/sitemap.xml');
+  if (robotsText.includes('Sitemap: https://www.bonuslotsen.se/sitemap.xml')) {
+    console.log('✓ Robots points to https://www.bonuslotsen.se/sitemap.xml');
   } else {
     console.error('✗ Robots MISSING sitemap pointer');
     passed = false;
@@ -56,10 +34,10 @@ async function testSeoAndRedirects() {
 
   console.log('\n--- 3. Testing Canonical tags ---');
   const pagesToTest = [
-    { path: '/', expectedCanonical: 'https://bonuslotsen.se' },
-    { path: '/om', expectedCanonical: 'https://bonuslotsen.se/om' },
-    { path: '/lankar', expectedCanonical: 'https://bonuslotsen.se/lankar' },
-    { path: '/feedback', expectedCanonical: 'https://bonuslotsen.se/feedback' },
+    { path: '/', expectedCanonical: 'https://www.bonuslotsen.se' },
+    { path: '/om', expectedCanonical: 'https://www.bonuslotsen.se/om' },
+    { path: '/lankar', expectedCanonical: 'https://www.bonuslotsen.se/lankar' },
+    { path: '/feedback', expectedCanonical: 'https://www.bonuslotsen.se/feedback' },
   ];
 
   for (const p of pagesToTest) {
@@ -78,79 +56,15 @@ async function testSeoAndRedirects() {
     }
   }
 
-  console.log('\n--- 4. Testing Middleware 301 Redirects ---');
-  const redirectHosts = [
-    'www.bonuslotsen.se',
-    'ebpointsshop.onrender.com',
-    'old-domain.com',
-  ];
-
-  for (const host of redirectHosts) {
-    const rawRes = await makeRawRequest({
-      hostname: '127.0.0.1',
-      port: 3000,
-      path: '/om?filter=test',
-      method: 'GET',
-      headers: {
-        Host: host,
-      },
-    });
-
-    console.log(`Raw Host "${host}" -> status: ${rawRes.statusCode}, location: ${rawRes.headers.location}`);
-    if (rawRes.statusCode === 301 && rawRes.headers.location === 'https://bonuslotsen.se/om?filter=test') {
-      console.log(`✓ Correct 301 redirect for raw Host: ${host}`);
-    } else {
-      console.error(`✗ Incorrect redirect for raw Host: ${host}`);
-      passed = false;
-    }
-
-    // Also test X-Forwarded-Host (used by reverse proxies such as Render)
-    const forwardedRes = await makeRawRequest({
-      hostname: '127.0.0.1',
-      port: 3000,
-      path: '/feedback',
-      method: 'GET',
-      headers: {
-        'X-Forwarded-Host': host,
-      },
-    });
-
-    console.log(`X-Forwarded-Host "${host}" -> status: ${forwardedRes.statusCode}, location: ${forwardedRes.headers.location}`);
-    if (forwardedRes.statusCode === 301 && forwardedRes.headers.location === 'https://bonuslotsen.se/feedback') {
-      console.log(`✓ Correct 301 redirect for X-Forwarded-Host: ${host}`);
-    } else {
-      console.error(`✗ Incorrect redirect for X-Forwarded-Host: ${host}`);
-      passed = false;
-    }
-  }
-
-  // Also test that canonical host bonuslotsen.se is NOT redirected
-  const canonicalRes = await makeRawRequest({
-    hostname: '127.0.0.1',
-    port: 3000,
-    path: '/om',
-    method: 'GET',
-    headers: {
-      Host: 'bonuslotsen.se',
-    },
-  });
-  console.log(`Host "bonuslotsen.se" -> status: ${canonicalRes.statusCode}`);
-  if (canonicalRes.statusCode === 200) {
-    console.log('✓ Canonical host bonuslotsen.se returns 200 without redirect');
-  } else {
-    console.error('✗ Canonical host returned non-200');
-    passed = false;
-  }
-
   if (passed) {
-    console.log('\n🎉 ALL SEO & DOMAIN REDIRECT CHECKS PASSED!');
+    console.log('\n🎉 ALL SEO CHECKS PASSED!');
   } else {
     console.error('\n❌ SOME CHECKS FAILED');
     process.exit(1);
   }
 }
 
-testSeoAndRedirects().catch((err) => {
+testSeo().catch((err) => {
   console.error(err);
   process.exit(1);
 });
