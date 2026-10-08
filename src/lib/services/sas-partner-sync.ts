@@ -236,6 +236,10 @@ export async function syncSasPartnerStores(): Promise<{
         continue;
       }
 
+      const partnerShopUrl = shop.uuid
+        ? `https://onlineshopping.flysas.com/sv-SE/butiker/${shop.slug}/${shop.uuid}`
+        : `https://onlineshopping.flysas.com/sv-SE/butiker/${shop.slug}`;
+
       const partnerRule = {
         hasPartnerLink: true,
         bonusPer100Kr,
@@ -249,7 +253,8 @@ export async function syncSasPartnerStores(): Promise<{
         campaignValidUntil: isCampaign ? (validUntilDateStr || shop.campaign_ends || null) : null,
         regularBonusPer100Kr,
         regularFixedBonusPoints,
-        startUrl: `https://onlineshopping.flysas.com/sv-SE/${shop.slug}`,
+        uuid: shop.uuid || undefined,
+        startUrl: partnerShopUrl,
       };
 
       if (existing) {

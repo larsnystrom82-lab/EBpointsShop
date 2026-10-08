@@ -16,6 +16,7 @@ export interface StorePartnerRule {
   oneTimeTerms?: string;
   regularBonusPer100Kr?: number;
   regularFixedBonusPoints?: number;
+  uuid?: string;
 }
 
 export interface StoreGiftCardRule {

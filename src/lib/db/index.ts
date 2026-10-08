@@ -37,6 +37,7 @@ export interface StorePartnerRule {
   oneTimeTerms?: string; // Villkorsnotis
   regularBonusPer100Kr?: number; // Ordinarie poäng innan kampanj
   regularFixedBonusPoints?: number; // Ordinarie fast bonus innan kampanj
+  uuid?: string;
 }
 
 export interface StoreGiftCardRule {

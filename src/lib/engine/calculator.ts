@@ -209,7 +209,12 @@ export function generateCandidateRoutes(options: RouteGenerationOptions): RouteC
 
     const cardOutcomes = computeCardOutcomes(baseBonusPoints, baseTierPoints, purchaseAmountOre, totalOutlayOre);
 
-    const directUrl = store.partnerRule?.startUrl || `https://onlineshopping.flysas.com/sv-SE/${store.slug}`;
+    const directUrl =
+      store.partnerRule?.startUrl && store.partnerRule.startUrl.includes('/butiker/')
+        ? store.partnerRule.startUrl
+        : (store.partnerRule?.uuid
+            ? `https://onlineshopping.flysas.com/sv-SE/butiker/${store.slug}/${store.partnerRule.uuid}`
+            : (store.partnerRule?.startUrl || `https://onlineshopping.flysas.com/sv-SE/butiker/${store.slug}`));
 
     results.push({
       id: `${store.id}-direct-partner`,
@@ -227,7 +232,7 @@ export function generateCandidateRoutes(options: RouteGenerationOptions): RouteC
         {
           stepNumber: 1,
           title: 'Gå till SAS Online Shopping',
-          description: `Gå till butikssidan på SAS Online Shopping (https://onlineshopping.flysas.com/), klicka på butikslänken för ${store.name} och godkänn cookies.`,
+          description: `Gå till butikssidan för ${store.name} på SAS Online Shopping och godkänn cookies.`,
           externalUrl: directUrl,
         },
         {
@@ -298,6 +303,10 @@ export function generateCandidateRoutes(options: RouteGenerationOptions): RouteC
     ];
 
     const cardOutcomes = computeCardOutcomes(baseBonusPoints, baseTierPoints, totalOutlayOre, totalOutlayOre);
+    const directGiftCardUrl =
+      store.giftCardRule?.startUrl && store.giftCardRule.startUrl.trim() !== ''
+        ? store.giftCardRule.startUrl
+        : `https://www.saseurobonusshop.com/se/${store.slug}`;
     const isEligible = extraOutlayOre <= 1000;
 
     results.push({
@@ -310,12 +319,13 @@ export function generateCandidateRoutes(options: RouteGenerationOptions): RouteC
       routeSummary: `Köp ${neededCards} st presentkort och lös in i kassan.`,
       primaryCategory: store.categories?.[0] || 'department',
       categories: store.categories || ['department'],
+
       steps: [
         {
           stepNumber: 1,
           title: 'Köp presentkort hos SAS EuroBonus Shop',
           description: `Köp ${neededCards} st presentkort för totalt ${(giftCardTotalValueOre / 100).toLocaleString('sv-SE')} kr.`,
-          externalUrl: 'https://www.saseurobonusshop.com/se/gift-cards-vouchers',
+          externalUrl: directGiftCardUrl,
         },
         {
           stepNumber: 2,
@@ -337,7 +347,7 @@ export function generateCandidateRoutes(options: RouteGenerationOptions): RouteC
       isExplicitCampaign: false,
       lastCheckedAt: store.syncedAt || options.lastCheckedAt || '2026-10-02T10:47:57.278Z',
       uncertainties: [],
-      startUrl: 'https://www.saseurobonusshop.com/se/gift-cards-vouchers',
+      startUrl: directGiftCardUrl,
       customLogoUrl: store.customLogoUrl || null,
       comment: store.comment || null,
       isDemoFixture: store.giftCardRule === undefined,
@@ -401,7 +411,7 @@ export function generateCandidateRoutes(options: RouteGenerationOptions): RouteC
           stepNumber: 1,
           title: 'Köp Zupergift med SAS EuroBonus',
           description: `Köp Zupergift-presentkort för ${purchaseAmountKr.toLocaleString('sv-SE')} kr på SAS EuroBonus Shop (${ratePer100Kr}p / 100 kr).`,
-          externalUrl: 'https://www.saseurobonusshop.com/se/gift-cards-vouchers',
+          externalUrl: 'https://www.saseurobonusshop.com/se/zupergift-presentkort',
         },
         {
           stepNumber: 2,
@@ -429,7 +439,7 @@ export function generateCandidateRoutes(options: RouteGenerationOptions): RouteC
       isExplicitCampaign: Boolean(zupergiftIsCampaign),
       lastCheckedAt: store.syncedAt || options.lastCheckedAt || '2026-10-02T11:10:41.783Z',
       uncertainties: [],
-      startUrl: 'https://www.saseurobonusshop.com/se/gift-cards-vouchers',
+      startUrl: 'https://www.saseurobonusshop.com/se/zupergift-presentkort',
       customLogoUrl: store.customLogoUrl || null,
       comment: store.comment || null,
       isDemoFixture: store.zupergiftSupported === undefined,
@@ -482,6 +492,8 @@ export function generateCandidateRoutes(options: RouteGenerationOptions): RouteC
           ? [`Presentkortet har ett minimiköp på ${minPurchaseKr} kr. ${(remainingBalanceOre / 100).toLocaleString('sv-SE')} kr sparas på presentkortet för framtida inköp.`]
           : [];
 
+      const sasGiftCardUrl = `https://www.saseurobonusshop.com/se/${sasGiftCardItem.slug || sasGiftCardItem.id}`;
+
       results.push({
         id: `${store.id}-sas-giftcard`,
         storeId: store.id,
@@ -500,7 +512,7 @@ export function generateCandidateRoutes(options: RouteGenerationOptions): RouteC
             stepNumber: 1,
             title: `Köp ${sasGiftCardItem.name}-presentkort hos SAS EuroBonus Shop`,
             description: step1Desc,
-            externalUrl: 'https://www.saseurobonusshop.com/se/gift-cards-vouchers',
+            externalUrl: sasGiftCardUrl,
           },
           {
             stepNumber: 2,
@@ -523,7 +535,7 @@ export function generateCandidateRoutes(options: RouteGenerationOptions): RouteC
         campaignValidUntil: isCampaignActive(sasGiftCardItem.isCampaign, sasGiftCardItem.campaignValidUntil) ? (sasGiftCardItem.campaignValidUntil || undefined) : undefined,
         lastCheckedAt: sasGiftCardItem.updatedAt || sasGiftCardItem.syncedAt || options.lastCheckedAt || new Date().toISOString(),
         uncertainties,
-        startUrl: 'https://www.saseurobonusshop.com/se/gift-cards-vouchers',
+        startUrl: sasGiftCardUrl,
         customLogoUrl: store.customLogoUrl || null,
         comment: store.comment || null,
         isDemoFixture: false,

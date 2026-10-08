@@ -501,7 +501,13 @@ export const AlternativeCard: React.FC<AlternativeCardProps> = ({
               rel="noopener noreferrer"
               className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-semibold transition-colors flex items-center gap-2 touch-target shadow-xs"
             >
-              <span>{route.routeType === 'direct_partner' ? 'Gå till butiken via SAS Online Shopping' : 'Gå till butiken'}</span>
+              <span>
+                {route.routeType === 'direct_partner'
+                  ? 'Gå till butiken via SAS Online Shopping'
+                  : route.routeType === 'zupergift_chain'
+                  ? 'Köp Zupergift på SAS EuroBonus Shop'
+                  : 'Köp presentkort på SAS EuroBonus Shop'}
+              </span>
               <ExternalLink className="w-3.5 h-3.5" />
             </a>
           </div>
