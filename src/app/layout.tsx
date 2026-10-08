@@ -2,8 +2,28 @@ import type { Metadata, Viewport } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Jämför bonuspoäng – bonuslotsen.se',
+  metadataBase: new URL('https://bonuslotsen.se'),
+  title: {
+    default: 'Jämför bonuspoäng – bonuslotsen.se',
+    template: '%s – bonuslotsen.se',
+  },
   description: 'Jämför EuroBonus-intjäning mellan butiker och köpvägar för ditt angivna köpbelopp. Se poäng via partnerköp, presentkort och dina kort.',
+  alternates: {
+    canonical: '/',
+  },
+  openGraph: {
+    title: 'Jämför bonuspoäng – bonuslotsen.se',
+    description: 'Hitta den smartaste vägen till flest EuroBonus-extrapoäng på dina vardagsinköp.',
+    url: 'https://bonuslotsen.se',
+    siteName: 'bonuslotsen.se',
+    locale: 'sv_SE',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Jämför bonuspoäng – bonuslotsen.se',
+    description: 'Hitta den smartaste vägen till flest EuroBonus-extrapoäng på dina vardagsinköp.',
+  },
   icons: {
     icon: [
       { url: '/icon.png', type: 'image/png' },

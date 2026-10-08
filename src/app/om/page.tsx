@@ -23,6 +23,15 @@ export const metadata: Metadata = {
   title: 'Om bonuslotsen.se – Syfte, oberoende och villkor',
   description:
     'Läs om syftet med bonuslotsen.se, hur vi hjälper EuroBonus-medlemmar att maximera poängintjäningen vid vardagsköp, samt viktig information om att alltid kontrollera butikers villkor.',
+  alternates: {
+    canonical: '/om',
+  },
+  openGraph: {
+    title: 'Om bonuslotsen.se – Syfte, oberoende och villkor',
+    description:
+      'Läs om syftet med bonuslotsen.se, hur vi hjälper EuroBonus-medlemmar att maximera poängintjäningen vid vardagsköp.',
+    url: 'https://bonuslotsen.se/om',
+  },
 };
 
 export default function OmPage() {
