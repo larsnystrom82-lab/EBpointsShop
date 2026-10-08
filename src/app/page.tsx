@@ -11,7 +11,8 @@ import { DEMO_STORES, DEMO_CATEGORIES, DEMO_CARDS } from '@/lib/fixtures/demo-da
 import { Category, FilterState, OneTimeBonusFilter, RouteCalculationResult, SortOption, Store } from '@/types/domain';
 import type { SasGiftCardStoreItem } from '@/lib/db';
 import { generateCandidateRoutes, processAndRankRoutes } from '@/lib/engine/calculator';
-import { Info } from 'lucide-react';
+import { Info, RotateCcw } from 'lucide-react';
+import { ScrollToTopButton } from '@/components/ScrollToTopButton';
 
 const STORAGE_KEY = 'poangkollen_user_preferences_v3';
 
@@ -225,6 +226,73 @@ export default function Home() {
     }
   };
 
+  // Återställ alla filter till grundinställningen
+  const handleResetFilters = () => {
+    setSelectedStoreIds([]);
+    setSearchQuery('');
+    setSelectedCategoryIds([]);
+    setPurchaseAmountKr(100);
+    setRawAmountInput('100 kr');
+    setAmountError(undefined);
+    setSortBy('most_bonus');
+    setAllowPartnerStores(true);
+    setAllowGiftCards(true);
+    setAllowZupergift(true);
+    setTierPointsImportant(false);
+    setOnlyCampaigns(false);
+    setOneTimeBonusFilter('all');
+    setSelectedCardIds([]);
+
+    savePreferences({
+      selectedStoreIds: [],
+      searchQuery: '',
+      selectedCategoryIds: [],
+      purchaseAmountKr: 100,
+      rawAmountInput: '100 kr',
+      sortBy: 'most_bonus',
+      allowPartnerStores: true,
+      allowGiftCards: true,
+      allowZupergift: true,
+      tierPointsImportant: false,
+      onlyCampaigns: false,
+      oneTimeBonusFilter: 'all',
+      selectedCardIds: [],
+    });
+  };
+
+  // Kontrollera om något filter är ändrat från grundfiltret
+  const isFilteredFromDefault = useMemo(() => {
+    return (
+      selectedStoreIds.length > 0 ||
+      searchQuery.trim().length > 0 ||
+      selectedCategoryIds.length > 0 ||
+      purchaseAmountKr !== 100 ||
+      rawAmountInput.trim() !== '100 kr' ||
+      sortBy !== 'most_bonus' ||
+      !allowPartnerStores ||
+      !allowGiftCards ||
+      !allowZupergift ||
+      tierPointsImportant ||
+      onlyCampaigns ||
+      oneTimeBonusFilter !== 'all' ||
+      selectedCardIds.length > 0
+    );
+  }, [
+    selectedStoreIds,
+    searchQuery,
+    selectedCategoryIds,
+    purchaseAmountKr,
+    rawAmountInput,
+    sortBy,
+    allowPartnerStores,
+    allowGiftCards,
+    allowZupergift,
+    tierPointsImportant,
+    onlyCampaigns,
+    oneTimeBonusFilter,
+    selectedCardIds,
+  ]);
+
   // Filter stores based on store selection, categories and search query
   const matchingStores = useMemo(() => {
     let list = allStores.filter((store) => store.isActive);
@@ -423,16 +491,30 @@ export default function Home() {
           selectedCardIds={selectedCardIds}
           onToggleCard={handleToggleCard}
           onCompareSubmit={() => {}}
+          onResetFilters={handleResetFilters}
         />
         </div>
 
         {/* Resultatsektion */}
         <div className="space-y-4">
-          <div className="flex items-baseline justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-2">
             <div>
-              <h2 className="text-lg sm:text-xl font-extrabold text-slate-900">
-                {calculationResults.length} alternativ hittades
-              </h2>
+              <div className="flex items-center gap-3">
+                <h2 className="text-lg sm:text-xl font-extrabold text-slate-900">
+                  {calculationResults.length} alternativ hittades
+                </h2>
+                {isFilteredFromDefault && (
+                  <button
+                    type="button"
+                    onClick={handleResetFilters}
+                    className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 font-semibold hover:underline cursor-pointer"
+                    title="Återställ alla filter till grundinställningarna"
+                  >
+                    <RotateCcw className="w-3 h-3" />
+                    <span>Återställ filter</span>
+                  </button>
+                )}
+              </div>
               <p className="text-xs sm:text-sm text-slate-500 font-medium mt-0.5 flex items-center flex-wrap gap-1.5">
                 <span>Baserat på {purchaseAmountKr ? `${purchaseAmountKr.toLocaleString('sv-SE')} kr` : 'angivet köpbelopp'} • {selectedStoreIds.length > 0 ? `${selectedStoreIds.length} valda butiker` : categoryNames}</span>
                 {tierPointsImportant && (
@@ -505,12 +587,27 @@ export default function Home() {
                   ? 'De valda butikerna har inga presentkort eller Zupergift-stöd. Slå på "Visa partnerbutiker" för att se vanliga partnerköp.'
                   : 'Prova att ändra kategorier, aktivera presentkort eller ändra ditt köpbelopp för att se fler alternativ.'}
               </p>
+              {isFilteredFromDefault && (
+                <div className="pt-2">
+                  <button
+                    type="button"
+                    onClick={handleResetFilters}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-colors shadow-xs cursor-pointer"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" />
+                    <span>Återställ till grundfilter</span>
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>
 
         {/* Villkorstext enligt kapitel 6.4 */}
         <TermsNotice />
+
+        {/* Snabbknapp: Scrolla till toppen */}
+        <ScrollToTopButton />
       </main>
 
       {/* Felrapporteringsmodal */}

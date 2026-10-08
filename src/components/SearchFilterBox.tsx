@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { Search, X, ChevronDown, ArrowRight, CreditCard, Sparkles, Zap } from 'lucide-react';
+import { Search, X, ChevronDown, ArrowRight, CreditCard, Sparkles, Zap, RotateCcw } from 'lucide-react';
 import { Category, OneTimeBonusFilter, PaymentCard, SortOption, Store } from '@/types/domain';
 import { StoreMultiSelectDropdown } from './StoreMultiSelectDropdown';
 
@@ -39,6 +39,7 @@ interface SearchFilterBoxProps {
   selectedCardIds: string[];
   onToggleCard: (cardId: string) => void;
   onCompareSubmit?: () => void;
+  onResetFilters?: () => void;
 }
 
 export const SearchFilterBox: React.FC<SearchFilterBoxProps> = ({
@@ -74,6 +75,7 @@ export const SearchFilterBox: React.FC<SearchFilterBoxProps> = ({
   selectedCardIds,
   onToggleCard,
   onCompareSubmit,
+  onResetFilters,
 }) => {
   const [categoryDropdownOpen, setCategoryDropdownOpen] = useState(false);
   const [cardDropdownOpen, setCardDropdownOpen] = useState(false);
@@ -128,6 +130,24 @@ export const SearchFilterBox: React.FC<SearchFilterBoxProps> = ({
 
   return (
     <div className="bg-white rounded-3xl p-5 sm:p-7 shadow-xs border border-slate-200/90 space-y-5">
+      {/* Rubrikrad med titel och snabbknapp för återställning */}
+      <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+        <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
+          Sök &amp; filtrera
+        </span>
+        {onResetFilters && (
+          <button
+            type="button"
+            onClick={onResetFilters}
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-blue-600 transition-colors cursor-pointer py-1 px-2.5 rounded-lg hover:bg-slate-50"
+            title="Återställ alla filter till grundinställningarna (visa alla butiker och kategorier, 100 kr, flest bonuspoäng)"
+          >
+            <RotateCcw className="w-3.5 h-3.5" />
+            <span>Återställ till grundfilter</span>
+          </button>
+        )}
+      </div>
+
       {/* Översta raden: Butiker, Kategori, Köpbelopp, Sortera */}
       <div className="grid grid-cols-1 md:grid-cols-12 gap-3.5 items-end">
         {/* Butiksväljare: Kryssrutor i rullgardinsmeny med sökfunktion och valda i toppen */}
@@ -490,8 +510,19 @@ export const SearchFilterBox: React.FC<SearchFilterBoxProps> = ({
           )}
         </div>
 
-        {/* CTA-knapp: Jämför alternativ -> */}
-        <div className="sm:self-end">
+        {/* Åtgärdsknappar: Återställ filter & Jämför alternativ */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:self-end">
+          {onResetFilters && (
+            <button
+              type="button"
+              onClick={onResetFilters}
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-3 rounded-xl border border-slate-300 hover:border-slate-400 bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 text-xs sm:text-sm font-semibold transition-all touch-target cursor-pointer"
+              title="Återställ alla filter till grundinställningarna"
+            >
+              <RotateCcw className="w-3.5 h-3.5 text-slate-500" />
+              <span>Återställ filter</span>
+            </button>
+          )}
           <button
             type="button"
             onClick={onCompareSubmit}
