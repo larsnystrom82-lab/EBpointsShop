@@ -13,7 +13,7 @@ import type { SasGiftCardStoreItem } from '@/lib/db';
 import { generateCandidateRoutes, processAndRankRoutes } from '@/lib/engine/calculator';
 import { Info } from 'lucide-react';
 
-const STORAGE_KEY = 'poangkollen_user_preferences_v2';
+const STORAGE_KEY = 'poangkollen_user_preferences_v3';
 
 function cleanSlug(slug: string): string {
   return (slug || '')
@@ -51,11 +51,8 @@ export default function Home() {
   const [onlyCampaigns, setOnlyCampaigns] = useState<boolean>(false);
   const [oneTimeBonusFilter, setOneTimeBonusFilter] = useState<OneTimeBonusFilter>('all');
 
-  // Cards selected by default matching the reference image: Amex Premium & Mastercard Premium
-  const [selectedCardIds, setSelectedCardIds] = useState<string[]>([
-    'amex_premium',
-    'mc_premium',
-  ]);
+  // Som standard är inga kort valda (användaren väljer manuellt sina kort)
+  const [selectedCardIds, setSelectedCardIds] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState<SortOption>('most_bonus');
 
   const [activeReportRoute, setActiveReportRoute] = useState<RouteCalculationResult | null>(null);
