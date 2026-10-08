@@ -34,7 +34,7 @@ export const ScrollToTopButton: React.FC = () => {
       onClick={scrollToTop}
       aria-label="Scrolla till toppen av sidan"
       title="Scrolla till toppen"
-      className="fixed bottom-6 right-6 z-40 inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-0.5 focus:outline-hidden focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 cursor-pointer touch-target"
+      className="fixed bottom-[4.75rem] right-4 sm:bottom-[5.25rem] sm:right-6 z-40 inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-0.5 focus:outline-hidden focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 cursor-pointer touch-target"
     >
       <ArrowUp className="w-4 h-4 stroke-[2.5]" />
       <span className="hidden sm:inline">Till toppen</span>
