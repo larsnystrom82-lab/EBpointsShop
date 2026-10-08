@@ -10,6 +10,7 @@ import {
 } from '@/types/domain';
 import { DEMO_CARDS } from '../fixtures/demo-data';
 import type { SasGiftCardStoreItem } from '@/lib/db';
+import { isCampaignActive } from '../utils/campaign';
 
 /**
  * Calculates point yield according to a specific PointRule and an amount in öre.
@@ -133,17 +134,22 @@ export function generateCandidateRoutes(options: RouteGenerationOptions): RouteC
       ['bagaren-och-kocken', 'kitchentime', 'netonnet', 'apotek-hjartat', 'boozt', 'ahlens'].includes(store.id));
 
   if (isDirectPartner) {
+    const partnerRule = store.partnerRule;
+    const isCampaignValid = isCampaignActive(partnerRule?.isCampaign, partnerRule?.campaignValidUntil);
+
     let partnerRateBonus =
       storePartnerBonusPer100Kr ??
-      (store.partnerRule?.bonusPer100Kr !== undefined && store.partnerRule.bonusPer100Kr > 0
-        ? store.partnerRule.bonusPer100Kr
+      (partnerRule?.bonusPer100Kr !== undefined && partnerRule.bonusPer100Kr > 0
+        ? (isCampaignValid
+            ? partnerRule.bonusPer100Kr
+            : (partnerRule.regularBonusPer100Kr ?? partnerRule.bonusPer100Kr))
         : 20);
     let partnerRateTier =
       storePartnerTierPer100Kr ??
-      (store.partnerRule?.tierPer100Kr !== undefined
-        ? store.partnerRule.tierPer100Kr
+      (partnerRule?.tierPer100Kr !== undefined
+        ? partnerRule.tierPer100Kr
         : 0);
-    let isExplicitCampaign = store.partnerRule?.isCampaign ?? false;
+    let isExplicitCampaign = isCampaignValid;
 
     if (storePartnerBonusPer100Kr === undefined && !store.partnerRule?.hasPartnerLink) {
       if (store.id === 'bagaren-och-kocken' || store.id === 'kitchentime') {
@@ -160,23 +166,22 @@ export function generateCandidateRoutes(options: RouteGenerationOptions): RouteC
     }
 
     const isFixedReward =
-      store.partnerRule?.rewardType === 'fixed' ||
-      Boolean(store.partnerRule?.isOneTimeOffer) ||
-      (store.partnerRule?.fixedBonusPoints !== undefined && store.partnerRule.fixedBonusPoints > 0) ||
-      ((store.partnerRule?.bonusPer100Kr ?? 0) >= 200 && storePartnerBonusPer100Kr === undefined);
+      partnerRule?.rewardType === 'fixed' ||
+      Boolean(partnerRule?.isOneTimeOffer) ||
+      (partnerRule?.fixedBonusPoints !== undefined && partnerRule.fixedBonusPoints > 0) ||
+      ((partnerRule?.bonusPer100Kr ?? 0) >= 200 && storePartnerBonusPer100Kr === undefined);
 
     let baseBonusPoints: number;
     let baseTierPoints: number;
     let breakdownDesc: string;
 
     if (isFixedReward) {
-      baseBonusPoints =
-        store.partnerRule?.fixedBonusPoints ??
-        store.partnerRule?.bonusPer100Kr ??
-        partnerRateBonus;
+      baseBonusPoints = isCampaignValid
+        ? (partnerRule?.fixedBonusPoints ?? partnerRule?.bonusPer100Kr ?? partnerRateBonus)
+        : (partnerRule?.regularFixedBonusPoints ?? partnerRule?.fixedBonusPoints ?? partnerRule?.bonusPer100Kr ?? partnerRateBonus);
       baseTierPoints =
-        store.partnerRule?.fixedTierPoints ??
-        store.partnerRule?.tierPer100Kr ??
+        partnerRule?.fixedTierPoints ??
+        partnerRule?.tierPer100Kr ??
         partnerRateTier;
       breakdownDesc = `Fast engångsbonus (${baseBonusPoints.toLocaleString('sv-SE')} Extrapoäng${baseTierPoints > 0 ? ` + ${baseTierPoints.toLocaleString('sv-SE')} nivåpoäng` : ''})`;
     } else {
@@ -245,6 +250,7 @@ export function generateCandidateRoutes(options: RouteGenerationOptions): RouteC
       cardOutcomes,
       isEligible: true,
       isExplicitCampaign,
+      campaignValidUntil: isCampaignValid ? (partnerRule?.campaignValidUntil || undefined) : undefined,
       isOneTimeOffer: isFixedReward,
       oneTimeTerms: store.partnerRule?.oneTimeTerms || (isFixedReward ? 'Engångsbonus – gäller vanligtvis ny kund vid första köpet' : undefined),
       rewardType: isFixedReward ? 'fixed' : 'rate',
@@ -513,7 +519,8 @@ export function generateCandidateRoutes(options: RouteGenerationOptions): RouteC
         baseTierPoints,
         cardOutcomes,
         isEligible: true,
-        isExplicitCampaign: Boolean(sasGiftCardItem.isCampaign),
+        isExplicitCampaign: isCampaignActive(sasGiftCardItem.isCampaign, sasGiftCardItem.campaignValidUntil),
+        campaignValidUntil: isCampaignActive(sasGiftCardItem.isCampaign, sasGiftCardItem.campaignValidUntil) ? (sasGiftCardItem.campaignValidUntil || undefined) : undefined,
         lastCheckedAt: sasGiftCardItem.updatedAt || sasGiftCardItem.syncedAt || options.lastCheckedAt || new Date().toISOString(),
         uncertainties,
         startUrl: 'https://www.saseurobonusshop.com/se/gift-cards-vouchers',

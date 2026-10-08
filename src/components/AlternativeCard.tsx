@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 import { formatLastChecked } from '@/lib/utils/formatDate';
+import { getCampaignRemainingInfo } from '@/lib/utils/campaign';
 
 export const CATEGORY_NAMES: Record<string, string> = {
   food: 'Mat & Restaurang',
@@ -55,6 +56,7 @@ export const AlternativeCard: React.FC<AlternativeCardProps> = ({
   const cardBonusPoints = bestOutcome ? bestOutcome.cardBonusPoints : 0;
   const baseBonusPoints = route.baseBonusPoints;
   const baseTierPoints = route.baseTierPoints;
+  const campaignInfo = route.isExplicitCampaign ? getCampaignRemainingInfo(route.campaignValidUntil) : null;
 
   // Route title formatting matching reference image:
   // "Cervera – via presentkort", "Bagaren & Kocken – partnerbutik", etc.
@@ -129,9 +131,20 @@ export const AlternativeCard: React.FC<AlternativeCardProps> = ({
               <h3 className="text-sm font-bold text-slate-900 leading-snug">
                 {displayTitle}
               </h3>
-              {route.isExplicitCampaign && (
-                <span className="text-[11px] font-bold text-red-600 bg-red-50 border border-red-200/60 px-2 py-0.5 rounded-full">
-                  Kampanj
+              {route.isExplicitCampaign && (!campaignInfo || !campaignInfo.isExpired) && (
+                <span
+                  className="inline-flex items-center gap-1 text-[11px] font-bold text-red-700 bg-red-50 border border-red-200/80 px-2.5 py-0.5 rounded-full shadow-2xs"
+                  title={campaignInfo ? campaignInfo.fullText : 'Aktiv kampanj'}
+                >
+                  <Sparkles className="w-3 h-3 text-red-500 shrink-0" />
+                  <span>Kampanj</span>
+                  {campaignInfo && (
+                    <>
+                      <span className="text-red-300 font-normal">·</span>
+                      <span className="text-red-700 font-semibold">{campaignInfo.text}</span>
+                      <span className="text-red-500 font-normal text-[10px]">({campaignInfo.endDateFormatted})</span>
+                    </>
+                  )}
                 </span>
               )}
             </div>
@@ -276,8 +289,22 @@ export const AlternativeCard: React.FC<AlternativeCardProps> = ({
               )}
             </div>
             <div>
-              <div className="text-xs font-bold text-slate-900 leading-snug">
-                {displayTitle}
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <div className="text-xs font-bold text-slate-900 leading-snug">
+                  {displayTitle}
+                </div>
+                {route.isExplicitCampaign && (!campaignInfo || !campaignInfo.isExpired) && (
+                  <span
+                    className="inline-flex items-center gap-1 text-[9px] font-bold text-red-700 bg-red-50 border border-red-200/80 px-1.5 py-0.2 rounded-full"
+                    title={campaignInfo ? campaignInfo.fullText : 'Aktiv kampanj'}
+                  >
+                    <Sparkles className="w-2.5 h-2.5 text-red-500 shrink-0" />
+                    <span>Kampanj</span>
+                    {campaignInfo && (
+                      <span className="text-red-600 font-medium">· {campaignInfo.text}</span>
+                    )}
+                  </span>
+                )}
               </div>
               <div className="flex items-center gap-1.5 mt-0.5">
                 <span className="text-[10px] font-medium text-slate-600 bg-slate-100 px-1.5 py-0.2 rounded">
@@ -365,6 +392,20 @@ export const AlternativeCard: React.FC<AlternativeCardProps> = ({
       {/* Utfällbar detaljvy för steg, länkar och felrapportering */}
       {expanded && (
         <div className="border-t border-slate-100 bg-slate-50/70 p-5 space-y-4">
+          {route.isExplicitCampaign && (!campaignInfo || !campaignInfo.isExpired) && (
+            <div className="bg-red-50/90 border border-red-200/90 rounded-xl p-3 text-xs text-red-950 flex items-start gap-2.5 shadow-2xs">
+              <Sparkles className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+              <div>
+                <span className="font-bold">Aktiv kampanj: </span>
+                <span>
+                  {campaignInfo
+                    ? `${campaignInfo.fullText}. Extra höga bonuspoäng gäller under kampanjperioden.`
+                    : 'Butiken har just nu en aktiv kampanj med förhöjd poängintjäning.'}
+                </span>
+              </div>
+            </div>
+          )}
+
           {route.isOneTimeOffer && (
             <div className="bg-purple-50 border border-purple-200/80 rounded-xl p-3 text-xs text-purple-900 flex items-start gap-2.5">
               <span className="font-bold text-sm leading-none shrink-0 mt-0.5">ℹ️</span>

@@ -171,10 +171,33 @@ export async function syncSasPartnerStores(): Promise<{
       const shopSlug = shop.slug.toLowerCase();
       const shopNormName = normalizeName(shop.name);
 
-      const hasCampaign = shop.has_campaign === 1 || (shop.points_campaign && shop.points_campaign > 0);
-      const pointsRaw = hasCampaign && shop.points_campaign > 0 ? shop.points_campaign : (shop.points || 0);
-      const isCampaign = Boolean(hasCampaign);
+      // Check if API says it has a campaign
+      const apiHasCampaign =
+        shop.has_campaign === 1 ||
+        Boolean(shop.points_campaign && shop.points_campaign > (shop.points || 0));
+
+      // Check campaign end date: if campaign_ends_date is in the past, or campaign_ends indicates it expired,
+      // then the campaign is EXPIRED and should not be treated as active.
+      let isCampaignExpired = false;
+      const validUntilDateStr = shop.campaign_ends_date ? shop.campaign_ends_date.trim() : null;
+
+      if (validUntilDateStr && /^\d{4}-\d{2}-\d{2}$/.test(validUntilDateStr)) {
+        const [y, m, d] = validUntilDateStr.split('-').map(Number);
+        const endOfDay = new Date(y, m - 1, d, 23, 59, 59, 999);
+        if (Date.now() > endOfDay.getTime()) {
+          isCampaignExpired = true;
+        }
+      } else if (shop.campaign_ends && shop.campaign_ends.toLowerCase().includes(' sedan')) {
+        // e.g. "för 1 dag sedan"
+        isCampaignExpired = true;
+      }
+
+      const isCampaign = apiHasCampaign && !isCampaignExpired;
       if (isCampaign) campaignCount++;
+
+      const regularPoints = shop.points || 0;
+      const campaignPoints = shop.points_campaign && shop.points_campaign > 0 ? shop.points_campaign : regularPoints;
+      const pointsRaw = isCampaign ? campaignPoints : regularPoints;
 
       // User rule & API flag: Any store with commission_type === 'fixed' OR points >= 200
       // is a fixed one-time offer (e.g. Factor giving 2 000p once, Telinet 8 000p once, HelloFresh 1 000p once)
@@ -184,9 +207,11 @@ export async function syncSasPartnerStores(): Promise<{
 
       const rewardType: 'rate' | 'fixed' = isOneTimeOrFixed ? 'fixed' : 'rate';
       const fixedBonusPoints = isOneTimeOrFixed ? pointsRaw : 0;
+      const regularFixedBonusPoints = isOneTimeOrFixed ? regularPoints : 0;
       // In the LoyaltyKey API, points_channel provides exact level/tier points for fixed offers (e.g. 400 for Factor, 1600 for Telinet)
       const fixedTierPoints = isOneTimeOrFixed ? (shop.points_channel || 0) : 0;
       const bonusPer100Kr = isOneTimeOrFixed ? 0 : pointsRaw;
+      const regularBonusPer100Kr = isOneTimeOrFixed ? 0 : regularPoints;
       const tierPer100Kr = isOneTimeOrFixed ? 0 : 5;
       const isOneTimeOffer = isOneTimeOrFixed;
       const oneTimeTerms = isOneTimeOrFixed
@@ -221,7 +246,9 @@ export async function syncSasPartnerStores(): Promise<{
         isOneTimeOffer,
         oneTimeTerms,
         isCampaign,
-        campaignValidUntil: shop.campaign_ends || null,
+        campaignValidUntil: isCampaign ? (validUntilDateStr || shop.campaign_ends || null) : null,
+        regularBonusPer100Kr,
+        regularFixedBonusPoints,
         startUrl: `https://onlineshopping.flysas.com/sv-SE/${shop.slug}`,
       };
 

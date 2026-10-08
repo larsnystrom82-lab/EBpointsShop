@@ -37,6 +37,7 @@ import {
 import type { DatabaseSchema, DbStore, ZupergiftStoreItem } from '@/lib/db';
 import type { Store } from '@/types/domain';
 import { DEMO_CATEGORIES } from '@/lib/fixtures/demo-data';
+import { isCampaignActive, getCampaignRemainingInfo } from '@/lib/utils/campaign';
 
 interface AdminData extends DatabaseSchema {
   allStores?: Store[];
@@ -830,7 +831,7 @@ export default function AdminPage() {
     return dbData.stores.filter((store) => {
       if (store.isExcluded) return false;
       if (storeFilter === 'partner' && !store.partnerRule?.hasPartnerLink) return false;
-      if (storeFilter === 'campaign' && !store.partnerRule?.isCampaign) return false;
+      if (storeFilter === 'campaign' && !isCampaignActive(store.partnerRule?.isCampaign, store.partnerRule?.campaignValidUntil)) return false;
       if (storeFilter === 'zupergift' && !store.zupergiftSupported) return false;
       if (storeFilter === 'fixed') {
         const isFixed =
@@ -2786,7 +2787,7 @@ export default function AdminPage() {
                       : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                   }`}
                 >
-                  Kampanjer ({dbData?.stores.filter((s) => s.partnerRule?.isCampaign).length || 0})
+                  Kampanjer ({dbData?.stores.filter((s) => isCampaignActive(s.partnerRule?.isCampaign, s.partnerRule?.campaignValidUntil)).length || 0})
                 </button>
                 <button
                   type="button"
@@ -2828,11 +2829,26 @@ export default function AdminPage() {
                     <div className="space-y-1 min-w-[200px]">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-bold text-sm text-slate-900">{store.name}</span>
-                        {store.partnerRule?.isCampaign && (
-                          <span className="px-2 py-0.5 rounded-md bg-amber-100 text-amber-800 font-bold text-[10px]">
-                            Kampanj
-                          </span>
-                        )}
+                        {store.partnerRule?.isCampaign && (() => {
+                          const cInfo = getCampaignRemainingInfo(store.partnerRule.campaignValidUntil);
+                          const isExpired = cInfo?.isExpired;
+                          return (
+                            <span
+                              className={`px-2 py-0.5 rounded-md font-bold text-[10px] flex items-center gap-1 ${
+                                isExpired
+                                  ? 'bg-slate-200 text-slate-500 line-through'
+                                  : 'bg-amber-100 text-amber-900'
+                              }`}
+                              title={cInfo ? cInfo.fullText : (store.partnerRule.campaignValidUntil || undefined)}
+                            >
+                              <Sparkles className="w-2.5 h-2.5 text-amber-600 shrink-0" />
+                              <span>{isExpired ? 'Utgången kampanj' : 'Kampanj'}</span>
+                              {cInfo && !isExpired && (
+                                <span className="font-medium text-amber-700">({cInfo.text})</span>
+                              )}
+                            </span>
+                          );
+                        })()}
                         {store.partnerRule?.hasPartnerLink && (
                           <span className="px-2 py-0.5 rounded-md bg-blue-100 text-blue-800 font-semibold text-[10px]">
                             SAS Partner

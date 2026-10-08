@@ -1,5 +1,6 @@
 import { DatabaseSchema, SasGiftCardStoreItem } from '@/lib/db';
 import { Store } from '@/types/domain';
+import { isCampaignActive } from '../utils/campaign';
 
 export function cleanStoreSlug(slug: string): string {
   return (slug || '')
@@ -58,6 +59,20 @@ export function buildAllStores(db: DatabaseSchema, options?: { includeExcluded?:
       const isExcluded = isStoreExcluded(s.id, s.slug, s);
       const isHidden = isStoreHidden(s.id, s.slug, s);
 
+      let resolvedPartnerRule = s.partnerRule;
+      if (s.partnerRule) {
+        const isCampActive = isCampaignActive(s.partnerRule.isCampaign, s.partnerRule.campaignValidUntil);
+        if (s.partnerRule.isCampaign && !isCampActive) {
+          resolvedPartnerRule = {
+            ...s.partnerRule,
+            isCampaign: false,
+            campaignValidUntil: null,
+            bonusPer100Kr: s.partnerRule.regularBonusPer100Kr ?? s.partnerRule.bonusPer100Kr,
+            fixedBonusPoints: s.partnerRule.regularFixedBonusPoints ?? s.partnerRule.fixedBonusPoints,
+          };
+        }
+      }
+
       return {
         id: s.id,
         name: s.name,
@@ -74,11 +89,11 @@ export function buildAllStores(db: DatabaseSchema, options?: { includeExcluded?:
         isActive: isExcluded || isHidden ? false : (s.isActive ?? true),
         isExcluded,
         isHidden,
-        partnerRule: s.partnerRule,
+        partnerRule: resolvedPartnerRule,
         giftCardRule: s.giftCardRule,
         zupergiftSupported: Boolean(s.zupergiftSupported),
         isZupergiftOnly: false,
-        hasPartnerLink: isExcluded || isHidden ? false : Boolean(s.partnerRule?.hasPartnerLink),
+        hasPartnerLink: isExcluded || isHidden ? false : Boolean(resolvedPartnerRule?.hasPartnerLink),
         syncedAt: (s as any).syncedAt || db.lastPartnerSync || undefined,
       };
     });

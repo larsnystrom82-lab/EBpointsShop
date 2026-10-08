@@ -14,6 +14,8 @@ export interface StorePartnerRule {
   fixedTierPoints?: number;
   isOneTimeOffer?: boolean;
   oneTimeTerms?: string;
+  regularBonusPer100Kr?: number;
+  regularFixedBonusPoints?: number;
 }
 
 export interface StoreGiftCardRule {

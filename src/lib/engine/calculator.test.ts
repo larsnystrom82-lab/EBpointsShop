@@ -613,5 +613,85 @@ describe('EuroBonus Beräkningsmotor – Acceptanstester A03–A16', () => {
     expect(ranked[1].routeType).toBe('zupergift_chain');
     expect(ranked[1].baseBonusPoints).toBe(300);
   });
+
+  it('Campaign handling: active campaigns retain campaign points while expired campaigns revert to regular rate', () => {
+    const activeStore: Store = {
+      id: 'active-store',
+      name: 'Aktiv Butik',
+      slug: 'aktiv-butik',
+      aliases: [],
+      categories: ['fashion'],
+      isActive: true,
+      partnerRule: {
+        hasPartnerLink: true,
+        bonusPer100Kr: 50,
+        regularBonusPer100Kr: 25,
+        tierPer100Kr: 5,
+        isCampaign: true,
+        campaignValidUntil: '2099-12-31',
+        startUrl: 'https://example.com/active',
+      },
+      giftCardRule: {
+        hasDirectGiftCard: false,
+        bonusPer100Kr: 0,
+        denominationsKr: [],
+        feeKr: 0,
+        isCampaign: false,
+        startUrl: '',
+      },
+    };
+
+    const expiredStore: Store = {
+      id: 'expired-store',
+      name: 'Utgången Butik',
+      slug: 'utgangen-butik',
+      aliases: [],
+      categories: ['fashion'],
+      isActive: true,
+      partnerRule: {
+        hasPartnerLink: true,
+        bonusPer100Kr: 100,
+        regularBonusPer100Kr: 50,
+        tierPer100Kr: 5,
+        isCampaign: true,
+        campaignValidUntil: '2020-01-01',
+        startUrl: 'https://example.com/expired',
+      },
+      giftCardRule: {
+        hasDirectGiftCard: false,
+        bonusPer100Kr: 0,
+        denominationsKr: [],
+        feeKr: 0,
+        isCampaign: false,
+        startUrl: '',
+      },
+    };
+
+    const activeRoutes = generateCandidateRoutes({
+      store: activeStore,
+      purchaseAmountKr: 1000,
+    });
+    expect(activeRoutes[0].isExplicitCampaign).toBe(true);
+    expect(activeRoutes[0].campaignValidUntil).toBe('2099-12-31');
+    expect(activeRoutes[0].baseBonusPoints).toBe(500); // 1000 kr * 50 / 100
+
+    const expiredRoutes = generateCandidateRoutes({
+      store: expiredStore,
+      purchaseAmountKr: 1000,
+    });
+    expect(expiredRoutes[0].isExplicitCampaign).toBe(false);
+    expect(expiredRoutes[0].campaignValidUntil).toBeUndefined();
+    expect(expiredRoutes[0].baseBonusPoints).toBe(500); // 1000 kr * 50 / 100 (reverted to regularBonusPer100Kr 50)
+
+    // Filter onlyCampaigns
+    const onlyCampRanked = processAndRankRoutes([...activeRoutes, ...expiredRoutes], {
+      ...defaultFilter,
+      selectedStoreIds: ['active-store', 'expired-store'],
+      purchaseAmountKr: 1000,
+      onlyCampaigns: true,
+    });
+    expect(onlyCampRanked.length).toBe(1);
+    expect(onlyCampRanked[0].storeId).toBe('active-store');
+  });
 });
 

@@ -35,6 +35,8 @@ export interface StorePartnerRule {
   fixedTierPoints?: number; // t.ex. 400 för Factor
   isOneTimeOffer?: boolean; // Flagga om engångserbjudande
   oneTimeTerms?: string; // Villkorsnotis
+  regularBonusPer100Kr?: number; // Ordinarie poäng innan kampanj
+  regularFixedBonusPoints?: number; // Ordinarie fast bonus innan kampanj
 }
 
 export interface StoreGiftCardRule {
