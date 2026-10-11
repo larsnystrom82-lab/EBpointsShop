@@ -205,11 +205,15 @@ export async function syncZupergiftCatalog(): Promise<{
 
   saveDatabase(db);
 
+  const totalInCatalog = db.zupergiftStores.length;
+  const activeInCatalog = db.zupergiftStores.filter((s) => !s.isHidden && !s.isExcluded).length;
+  const hiddenCount = db.zupergiftStores.filter((s) => s.isHidden && !s.isExcluded).length;
+
   return {
     success: true,
     totalDiscovered: discoveredMap.size,
     newStoresAdded,
     matchedStores: matchedStoresList,
-    message: `Live-synk lyckades: ${discoveredMap.size} butiker identifierade hos Zupergift (${newStoresAdded} nya). ${matchedStoresList.length} butiker är aktiva i bonuslotsen.se.`,
+    message: `Live-synk lyckades: ${discoveredMap.size} butiker hittades live på Zupergift (${newStoresAdded} nya). Katalogen har ${totalInCatalog} butiker totalt (${activeInCatalog} aktiva, ${hiddenCount} dolda). ${matchedStoresList.length} butiker är kopplade till Bonuslotsens jämförelse.`,
   };
 }
