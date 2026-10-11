@@ -247,20 +247,8 @@ const CATEGORY_TABS: { id: ResourceCategory; label: string; icon: React.ElementT
   { id: 'routes', label: 'Rutter & Allianser', icon: Compass },
 ];
 
-function getCategoryBadgeColor(category: string, existingColor?: string): string {
-  if (existingColor) return existingColor;
-  switch (category) {
-    case 'awards':
-      return 'bg-emerald-100 text-emerald-800 border-emerald-200';
-    case 'shopping':
-      return 'bg-amber-100 text-amber-800 border-amber-200';
-    case 'community':
-      return 'bg-purple-100 text-purple-800 border-purple-200';
-    case 'routes':
-      return 'bg-cyan-100 text-cyan-800 border-cyan-200';
-    default:
-      return 'bg-blue-100 text-blue-800 border-blue-200';
-  }
+function getCategoryBadgeColor(_category: string, _existingColor?: string): string {
+  return 'bg-slate-100 text-slate-700 border-slate-200';
 }
 
 function getCategoryLabel(category: string, label?: string): string {
@@ -431,9 +419,7 @@ export default function LankarPage() {
 
                       {item.badge && (
                         <span
-                          className={`text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-md tracking-wider ${
-                            item.badgeColor || 'bg-slate-100 text-slate-700'
-                          }`}
+                          className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-md tracking-wider bg-slate-100 text-slate-700 border border-slate-200"
                         >
                           {item.badge}
                         </span>
