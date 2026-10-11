@@ -503,17 +503,6 @@ export default function Home() {
                 <h2 className="text-lg sm:text-xl font-extrabold text-slate-900">
                   {calculationResults.length} alternativ hittades
                 </h2>
-                {isFilteredFromDefault && (
-                  <button
-                    type="button"
-                    onClick={handleResetFilters}
-                    className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 font-semibold hover:underline cursor-pointer"
-                    title="Återställ alla filter till grundinställningarna"
-                  >
-                    <RotateCcw className="w-3 h-3" />
-                    <span>Återställ filter</span>
-                  </button>
-                )}
               </div>
               <p className="text-xs sm:text-sm text-slate-500 font-medium mt-0.5 flex items-center flex-wrap gap-1.5">
                 <span>Baserat på {purchaseAmountKr ? `${purchaseAmountKr.toLocaleString('sv-SE')} kr` : 'angivet köpbelopp'} • {selectedStoreIds.length > 0 ? `${selectedStoreIds.length} valda butiker` : categoryNames}</span>
