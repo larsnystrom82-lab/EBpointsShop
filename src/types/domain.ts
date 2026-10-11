@@ -177,6 +177,8 @@ export interface RouteCalculationResult {
 
   isExplicitCampaign: boolean;
   campaignValidUntil?: string;
+  regularBonusPer100Kr?: number;
+  regularFixedBonusPoints?: number;
   isOneTimeOffer?: boolean;
   oneTimeTerms?: string;
   rewardType?: 'rate' | 'fixed';

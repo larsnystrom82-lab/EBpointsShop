@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { isCampaignActive, getCampaignRemainingInfo } from './campaign';
+import { isCampaignActive, getCampaignRemainingInfo, getCampaignOfferSummary } from './campaign';
 
 describe('campaign utilities', () => {
   const mockNow = new Date('2026-10-08T12:00:00Z');
@@ -77,4 +77,60 @@ describe('campaign utilities', () => {
       expect(info?.text).toBe('Utgången');
     });
   });
+
+  describe('getCampaignOfferSummary', () => {
+    it('returns 4x poäng for Björn Borg (100p vs regular 25p)', () => {
+      const summary = getCampaignOfferSummary({
+        currentBonusPer100Kr: 100,
+        regularBonusPer100Kr: 25,
+      });
+      expect(summary).not.toBeNull();
+      expect(summary?.badgeText).toBe('4x poäng');
+      expect(summary?.detailText).toContain('Just nu 100 p / 100 kr (ord. 25 p / 100 kr)');
+    });
+
+    it('returns Dubbla poäng when points are doubled (50p vs regular 25p)', () => {
+      const summary = getCampaignOfferSummary({
+        currentBonusPer100Kr: 50,
+        regularBonusPer100Kr: 25,
+      });
+      expect(summary).not.toBeNull();
+      expect(summary?.badgeText).toBe('Dubbla poäng');
+      expect(summary?.detailText).toContain('Just nu 50 p / 100 kr (ord. 25 p / 100 kr)');
+    });
+
+    it('returns Trippla poäng when points are tripled (75p vs regular 25p)', () => {
+      const summary = getCampaignOfferSummary({
+        currentBonusPer100Kr: 75,
+        regularBonusPer100Kr: 25,
+      });
+      expect(summary).not.toBeNull();
+      expect(summary?.badgeText).toBe('Trippla poäng');
+    });
+
+    it('returns +X p extra when ratio is non-integer (75p vs regular 50p)', () => {
+      const summary = getCampaignOfferSummary({
+        currentBonusPer100Kr: 75,
+        regularBonusPer100Kr: 50,
+      });
+      expect(summary).not.toBeNull();
+      expect(summary?.badgeText).toBe('+25 p extra');
+    });
+
+    it('handles fixed offer campaign (BookBeat 1000p vs regular 400p)', () => {
+      const summary = getCampaignOfferSummary({
+        currentFixedPoints: 1000,
+        regularFixedPoints: 400,
+      });
+      expect(summary).not.toBeNull();
+      expect(summary?.badgeText).toBe('+600 p extra');
+      expect(summary?.detailText).toContain('(ord. 400 p)');
+    });
+
+    it('returns null if no regular points or current points <= regular points', () => {
+      expect(getCampaignOfferSummary({ currentBonusPer100Kr: 25, regularBonusPer100Kr: 25 })).toBeNull();
+      expect(getCampaignOfferSummary({ currentBonusPer100Kr: 25, regularBonusPer100Kr: undefined })).toBeNull();
+    });
+  });
 });
+

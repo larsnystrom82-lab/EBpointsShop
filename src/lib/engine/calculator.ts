@@ -256,6 +256,8 @@ export function generateCandidateRoutes(options: RouteGenerationOptions): RouteC
       isEligible: true,
       isExplicitCampaign,
       campaignValidUntil: isCampaignValid ? (partnerRule?.campaignValidUntil || undefined) : undefined,
+      regularBonusPer100Kr: partnerRule?.regularBonusPer100Kr,
+      regularFixedBonusPoints: partnerRule?.regularFixedBonusPoints,
       isOneTimeOffer: isFixedReward,
       oneTimeTerms: store.partnerRule?.oneTimeTerms || (isFixedReward ? 'Engångsbonus – gäller vanligtvis ny kund vid första köpet' : undefined),
       rewardType: isFixedReward ? 'fixed' : 'rate',

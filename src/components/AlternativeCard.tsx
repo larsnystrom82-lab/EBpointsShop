@@ -11,7 +11,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import Image from 'next/image';
-import { getCampaignRemainingInfo } from '@/lib/utils/campaign';
+import { getCampaignRemainingInfo, getCampaignOfferSummary } from '@/lib/utils/campaign';
 
 export const CATEGORY_NAMES: Record<string, string> = {
   food: 'Mat & Restaurang',
@@ -55,6 +55,16 @@ export const AlternativeCard: React.FC<AlternativeCardProps> = ({
   const baseBonusPoints = route.baseBonusPoints;
   const baseTierPoints = route.baseTierPoints;
   const campaignInfo = route.isExplicitCampaign ? getCampaignRemainingInfo(route.campaignValidUntil) : null;
+  const campaignOffer = route.isExplicitCampaign
+    ? getCampaignOfferSummary({
+        currentBonusPer100Kr: route.routeType === 'direct_partner' && !route.isOneTimeOffer && route.purchaseAmountOre > 0
+          ? Math.round((route.baseBonusPoints / (route.purchaseAmountOre / 10000)) * 10) / 10
+          : undefined,
+        regularBonusPer100Kr: route.regularBonusPer100Kr,
+        currentFixedPoints: route.isOneTimeOffer ? route.baseBonusPoints : undefined,
+        regularFixedPoints: route.regularFixedBonusPoints,
+      })
+    : null;
 
   // Route title formatting matching reference image:
   // "Cervera – via presentkort", "Bagaren & Kocken – partnerbutik", etc.
@@ -132,10 +142,10 @@ export const AlternativeCard: React.FC<AlternativeCardProps> = ({
               {route.isExplicitCampaign && (!campaignInfo || !campaignInfo.isExpired) && (
                 <span
                   className="inline-flex items-center gap-1 text-[11px] font-bold text-red-700 bg-red-50 border border-red-200/80 px-2.5 py-0.5 rounded-full shadow-2xs"
-                  title={campaignInfo ? campaignInfo.fullText : 'Aktiv kampanj'}
+                  title={campaignOffer ? `${campaignOffer.detailText}. ${campaignInfo ? campaignInfo.fullText : ''}` : (campaignInfo ? campaignInfo.fullText : 'Aktiv kampanj')}
                 >
                   <Sparkles className="w-3 h-3 text-red-500 shrink-0" />
-                  <span>Kampanj</span>
+                  <span>{campaignOffer ? campaignOffer.badgeText : 'Kampanj'}</span>
                   {campaignInfo && (
                     <>
                       <span className="text-red-300 font-normal">·</span>
@@ -291,10 +301,10 @@ export const AlternativeCard: React.FC<AlternativeCardProps> = ({
                 {route.isExplicitCampaign && (!campaignInfo || !campaignInfo.isExpired) && (
                   <span
                     className="inline-flex items-center gap-1 text-[9px] font-bold text-red-700 bg-red-50 border border-red-200/80 px-1.5 py-0.2 rounded-full"
-                    title={campaignInfo ? campaignInfo.fullText : 'Aktiv kampanj'}
+                    title={campaignOffer ? `${campaignOffer.detailText}. ${campaignInfo ? campaignInfo.fullText : ''}` : (campaignInfo ? campaignInfo.fullText : 'Aktiv kampanj')}
                   >
                     <Sparkles className="w-2.5 h-2.5 text-red-500 shrink-0" />
-                    <span>Kampanj</span>
+                    <span>{campaignOffer ? campaignOffer.badgeText : 'Kampanj'}</span>
                     {campaignInfo && (
                       <span className="text-red-600 font-medium">· {campaignInfo.text}</span>
                     )}
@@ -390,6 +400,9 @@ export const AlternativeCard: React.FC<AlternativeCardProps> = ({
               <div>
                 <span className="font-bold">Aktiv kampanj: </span>
                 <span>
+                  {campaignOffer
+                    ? `${campaignOffer.detailText}. `
+                    : ''}
                   {campaignInfo
                     ? `${campaignInfo.fullText}. Extra höga bonuspoäng gäller under kampanjperioden.`
                     : 'Butiken har just nu en aktiv kampanj med förhöjd poängintjäning.'}

@@ -157,3 +157,60 @@ export function getCampaignRemainingInfo(
     fullText,
   };
 }
+
+/**
+ * Generates an informative campaign summary (e.g. "4x poäng (ord. 25 p/100 kr)" or "Dubbla poäng").
+ */
+export function getCampaignOfferSummary(params: {
+  currentBonusPer100Kr?: number;
+  regularBonusPer100Kr?: number;
+  currentFixedPoints?: number;
+  regularFixedPoints?: number;
+}): { badgeText: string; detailText: string } | null {
+  const { currentBonusPer100Kr, regularBonusPer100Kr, currentFixedPoints, regularFixedPoints } = params;
+
+  // Rate-based campaign
+  if (currentBonusPer100Kr && regularBonusPer100Kr && regularBonusPer100Kr > 0 && currentBonusPer100Kr > regularBonusPer100Kr) {
+    const ratio = currentBonusPer100Kr / regularBonusPer100Kr;
+    let badgeText = 'Extra poäng';
+
+    if (Math.abs(ratio - 2) < 0.05) {
+      badgeText = 'Dubbla poäng';
+    } else if (Math.abs(ratio - 3) < 0.05) {
+      badgeText = 'Trippla poäng';
+    } else if (Math.abs(ratio - 4) < 0.05) {
+      badgeText = '4x poäng';
+    } else if (Math.abs(ratio - Math.round(ratio)) < 0.05 && ratio > 1) {
+      badgeText = `${Math.round(ratio)}x poäng`;
+    } else {
+      const diff = currentBonusPer100Kr - regularBonusPer100Kr;
+      badgeText = `+${diff} p extra`;
+    }
+
+    const detailText = `Just nu ${currentBonusPer100Kr} p / 100 kr (ord. ${regularBonusPer100Kr} p / 100 kr)`;
+    return { badgeText, detailText };
+  }
+
+  // Fixed offer campaign (e.g. BookBeat 1 000p vs regular 400p)
+  if (currentFixedPoints && regularFixedPoints && regularFixedPoints > 0 && currentFixedPoints > regularFixedPoints) {
+    const ratio = currentFixedPoints / regularFixedPoints;
+    let badgeText = 'Extra poäng';
+
+    if (Math.abs(ratio - 2) < 0.05) {
+      badgeText = 'Dubbla poäng';
+    } else if (Math.abs(ratio - 3) < 0.05) {
+      badgeText = 'Trippla poäng';
+    } else if (Math.abs(ratio - Math.round(ratio)) < 0.05 && ratio > 1) {
+      badgeText = `${Math.round(ratio)}x poäng`;
+    } else {
+      const diff = currentFixedPoints - regularFixedPoints;
+      badgeText = `+${diff.toLocaleString('sv-SE')} p extra`;
+    }
+
+    const detailText = `Just nu ${currentFixedPoints.toLocaleString('sv-SE')} p (ord. ${regularFixedPoints.toLocaleString('sv-SE')} p)`;
+    return { badgeText, detailText };
+  }
+
+  return null;
+}
+
