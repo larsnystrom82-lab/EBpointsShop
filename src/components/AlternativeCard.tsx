@@ -235,10 +235,10 @@ export const AlternativeCard: React.FC<AlternativeCardProps> = ({
             </span>
           </div>
 
-          {/* Kolumn 4: Totalt */}
-          <div className="text-left min-w-[80px]">
+          {/* Kolumn 4: Totala bonuspoäng */}
+          <div className="text-left min-w-[110px]">
             <span className="text-xs text-slate-400 font-medium block">
-              Totalt
+              Totala bonuspoäng
             </span>
             <span className="text-2xl font-black text-blue-700 block leading-tight tracking-tight">
               {totalBonusPoints.toLocaleString('sv-SE')}
@@ -350,9 +350,9 @@ export const AlternativeCard: React.FC<AlternativeCardProps> = ({
             </div>
           </div>
 
-          {/* Totalt box */}
-          <div className="bg-blue-50 border border-blue-100 rounded-xl px-3 py-1.5 text-right">
-            <span className="text-[10px] font-semibold text-blue-700 uppercase block">Totalt</span>
+          {/* Totala bonuspoäng box */}
+          <div className="bg-blue-50 border border-blue-100 rounded-xl px-2.5 py-1.5 text-right shrink-0">
+            <span className="text-[9px] font-semibold text-blue-700 uppercase block leading-tight">Totala bonuspoäng</span>
             <span className="text-lg font-black text-blue-900 leading-tight">
               {totalBonusPoints.toLocaleString('sv-SE')}
             </span>
