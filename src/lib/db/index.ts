@@ -21,6 +21,8 @@ export interface ZupergiftStoreItem {
   isExcluded: boolean; // Borttagen av admin (exkluderas även vid framtida synkningar)
   matchedStoreId?: string; // Motsvarande lokal butik i bonuslotsen.se
   syncedAt: string;
+  isMissingFromSource?: boolean; // True om butiken inte hittades på Zupergifts webbplats vid senaste synk
+  missingSince?: string | null; // Tidsstämpel när butiken först upptäcktes saknad
 }
 
 export interface StorePartnerRule {
@@ -66,6 +68,8 @@ export interface DbStore {
   alias?: string | null;
   isExcluded?: boolean; // Borttagen av admin (t.ex. konkurs eller borttagen från SAS)
   isHidden?: boolean;
+  isMissingFromPartner?: boolean; // True om partnerbutiken inte längre finns hos SAS Online Shopping
+  partnerMissingSince?: string | null; // Tidsstämpel när butiken togs bort från SAS Online Shopping
 }
 
 export interface DbErrorReport {
@@ -112,6 +116,8 @@ export interface SasGiftCardStoreItem {
   note: string;
   syncedAt: string;
   updatedAt: string | null; // null = never updated by admin
+  isMissingFromSource?: boolean; // True om presentkortet inte hittades på SAS EuroBonus Shop vid senaste synk
+  missingSince?: string | null;  // Tidsstämpel när butiken först upptäcktes saknad
 }
 
 export interface StoreMetadataItem {

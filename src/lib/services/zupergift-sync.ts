@@ -142,6 +142,8 @@ export async function syncZupergiftCatalog(): Promise<{
     if (existing) {
       // Existing store: preserve admin's choice (isHidden and isExcluded)
       existing.syncedAt = now;
+      existing.isMissingFromSource = false;
+      existing.missingSince = null;
       if (!existing.name || existing.name === existing.slug) {
         existing.name = item.name;
       }
@@ -163,9 +165,28 @@ export async function syncZupergiftCatalog(): Promise<{
         slug: slug,
         isHidden: false,
         isExcluded: false,
+        isMissingFromSource: false,
+        missingSince: null,
         matchedStoreId: matchedStore?.id,
         syncedAt: now,
       });
+    }
+  }
+
+  // Detect stores in database that are no longer available on Zupergift
+  let missingCount = 0;
+  for (const zg of db.zupergiftStores) {
+    if (!discoveredMap.has(zg.slug) && !discoveredMap.has(zg.id)) {
+      zg.isMissingFromSource = true;
+      if (!zg.missingSince) {
+        zg.missingSince = now;
+      }
+      if (!zg.isExcluded) {
+        missingCount++;
+      }
+    } else {
+      zg.isMissingFromSource = false;
+      zg.missingSince = null;
     }
   }
 
@@ -183,8 +204,8 @@ export async function syncZupergiftCatalog(): Promise<{
 
     if (zgItem) {
       zgItem.matchedStoreId = store.id;
-      // Active in app only if not hidden and not excluded by admin
-      store.zupergiftSupported = !zgItem.isHidden && !zgItem.isExcluded;
+      // Active in app only if not hidden, not excluded, and not missing from Zupergift
+      store.zupergiftSupported = !zgItem.isHidden && !zgItem.isExcluded && !zgItem.isMissingFromSource;
       if (store.zupergiftSupported) {
         matchedStoresList.push(store.name);
       }
@@ -199,14 +220,14 @@ export async function syncZupergiftCatalog(): Promise<{
     id: `audit-${Date.now()}`,
     timestamp: now,
     action: 'SYNC_ZUPERGIFT_LIVE',
-    details: `Live-synkronisering mot Zupergift slutförd. Totalt ${discoveredMap.size} butiker funna, ${newStoresAdded} nya tillagda i Zupergift-katalogen.`,
+    details: `Live-synkronisering mot Zupergift slutförd. Totalt ${discoveredMap.size} butiker funna live (${newStoresAdded} nya tillagda i Zupergift-katalogen, ${missingCount} saknas hos Zupergift).`,
     user: 'Admin',
   });
 
   saveDatabase(db);
 
   const totalInCatalog = db.zupergiftStores.length;
-  const activeInCatalog = db.zupergiftStores.filter((s) => !s.isHidden && !s.isExcluded).length;
+  const activeInCatalog = db.zupergiftStores.filter((s) => !s.isHidden && !s.isExcluded && !s.isMissingFromSource).length;
   const hiddenCount = db.zupergiftStores.filter((s) => s.isHidden && !s.isExcluded).length;
 
   return {
@@ -214,6 +235,6 @@ export async function syncZupergiftCatalog(): Promise<{
     totalDiscovered: discoveredMap.size,
     newStoresAdded,
     matchedStores: matchedStoresList,
-    message: `Live-synk lyckades: ${discoveredMap.size} butiker hittades live på Zupergift (${newStoresAdded} nya). Katalogen har ${totalInCatalog} butiker totalt (${activeInCatalog} aktiva, ${hiddenCount} dolda). ${matchedStoresList.length} butiker är kopplade till Bonuslotsens jämförelse.`,
+    message: `Live-synk lyckades: ${discoveredMap.size} butiker hittades live på Zupergift (${newStoresAdded} nya). Katalogen har ${totalInCatalog} butiker (${activeInCatalog} aktiva, ${hiddenCount} dolda, ${missingCount} saknas hos Zupergift). ${matchedStoresList.length} butiker är kopplade till Bonuslotsens jämförelse.`,
   };
 }

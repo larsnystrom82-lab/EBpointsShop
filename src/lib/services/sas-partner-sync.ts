@@ -260,6 +260,8 @@ export async function syncSasPartnerStores(): Promise<{
       if (existing) {
         // Update existing store partner rules
         existing.partnerRule = partnerRule;
+        existing.isMissingFromPartner = false;
+        existing.partnerMissingSince = null;
         if (shop.logo && (!existing.logoUrl || existing.logoUrl.includes('neutral'))) {
           existing.logoUrl = shop.logo;
         }
@@ -290,6 +292,8 @@ export async function syncSasPartnerStores(): Promise<{
           },
           zupergiftSupported: Boolean(zuperMatch),
           isZupergiftOnly: false,
+          isMissingFromPartner: false,
+          partnerMissingSince: null,
         };
 
         db.stores.push(newStore);
@@ -305,15 +309,25 @@ export async function syncSasPartnerStores(): Promise<{
     const returnedNormNames = new Set(allShops.map((s) => normalizeName(s.name)).filter(Boolean));
 
     let removedFromSasCount = 0;
+    const nowSync = new Date().toISOString();
     for (const store of db.stores) {
-      if (store.partnerRule?.hasPartnerLink && !store.isExcluded) {
+      if (!store.isExcluded) {
         const stillInSas =
           returnedSlugs.has(store.slug.toLowerCase()) ||
           returnedSlugs.has(store.id.toLowerCase()) ||
           returnedNormNames.has(normalizeName(store.name));
         if (!stillInSas) {
-          store.partnerRule.hasPartnerLink = false;
-          removedFromSasCount++;
+          if (store.partnerRule?.hasPartnerLink || store.isMissingFromPartner) {
+            store.partnerRule.hasPartnerLink = false;
+            store.isMissingFromPartner = true;
+            if (!store.partnerMissingSince) {
+              store.partnerMissingSince = nowSync;
+            }
+            removedFromSasCount++;
+          }
+        } else {
+          store.isMissingFromPartner = false;
+          store.partnerMissingSince = null;
         }
       }
     }

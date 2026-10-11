@@ -94,6 +94,9 @@ export function buildAllStores(db: DatabaseSchema, options?: { includeExcluded?:
         zupergiftSupported: Boolean(s.zupergiftSupported),
         isZupergiftOnly: false,
         hasPartnerLink: isExcluded || isHidden ? false : Boolean(resolvedPartnerRule?.hasPartnerLink),
+        isMissingFromPartner: Boolean(s.isMissingFromPartner),
+        missingSince: s.partnerMissingSince || null,
+        partnerMissingSince: s.partnerMissingSince || null,
         syncedAt: (s as any).syncedAt || db.lastPartnerSync || undefined,
       };
     });
@@ -155,6 +158,8 @@ export function buildAllStores(db: DatabaseSchema, options?: { includeExcluded?:
         zupergiftUrl: `https://zupergift.com/se/${zs.slug}`,
         isZupergiftOnly: true,
         hasPartnerLink: false,
+        isMissingFromSource: Boolean(zs.isMissingFromSource),
+        missingSince: zs.missingSince || null,
         syncedAt: zs.syncedAt || db.lastZupergiftSync || undefined,
       };
     });
@@ -247,6 +252,8 @@ export function buildAllStores(db: DatabaseSchema, options?: { includeExcluded?:
       zupergiftSupported: false,
       isZupergiftOnly: false,
       hasPartnerLink: false,
+      isMissingFromSource: Boolean(gc.isMissingFromSource),
+      missingSince: gc.missingSince || null,
       syncedAt: gc.syncedAt || undefined,
     };
 

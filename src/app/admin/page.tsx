@@ -86,7 +86,7 @@ export default function AdminPage() {
 
   // States for "Alla butiker" tab
   const [allStoresSearch, setAllStoresSearch] = useState('');
-  const [allStoresFilter, setAllStoresFilter] = useState<'all' | 'partner' | 'zupergift' | 'sas' | 'has_logo' | 'custom_logo' | 'missing_logo' | 'has_comment' | 'hidden' | 'excluded'>('all');
+  const [allStoresFilter, setAllStoresFilter] = useState<'all' | 'partner' | 'zupergift' | 'sas' | 'has_logo' | 'custom_logo' | 'missing_logo' | 'has_comment' | 'hidden' | 'excluded' | 'missing_source'>('all');
   const [allStoresCategoryFilter, setAllStoresCategoryFilter] = useState<string>('all');
   const [excludeHidden, setExcludeHidden] = useState<boolean>(true);
   const [storeMetadataEdits, setStoreMetadataEdits] = useState<Record<string, {
@@ -118,13 +118,13 @@ export default function AdminPage() {
 
   // Zupergift store filter & search
   const [zgSearch, setZgSearch] = useState('');
-  const [zgFilter, setZgFilter] = useState<'all' | 'active' | 'hidden' | 'excluded'>('all');
+  const [zgFilter, setZgFilter] = useState<'all' | 'active' | 'missing' | 'hidden' | 'excluded'>('all');
   const [zgCategoryFilter, setZgCategoryFilter] = useState<string>('all');
 
   // SAS Presentkort tab
   const [syncingSasGc, setSyncingSasGc] = useState<boolean>(false);
   const [sasGcSearch, setSasGcSearch] = useState('');
-  const [sasGcFilter, setSasGcFilter] = useState<'all' | 'active' | 'unconfigured' | 'hidden'>('all');
+  const [sasGcFilter, setSasGcFilter] = useState<'all' | 'active' | 'unconfigured' | 'missing' | 'hidden'>('all');
   // Per-row edit state (keyed by store id): holds draft values
   const [sasGcEdits, setSasGcEdits] = useState<Record<string, {
     bonusPer100Kr: string;
@@ -139,7 +139,7 @@ export default function AdminPage() {
   // SAS Partner stores live sync & filter
   const [syncingPartner, setSyncingPartner] = useState<boolean>(false);
   const [storeSearch, setStoreSearch] = useState('');
-  const [storeFilter, setStoreFilter] = useState<'all' | 'partner' | 'campaign' | 'zupergift' | 'fixed'>('all');
+  const [storeFilter, setStoreFilter] = useState<'all' | 'partner' | 'campaign' | 'zupergift' | 'fixed' | 'missing_partner'>('all');
   const [storeCategoryFilter, setStoreCategoryFilter] = useState<string>('all');
 
   // Load admin data
@@ -802,7 +802,8 @@ export default function AdminPage() {
     if (!dbData?.zupergiftStores) return [];
     return dbData.zupergiftStores.filter((store) => {
       // Filter tab
-      if (zgFilter === 'active' && (store.isHidden || store.isExcluded)) return false;
+      if (zgFilter === 'active' && (store.isHidden || store.isExcluded || store.isMissingFromSource)) return false;
+      if (zgFilter === 'missing' && (!store.isMissingFromSource || store.isExcluded)) return false;
       if (zgFilter === 'hidden' && (!store.isHidden || store.isExcluded)) return false;
       if (zgFilter === 'excluded' && !store.isExcluded) return false;
 
@@ -833,6 +834,7 @@ export default function AdminPage() {
       if (storeFilter === 'partner' && !store.partnerRule?.hasPartnerLink) return false;
       if (storeFilter === 'campaign' && !isCampaignActive(store.partnerRule?.isCampaign, store.partnerRule?.campaignValidUntil)) return false;
       if (storeFilter === 'zupergift' && !store.zupergiftSupported) return false;
+      if (storeFilter === 'missing_partner' && !store.isMissingFromPartner) return false;
       if (storeFilter === 'fixed') {
         const isFixed =
           store.partnerRule?.rewardType === 'fixed' ||
@@ -872,9 +874,11 @@ export default function AdminPage() {
 
       // Filter by configuration / active state
       if (sasGcFilter === 'active') {
-        if (item.isHidden || (item.bonusPer100Kr ?? 0) <= 0) return false;
+        if (item.isHidden || (item.bonusPer100Kr ?? 0) <= 0 || item.isMissingFromSource) return false;
       } else if (sasGcFilter === 'unconfigured') {
-        if (item.isHidden || (item.bonusPer100Kr !== null && item.bonusPer100Kr > 0)) return false;
+        if (item.isHidden || (item.bonusPer100Kr !== null && item.bonusPer100Kr > 0) || item.isMissingFromSource) return false;
+      } else if (sasGcFilter === 'missing') {
+        if (!item.isMissingFromSource) return false;
       } else if (sasGcFilter === 'hidden') {
         if (!item.isHidden) return false;
       }
@@ -898,6 +902,7 @@ export default function AdminPage() {
       partner: active.filter((s) => s.hasPartnerLink).length,
       zupergift: active.filter((s) => s.zupergiftSupported).length,
       sas: active.filter((s) => s.hasSasGiftCard).length,
+      missingSource: active.filter((s) => s.isMissingFromSource || s.isMissingFromPartner).length,
       missingLogo: active.filter((s) => isStoreMissingLogo(s)).length,
       customLogo: active.filter((s) => Boolean(s.customLogoUrl?.trim())).length,
       hasLogo: active.filter((s) => !isStoreMissingLogo(s)).length,
@@ -963,6 +968,7 @@ export default function AdminPage() {
       if (allStoresFilter === 'partner' && !item.hasPartnerLink) return false;
       if (allStoresFilter === 'zupergift' && !item.zupergiftSupported) return false;
       if (allStoresFilter === 'sas' && !item.hasSasGiftCard) return false;
+      if (allStoresFilter === 'missing_source' && !item.isMissingFromSource && !item.isMissingFromPartner) return false;
       if (allStoresFilter === 'has_logo' && isStoreMissingLogo(item)) return false;
       if (allStoresFilter === 'missing_logo' && !isStoreMissingLogo(item)) return false;
       if (allStoresFilter === 'custom_logo' && !item.customLogoUrl?.trim()) return false;
@@ -1305,6 +1311,22 @@ export default function AdminPage() {
 
                 <button
                   type="button"
+                  onClick={() => setAllStoresFilter('missing_source')}
+                  className={`text-left rounded-2xl p-3 border transition-all ${
+                    allStoresFilter === 'missing_source'
+                      ? 'bg-rose-700 text-white border-rose-700 shadow-xs ring-2 ring-rose-300'
+                      : 'bg-rose-50/90 hover:bg-rose-100 border-rose-200 text-rose-900'
+                  }`}
+                >
+                  <div className={`text-[11px] font-semibold flex items-center gap-1 ${allStoresFilter === 'missing_source' ? 'text-rose-100' : 'text-rose-700'}`}>
+                    <AlertTriangle className="w-3 h-3" />
+                    <span>Saknas hos källa</span>
+                  </div>
+                  <div className="text-lg font-black">{storeCounts.missingSource}</div>
+                </button>
+
+                <button
+                  type="button"
                   onClick={() => setAllStoresFilter('missing_logo')}
                   className={`text-left rounded-2xl p-3 border transition-all ${
                     allStoresFilter === 'missing_logo'
@@ -1501,6 +1523,18 @@ export default function AdminPage() {
                     }`}
                   >
                     Alla {excludeHidden ? 'aktiva' : ''} ({storeCounts.all})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAllStoresFilter('missing_source')}
+                    className={`px-3 py-1.5 rounded-lg font-bold transition-colors flex items-center gap-1.5 ${
+                      allStoresFilter === 'missing_source'
+                        ? 'bg-rose-700 text-white shadow-xs'
+                        : 'bg-rose-50 text-rose-800 hover:bg-rose-100 border border-rose-300 font-extrabold'
+                    }`}
+                  >
+                    <AlertTriangle className="w-3.5 h-3.5 text-rose-600" />
+                    <span>Saknas hos källa ({storeCounts.missingSource})</span>
                   </button>
                   <button
                     type="button"
@@ -1712,6 +1746,15 @@ export default function AdminPage() {
                                       <span className="px-2 py-0.5 rounded-md bg-amber-100 text-amber-900 font-bold text-[10px] flex items-center gap-1" title="Dold i bonuslotsen.se">
                                         <EyeOff className="w-3 h-3 text-amber-700" />
                                         Dold
+                                      </span>
+                                    )}
+                                    {(item.isMissingFromSource || item.isMissingFromPartner) && (
+                                      <span
+                                        className="px-2 py-0.5 rounded-md bg-rose-100 text-rose-800 font-bold text-[10px] flex items-center gap-1 border border-rose-300"
+                                        title={`Saknas hos källan${item.missingSince ? ` sedan ${item.missingSince.slice(0, 10)}` : item.partnerMissingSince ? ` sedan ${item.partnerMissingSince.slice(0, 10)}` : ''}`}
+                                      >
+                                        <AlertTriangle className="w-3 h-3 text-rose-600" />
+                                        ⚠️ Saknas hos källa
                                       </span>
                                     )}
                                     {isStoreMissingLogo(item) && !customLogoVal && (
@@ -2116,6 +2159,30 @@ export default function AdminPage() {
                 </button>
               </div>
 
+              {/* Varning om butiker saknas hos Zupergift live */}
+              {(() => {
+                const missingCount = (dbData?.zupergiftStores || []).filter((s) => s.isMissingFromSource && !s.isExcluded).length;
+                if (missingCount === 0) return null;
+                return (
+                  <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                    <div className="flex items-center gap-2.5">
+                      <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0" />
+                      <div>
+                        <span className="font-bold">{missingCount} butiker saknas hos Zupergift live!</span>
+                        <p className="text-[11px] text-amber-700">Dessa butiker fanns tidigare men returnerades inte vid senaste synkningen. De har automatiskt inaktiverats för besökare.</p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setZgFilter('missing')}
+                      className="px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-bold shrink-0 self-start sm:self-auto transition-colors"
+                    >
+                      Visa saknade ({missingCount})
+                    </button>
+                  </div>
+                );
+              })()}
+
               {/* Sök och filterrad */}
               <div className="flex flex-col sm:flex-row gap-3 items-center justify-between pt-2">
                 <div className="flex flex-col sm:flex-row gap-2.5 w-full sm:w-auto">
@@ -2176,7 +2243,7 @@ export default function AdminPage() {
                 </div>
 
                 {/* Filterflikar */}
-                <div className="flex items-center gap-1.5 self-start sm:self-auto text-xs">
+                <div className="flex items-center gap-1.5 self-start sm:self-auto text-xs flex-wrap">
                   <span className="text-slate-400 font-semibold mr-1 flex items-center gap-1">
                     <Filter className="w-3.5 h-3.5" />
                     Visa:
@@ -2201,7 +2268,19 @@ export default function AdminPage() {
                         : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                     }`}
                   >
-                    Aktiva ({dbData?.zupergiftStores.filter((s) => !s.isHidden && !s.isExcluded).length || 0})
+                    Aktiva ({dbData?.zupergiftStores.filter((s) => !s.isHidden && !s.isExcluded && !s.isMissingFromSource).length || 0})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setZgFilter('missing')}
+                    className={`px-3 py-1.5 rounded-lg font-bold transition-colors flex items-center gap-1 ${
+                      zgFilter === 'missing'
+                        ? 'bg-rose-700 text-white'
+                        : 'bg-rose-50 text-rose-800 hover:bg-rose-100 border border-rose-300'
+                    }`}
+                  >
+                    <AlertTriangle className="w-3 h-3 text-rose-600" />
+                    <span>Saknas hos Zupergift ({dbData?.zupergiftStores.filter((s) => s.isMissingFromSource && !s.isExcluded).length || 0})</span>
                   </button>
                   <button
                     type="button"
@@ -2243,6 +2322,8 @@ export default function AdminPage() {
                         className={`p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs transition-colors ${
                           item.isExcluded
                             ? 'bg-red-50/50 opacity-70'
+                            : item.isMissingFromSource
+                            ? 'bg-rose-50/40 border-l-4 border-l-rose-500'
                             : item.isHidden
                             ? 'bg-amber-50/50'
                             : 'hover:bg-slate-50'
@@ -2250,13 +2331,21 @@ export default function AdminPage() {
                       >
                         <div className="flex items-center gap-3">
                           <div>
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 flex-wrap">
                               <span className="font-bold text-slate-900 text-sm">
                                 {item.name}
                               </span>
                               {item.isExcluded ? (
                                 <span className="px-2 py-0.5 rounded-md bg-red-100 text-red-800 font-bold text-[10px]">
                                   Borttagen / Exkluderad
+                                </span>
+                              ) : item.isMissingFromSource ? (
+                                <span
+                                  className="px-2 py-0.5 rounded-md bg-rose-100 text-rose-800 font-bold text-[10px] flex items-center gap-1 border border-rose-300"
+                                  title={`Finns inte längre på zupergift.com${item.missingSince ? ` (saknad sedan ${item.missingSince.slice(0, 10)})` : ''}`}
+                                >
+                                  <AlertTriangle className="w-3 h-3 text-rose-600" />
+                                  ⚠️ Saknas hos Zupergift
                                 </span>
                               ) : item.isHidden ? (
                                 <span className="px-2 py-0.5 rounded-md bg-amber-100 text-amber-800 font-bold text-[10px]">
@@ -2386,6 +2475,30 @@ export default function AdminPage() {
                 </button>
               </div>
 
+              {/* Varning om butiker saknas på SAS Shop */}
+              {(() => {
+                const missingCount = (dbData?.sasGiftCards || []).filter((s) => s.isMissingFromSource && !s.isExcluded).length;
+                if (missingCount === 0) return null;
+                return (
+                  <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                    <div className="flex items-center gap-2.5">
+                      <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0" />
+                      <div>
+                        <span className="font-bold">{missingCount} presentkortsbutiker saknas på SAS Shop!</span>
+                        <p className="text-[11px] text-amber-700">Dessa butiker fanns tidigare men returnerades inte vid senaste synkningen mot SAS EuroBonus Shop.</p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setSasGcFilter('missing')}
+                      className="px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-bold shrink-0 self-start sm:self-auto transition-colors"
+                    >
+                      Visa saknade ({missingCount})
+                    </button>
+                  </div>
+                );
+              })()}
+
               {/* Sök och filterrad */}
               <div className="flex flex-col sm:flex-row gap-3 items-center justify-between pt-2">
                 <div className="relative w-full sm:w-72">
@@ -2427,7 +2540,7 @@ export default function AdminPage() {
                         : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                     }`}
                   >
-                    Ej konfigurerade ({dbData?.sasGiftCards?.filter((s) => !s.isExcluded && !s.isHidden && (s.bonusPer100Kr === null || s.bonusPer100Kr === 0)).length || 0})
+                    Ej konfigurerade ({dbData?.sasGiftCards?.filter((s) => !s.isExcluded && !s.isHidden && !s.isMissingFromSource && (s.bonusPer100Kr === null || s.bonusPer100Kr === 0)).length || 0})
                   </button>
                   <button
                     type="button"
@@ -2438,7 +2551,19 @@ export default function AdminPage() {
                         : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                     }`}
                   >
-                    Aktiva ({dbData?.sasGiftCards?.filter((s) => !s.isExcluded && !s.isHidden && (s.bonusPer100Kr ?? 0) > 0).length || 0})
+                    Aktiva ({dbData?.sasGiftCards?.filter((s) => !s.isExcluded && !s.isHidden && !s.isMissingFromSource && (s.bonusPer100Kr ?? 0) > 0).length || 0})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSasGcFilter('missing')}
+                    className={`px-3 py-1.5 rounded-lg font-bold transition-colors flex items-center gap-1 ${
+                      sasGcFilter === 'missing'
+                        ? 'bg-rose-700 text-white'
+                        : 'bg-rose-50 text-rose-800 hover:bg-rose-100 border border-rose-300'
+                    }`}
+                  >
+                    <AlertTriangle className="w-3 h-3 text-rose-600" />
+                    <span>Saknas på SAS Shop ({dbData?.sasGiftCards?.filter((s) => !s.isExcluded && s.isMissingFromSource).length || 0})</span>
                   </button>
                   <button
                     type="button"
@@ -2471,7 +2596,7 @@ export default function AdminPage() {
                     const isHidden = edit?.isHidden !== undefined ? edit.isHidden : item.isHidden;
                     const note = edit?.note !== undefined ? edit.note : item.note;
                     const isDirty = edit !== undefined;
-                    const isActive = (item.bonusPer100Kr ?? 0) > 0 && !item.isHidden;
+                    const isActive = (item.bonusPer100Kr ?? 0) > 0 && !item.isHidden && !item.isMissingFromSource;
                     const isSaving = Boolean(sasGcSaving[item.id]);
 
                     const updateEdit = (patch: Partial<typeof edit>) => {
@@ -2492,7 +2617,15 @@ export default function AdminPage() {
                     return (
                       <div
                         key={item.id}
-                        className={`p-4 rounded-2xl border ${isHidden ? 'bg-slate-50 border-slate-200 opacity-70' : isDirty ? 'bg-blue-50 border-blue-200' : 'bg-white border-slate-200'}`}
+                        className={`p-4 rounded-2xl border ${
+                          item.isMissingFromSource
+                            ? 'bg-rose-50/40 border-rose-300 border-l-4 border-l-rose-500'
+                            : isHidden
+                            ? 'bg-slate-50 border-slate-200 opacity-70'
+                            : isDirty
+                            ? 'bg-blue-50 border-blue-200'
+                            : 'bg-white border-slate-200'
+                        }`}
                       >
                         <div className="flex flex-col sm:flex-row sm:items-start gap-3">
                           {/* Name + status */}
@@ -2500,17 +2633,26 @@ export default function AdminPage() {
                             <div className="flex items-center gap-2 flex-wrap">
                               <span className="font-bold text-sm text-slate-900">{item.name}</span>
                               <span className="font-mono text-[10px] text-slate-400">{item.slug}</span>
+                              {item.isMissingFromSource && (
+                                <span
+                                  className="px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 text-[10px] font-bold border border-rose-300 flex items-center gap-1"
+                                  title={`Saknas på SAS Shop${item.missingSince ? ` sedan ${item.missingSince.slice(0, 10)}` : ''}`}
+                                >
+                                  <AlertTriangle className="w-3 h-3 text-rose-600" />
+                                  ⚠️ Saknas på SAS Shop
+                                </span>
+                              )}
                               {isActive && (
                                 <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-bold uppercase tracking-wider">
                                   Aktiv
                                 </span>
                               )}
-                              {!isActive && (item.bonusPer100Kr ?? 0) === 0 && item.bonusPer100Kr !== null && (
+                              {!isActive && !item.isMissingFromSource && (item.bonusPer100Kr ?? 0) === 0 && item.bonusPer100Kr !== null && (
                                 <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[10px] font-bold uppercase tracking-wider">
                                   Inaktiv (0 poäng)
                                 </span>
                               )}
-                              {item.bonusPer100Kr === null && (
+                              {item.bonusPer100Kr === null && !item.isMissingFromSource && (
                                 <span className="px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 text-[10px] font-bold uppercase tracking-wider">
                                   Ej konfigurerad
                                 </span>
@@ -2691,6 +2833,30 @@ export default function AdminPage() {
               </button>
             </div>
 
+            {/* Varning om butiker tagits bort från SAS partnerkatalog */}
+            {(() => {
+              const missingPartnerCount = (dbData?.stores || []).filter((s) => s.isMissingFromPartner && !s.isExcluded).length;
+              if (missingPartnerCount === 0) return null;
+              return (
+                <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                  <div className="flex items-center gap-2.5">
+                    <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0" />
+                    <div>
+                      <span className="font-bold">{missingPartnerCount} tidigare partnerbutiker saknas hos SAS Online Shopping!</span>
+                      <p className="text-[11px] text-amber-700">Dessa butiker hade tidigare ett aktivt partnerskap men returnerades inte vid senaste synkningen. Partnerlänken har inaktiverats.</p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setStoreFilter('missing_partner')}
+                    className="px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-bold shrink-0 self-start sm:self-auto transition-colors"
+                  >
+                    Visa borttagna ({missingPartnerCount})
+                  </button>
+                </div>
+              );
+            })()}
+
             {/* Sök och filterrad */}
             <div className="flex flex-col sm:flex-row gap-3 items-center justify-between pt-2">
               <div className="flex flex-col sm:flex-row gap-2.5 w-full sm:w-auto">
@@ -2802,6 +2968,18 @@ export default function AdminPage() {
                 </button>
                 <button
                   type="button"
+                  onClick={() => setStoreFilter('missing_partner')}
+                  className={`px-3 py-1.5 rounded-lg font-bold transition-colors flex items-center gap-1 ${
+                    storeFilter === 'missing_partner'
+                      ? 'bg-rose-700 text-white'
+                      : 'bg-rose-50 text-rose-800 hover:bg-rose-100 border border-rose-300'
+                  }`}
+                >
+                  <AlertTriangle className="w-3 h-3 text-rose-600" />
+                  <span>Borttagna från SAS ({dbData?.stores.filter((s) => s.isMissingFromPartner && !s.isExcluded).length || 0})</span>
+                </button>
+                <button
+                  type="button"
                   onClick={() => setStoreFilter('fixed')}
                   className={`px-3 py-1.5 rounded-lg font-bold transition-colors ${
                     storeFilter === 'fixed'
@@ -2824,11 +3002,24 @@ export default function AdminPage() {
                 filteredStores.map((store) => (
                   <div
                     key={store.id}
-                    className="p-4 rounded-2xl border border-slate-200 bg-slate-50/50 flex flex-col md:flex-row md:items-center justify-between gap-4"
+                    className={`p-4 rounded-2xl border ${
+                      store.isMissingFromPartner
+                        ? 'border-rose-300 bg-rose-50/40 border-l-4 border-l-rose-500'
+                        : 'border-slate-200 bg-slate-50/50'
+                    } flex flex-col md:flex-row md:items-center justify-between gap-4`}
                   >
                     <div className="space-y-1 min-w-[200px]">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-bold text-sm text-slate-900">{store.name}</span>
+                        {store.isMissingFromPartner && (
+                          <span
+                            className="px-2 py-0.5 rounded-md bg-rose-100 text-rose-800 font-bold text-[10px] flex items-center gap-1 border border-rose-300"
+                            title={`Borttagen från SAS Online Shopping${store.partnerMissingSince ? ` sedan ${store.partnerMissingSince.slice(0, 10)}` : ''}`}
+                          >
+                            <AlertTriangle className="w-3 h-3 text-rose-600" />
+                            ⚠️ Borttagen från SAS
+                          </span>
+                        )}
                         {store.partnerRule?.isCampaign && (() => {
                           const cInfo = getCampaignRemainingInfo(store.partnerRule.campaignValidUntil);
                           const isExpired = cInfo?.isExpired;
