@@ -19,7 +19,7 @@ export interface ZupergiftStoreItem {
   category?: string;
   isHidden: boolean; // Dold av admin (visas inte för besökare)
   isExcluded: boolean; // Borttagen av admin (exkluderas även vid framtida synkningar)
-  matchedStoreId?: string; // Motsvarande lokal butik i bonuslotsen.se
+  matchedStoreId?: string; // Motsvarande lokal butik i Poängpiloten
   syncedAt: string;
   isMissingFromSource?: boolean; // True om butiken inte hittades på Zupergifts webbplats vid senaste synk
   missingSince?: string | null; // Tidsstämpel när butiken först upptäcktes saknad

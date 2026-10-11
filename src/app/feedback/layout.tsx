@@ -1,17 +1,17 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Lämna förslag & feedback – bonuslotsen.se',
+  title: 'Lämna förslag & feedback – Poängpiloten',
   description:
-    'Hjälp oss förbättra bonuslotsen.se! Rapportera felaktiga poäng, tipsa om saknade butiker eller föreslå nya funktioner.',
+    'Hjälp oss förbättra Poängpiloten! Rapportera felaktiga poäng, tipsa om saknade butiker eller föreslå nya funktioner.',
   alternates: {
     canonical: '/feedback',
   },
   openGraph: {
-    title: 'Lämna förslag & feedback – bonuslotsen.se',
+    title: 'Lämna förslag & feedback – Poängpiloten',
     description:
-      'Hjälp oss förbättra bonuslotsen.se! Rapportera felaktiga poäng, tipsa om saknade butiker eller föreslå nya funktioner.',
-    url: 'https://www.bonuslotsen.se/feedback',
+      'Hjälp oss förbättra Poängpiloten! Rapportera felaktiga poäng, tipsa om saknade butiker eller föreslå nya funktioner.',
+    url: 'https://www.poangpiloten.se/feedback',
   },
 };
 

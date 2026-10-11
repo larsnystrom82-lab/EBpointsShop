@@ -235,6 +235,6 @@ export async function syncZupergiftCatalog(): Promise<{
     totalDiscovered: discoveredMap.size,
     newStoresAdded,
     matchedStores: matchedStoresList,
-    message: `Live-synk lyckades: ${discoveredMap.size} butiker hittades live på Zupergift (${newStoresAdded} nya). Katalogen har ${totalInCatalog} butiker (${activeInCatalog} aktiva, ${hiddenCount} dolda, ${missingCount} saknas hos Zupergift). ${matchedStoresList.length} butiker är kopplade till Bonuslotsens jämförelse.`,
+    message: `Live-synk lyckades: ${discoveredMap.size} butiker hittades live på Zupergift (${newStoresAdded} nya). Katalogen har ${totalInCatalog} butiker (${activeInCatalog} aktiva, ${hiddenCount} dolda, ${missingCount} saknas hos Zupergift). ${matchedStoresList.length} butiker är kopplade till Poängpilotens jämförelse.`,
   };
 }

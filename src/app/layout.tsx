@@ -2,26 +2,26 @@ import type { Metadata, Viewport } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://www.bonuslotsen.se'),
+  metadataBase: new URL('https://www.poangpiloten.se'),
   title: {
-    default: 'Jämför bonuspoäng – bonuslotsen.se',
-    template: '%s – bonuslotsen.se',
+    default: 'Jämför bonuspoäng – Poängpiloten',
+    template: '%s – Poängpiloten',
   },
   description: 'Jämför EuroBonus-intjäning mellan butiker och köpvägar för ditt angivna köpbelopp. Se poäng via partnerköp, presentkort och dina kort.',
   alternates: {
     canonical: '/',
   },
   openGraph: {
-    title: 'Jämför bonuspoäng – bonuslotsen.se',
+    title: 'Jämför bonuspoäng – Poängpiloten',
     description: 'Hitta den smartaste vägen till flest EuroBonus-extrapoäng på dina vardagsinköp.',
-    url: 'https://www.bonuslotsen.se',
-    siteName: 'bonuslotsen.se',
+    url: 'https://www.poangpiloten.se',
+    siteName: 'Poängpiloten',
     locale: 'sv_SE',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Jämför bonuspoäng – bonuslotsen.se',
+    title: 'Jämför bonuspoäng – Poängpiloten',
     description: 'Hitta den smartaste vägen till flest EuroBonus-extrapoäng på dina vardagsinköp.',
   },
   icons: {

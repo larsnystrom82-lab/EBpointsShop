@@ -7,10 +7,10 @@ async function testSeo() {
   const sitemapText = await sitemapRes.text();
   console.log('Sitemap status:', sitemapRes.status);
   const expectedUrls = [
-    'https://www.bonuslotsen.se',
-    'https://www.bonuslotsen.se/lankar',
-    'https://www.bonuslotsen.se/om',
-    'https://www.bonuslotsen.se/feedback',
+    'https://www.poangpiloten.se',
+    'https://www.poangpiloten.se/lankar',
+    'https://www.poangpiloten.se/om',
+    'https://www.poangpiloten.se/feedback',
   ];
   for (const url of expectedUrls) {
     if (sitemapText.includes(`<loc>${url}</loc>`)) {
@@ -25,8 +25,8 @@ async function testSeo() {
   const robotsRes = await fetch(`${baseUrl}/robots.txt`);
   const robotsText = await robotsRes.text();
   console.log('Robots status:', robotsRes.status);
-  if (robotsText.includes('Sitemap: https://www.bonuslotsen.se/sitemap.xml')) {
-    console.log('✓ Robots points to https://www.bonuslotsen.se/sitemap.xml');
+  if (robotsText.includes('Sitemap: https://www.poangpiloten.se/sitemap.xml')) {
+    console.log('✓ Robots points to https://www.poangpiloten.se/sitemap.xml');
   } else {
     console.error('✗ Robots MISSING sitemap pointer');
     passed = false;
@@ -34,10 +34,10 @@ async function testSeo() {
 
   console.log('\n--- 3. Testing Canonical tags ---');
   const pagesToTest = [
-    { path: '/', expectedCanonical: 'https://www.bonuslotsen.se' },
-    { path: '/om', expectedCanonical: 'https://www.bonuslotsen.se/om' },
-    { path: '/lankar', expectedCanonical: 'https://www.bonuslotsen.se/lankar' },
-    { path: '/feedback', expectedCanonical: 'https://www.bonuslotsen.se/feedback' },
+    { path: '/', expectedCanonical: 'https://www.poangpiloten.se' },
+    { path: '/om', expectedCanonical: 'https://www.poangpiloten.se/om' },
+    { path: '/lankar', expectedCanonical: 'https://www.poangpiloten.se/lankar' },
+    { path: '/feedback', expectedCanonical: 'https://www.poangpiloten.se/feedback' },
   ];
 
   for (const p of pagesToTest) {

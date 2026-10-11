@@ -45,39 +45,39 @@ async function run() {
   });
   console.log('Saved home_page_jamfor_bonuspoang.png');
 
-  // 2. Go to /guider and click bonuslotsen.se icon
+  // 2. Go to /guider and click Poängpiloten icon
   console.log('2. Navigating to /guider...');
   await page.goto('http://localhost:3000/guider', { waitUntil: 'networkidle2' });
   if (!page.url().includes('/guider')) {
     throw new Error('Failed to navigate to /guider');
   }
 
-  console.log('Clicking the bonuslotsen.se icon / logo in navbar...');
-  const logoLink = await page.$('nav a[aria-label*="bonuslotsen.se"]');
+  console.log('Clicking the Poängpiloten icon / logo in navbar...');
+  const logoLink = await page.$('nav a[aria-label*="Poängpiloten"]');
   if (!logoLink) {
-    throw new Error('Could not find bonuslotsen.se logo link with aria-label in navbar');
+    throw new Error('Could not find Poängpiloten logo link with aria-label in navbar');
   }
   await logoLink.click();
   await page.waitForNavigation({ waitUntil: 'networkidle2' });
 
-  console.log('URL after clicking bonuslotsen.se logo:', page.url());
+  console.log('URL after clicking Poängpiloten logo:', page.url());
   if (page.url() !== 'http://localhost:3000/') {
     throw new Error(`Expected http://localhost:3000/ after clicking logo, got ${page.url()}`);
   }
 
-  // 3. Go to /om and click bonuslotsen.se icon
+  // 3. Go to /om and click Poängpiloten icon
   console.log('3. Navigating to /om...');
   await page.goto('http://localhost:3000/om', { waitUntil: 'networkidle2' });
   if (!page.url().includes('/om')) {
     throw new Error('Failed to navigate to /om');
   }
 
-  console.log('Clicking the bonuslotsen.se icon / logo in navbar from /om...');
-  const logoLinkFromOm = await page.$('nav a[aria-label*="bonuslotsen.se"]');
+  console.log('Clicking the Poängpiloten icon / logo in navbar from /om...');
+  const logoLinkFromOm = await page.$('nav a[aria-label*="Poängpiloten"]');
   await logoLinkFromOm.click();
   await page.waitForNavigation({ waitUntil: 'networkidle2' });
 
-  console.log('URL after clicking bonuslotsen.se logo from /om:', page.url());
+  console.log('URL after clicking Poängpiloten logo from /om:', page.url());
   if (page.url() !== 'http://localhost:3000/') {
     throw new Error(`Expected http://localhost:3000/ after clicking logo, got ${page.url()}`);
   }

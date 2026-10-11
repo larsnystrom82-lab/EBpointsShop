@@ -18,22 +18,22 @@ export const Footer: React.FC = () => {
               href="/"
               className="flex items-center gap-2 text-slate-900 group"
               title="Gå till första sidan: Jämför bonuspoäng"
-              aria-label="bonuslotsen.se - Gå till första sidan: Jämför bonuspoäng"
+              aria-label="Poängpiloten - Gå till första sidan: Jämför bonuspoäng"
             >
               <div
                 className="w-8 h-8 relative flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform"
-                title="bonuslotsen.se-ikonen – Klicka för att gå till första sidan"
+                title="Poängpiloten-ikonen – Klicka för att gå till första sidan"
               >
                 <Image
                   src="/logo.png"
-                  alt="bonuslotsen.se"
+                  alt="Poängpiloten"
                   width={32}
                   height={32}
                   className="w-8 h-8 object-contain"
                 />
               </div>
               <span className="text-lg font-extrabold tracking-tight text-slate-900 group-hover:text-blue-600 transition-colors">
-                bonuslotsen.se
+                Poängpiloten
               </span>
             </Link>
             <p className="text-xs sm:text-sm text-slate-600 max-w-md leading-relaxed">
@@ -64,7 +64,7 @@ export const Footer: React.FC = () => {
               </li>
               <li>
                 <Link href="/om" className="hover:text-blue-600 transition-colors font-medium text-slate-800">
-                  Om bonuslotsen.se &amp; Villkor
+                  Om Poängpiloten &amp; Villkor
                 </Link>
               </li>
               <li>
@@ -126,7 +126,7 @@ export const Footer: React.FC = () => {
         {/* Ansvarsfriskrivning & Oberoende */}
         <div className="border-t border-slate-200/80 pt-6 mt-6 space-y-4 text-xs text-slate-500 leading-relaxed">
           <p className="text-slate-500">
-            bonuslotsen.se är en oberoende jämförelsetjänst och är inte ansluten till, sponsrad av eller godkänd av SAS eller de företag som visas. Varumärkesnamn och logotyper tillhör respektive rättighetsinnehavare och används för att identifiera de företag och tjänster som jämförs.
+            Poängpiloten är en oberoende jämförelsetjänst och är inte ansluten till, sponsrad av eller godkänd av SAS eller de företag som visas. Varumärkesnamn och logotyper tillhör respektive rättighetsinnehavare och används för att identifiera de företag och tjänster som jämförs.
           </p>
 
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pt-2 border-t border-slate-100">
@@ -143,7 +143,7 @@ export const Footer: React.FC = () => {
               </p>
             </div>
             <p className="shrink-0 text-slate-400">
-              © {new Date().getFullYear()} bonuslotsen.se
+              © {new Date().getFullYear()} Poängpiloten (www.poangpiloten.se)
             </p>
           </div>
         </div>
