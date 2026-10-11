@@ -34,11 +34,11 @@ function checkRedirect(host, path, expectedLocation) {
 async function testAll() {
   console.log('--- Testing Permanent Domain Redirects ---');
   const tests = [
-    { host: 'bonuslotsen.se', path: '/', expected: 'https://www.poangpiloten.se' },
+    { host: 'bonuslotsen.se', path: '/', expected: 'https://www.poangpiloten.se/' },
     { host: 'www.bonuslotsen.se', path: '/om', expected: 'https://www.poangpiloten.se/om' },
     { host: 'bonuslotsen.se', path: '/lankar', expected: 'https://www.poangpiloten.se/lankar' },
     { host: 'bonuslotsen.se', path: '/feedback', expected: 'https://www.poangpiloten.se/feedback' },
-    { host: 'poangpiloten.se', path: '/', expected: 'https://www.poangpiloten.se' },
+    { host: 'poangpiloten.se', path: '/', expected: 'https://www.poangpiloten.se/' },
     { host: 'poangpiloten.se', path: '/lankar', expected: 'https://www.poangpiloten.se/lankar' },
   ];
 
