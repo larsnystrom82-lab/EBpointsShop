@@ -247,13 +247,59 @@ const CATEGORY_TABS: { id: ResourceCategory; label: string; icon: React.ElementT
   { id: 'routes', label: 'Rutter & Allianser', icon: Compass },
 ];
 
+function getCategoryBadgeColor(category: string, existingColor?: string): string {
+  if (existingColor) return existingColor;
+  switch (category) {
+    case 'awards':
+      return 'bg-emerald-100 text-emerald-800 border-emerald-200';
+    case 'shopping':
+      return 'bg-amber-100 text-amber-800 border-amber-200';
+    case 'community':
+      return 'bg-purple-100 text-purple-800 border-purple-200';
+    case 'routes':
+      return 'bg-cyan-100 text-cyan-800 border-cyan-200';
+    default:
+      return 'bg-blue-100 text-blue-800 border-blue-200';
+  }
+}
+
+function getCategoryLabel(category: string, label?: string): string {
+  if (label) return label;
+  switch (category) {
+    case 'awards':
+      return 'Sök bonusresor';
+    case 'shopping':
+      return 'Poäng & Shopping';
+    case 'community':
+      return 'Forum & Community';
+    case 'routes':
+      return 'Rutter & Allianser';
+    default:
+      return 'Externa verktyg';
+  }
+}
+
 export default function LankarPage() {
+  const [resources, setResources] = useState<ResourceItem[]>(RESOURCES_DATA);
   const [selectedCategory, setSelectedCategory] = useState<ResourceCategory>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const { openFeedback } = useFeedback();
 
+  React.useEffect(() => {
+    fetch('/api/links')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data?.links && Array.isArray(data.links) && data.links.length > 0) {
+          setResources(data.links);
+        }
+      })
+      .catch((err) => {
+        console.error('Kunde inte läsa in dynamiska länkar:', err);
+      });
+  }, []);
+
   const filteredResources = useMemo(() => {
-    return RESOURCES_DATA.filter((item) => {
+    return resources.filter((item) => {
       // Category filter
       if (selectedCategory !== 'all' && item.category !== selectedCategory) {
         return false;
@@ -262,15 +308,15 @@ export default function LankarPage() {
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase().trim();
         const matchesName = item.name.toLowerCase().includes(q);
-        const matchesTagline = item.tagline.toLowerCase().includes(q);
-        const matchesDesc = item.description.toLowerCase().includes(q);
-        const matchesFeatures = item.features.some((f) => f.toLowerCase().includes(q));
+        const matchesTagline = (item.tagline || '').toLowerCase().includes(q);
+        const matchesDesc = (item.description || '').toLowerCase().includes(q);
+        const matchesFeatures = (item.features || []).some((f) => f.toLowerCase().includes(q));
         const matchesBadge = item.badge?.toLowerCase().includes(q);
         return matchesName || matchesTagline || matchesDesc || matchesFeatures || Boolean(matchesBadge);
       }
       return true;
     });
-  }, [selectedCategory, searchQuery]);
+  }, [resources, selectedCategory, searchQuery]);
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 font-sans text-slate-800">
@@ -317,7 +363,7 @@ export default function LankarPage() {
 
             {/* Results count */}
             <div className="text-xs font-semibold text-slate-500 flex items-center gap-1.5 self-center">
-              <span>Visar {filteredResources.length} av {RESOURCES_DATA.length} resurser</span>
+              <span>Visar {filteredResources.length} av {resources.length} resurser</span>
             </div>
           </div>
 
@@ -378,9 +424,9 @@ export default function LankarPage() {
                     {/* Header badges */}
                     <div className="flex items-center justify-between gap-2 flex-wrap">
                       <span
-                        className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${item.categoryBadgeColor}`}
+                        className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${getCategoryBadgeColor(item.category, item.categoryBadgeColor)}`}
                       >
-                        {item.categoryLabel}
+                        {getCategoryLabel(item.category, item.categoryLabel)}
                       </span>
 
                       {item.badge && (

@@ -543,6 +543,7 @@ export default function Home() {
                   key={route.id}
                   route={route}
                   selectedCards={selectedCards}
+                  categories={categories}
                   onReportError={(r) => setActiveReportRoute(r)}
                 />
               ))}

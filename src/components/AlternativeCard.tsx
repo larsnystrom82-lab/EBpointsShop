@@ -32,12 +32,14 @@ interface AlternativeCardProps {
   route: RouteCalculationResult;
   selectedCards: PaymentCard[];
   onReportError: (route: RouteCalculationResult) => void;
+  categories?: { id: string; name: string }[];
 }
 
 export const AlternativeCard: React.FC<AlternativeCardProps> = ({
   route,
   selectedCards,
   onReportError,
+  categories,
 }) => {
   const [expanded, setExpanded] = useState(false);
 
@@ -93,7 +95,8 @@ export const AlternativeCard: React.FC<AlternativeCardProps> = ({
 
   // Category pill
   const catKey = route.primaryCategory || (route.storeId === 'elgiganten' ? 'electronics' : 'kitchen');
-  const categoryLabel = CATEGORY_NAMES[catKey] || 'Varuhus';
+  const matchedCategory = categories?.find((c) => c.id === catKey);
+  const categoryLabel = matchedCategory?.name || CATEGORY_NAMES[catKey] || 'Varuhus';
 
   const [imgError, setImgError] = useState(false);
 

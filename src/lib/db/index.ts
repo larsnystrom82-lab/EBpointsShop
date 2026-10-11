@@ -132,10 +132,29 @@ export interface StoreMetadataItem {
   updatedBy?: string | null;
 }
 
+export interface ResourceLinkItem {
+  id: string;
+  name: string;
+  tagline: string;
+  category: 'awards' | 'shopping' | 'community' | 'routes' | string;
+  categoryLabel?: string;
+  categoryBadgeColor?: string;
+  badge?: string;
+  badgeColor?: string;
+  description: string;
+  features: string[];
+  url: string;
+  order?: number;
+  isHidden?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 export interface DatabaseSchema {
   zupergiftConfig: ZupergiftConfig;
   zupergiftStores: ZupergiftStoreItem[]; // Fullständig lista över Zupergift-butiker
   sasGiftCards: SasGiftCardStoreItem[];
+  resourceLinks?: ResourceLinkItem[];
   stores: DbStore[];
   categories?: DbCategory[];
   storeCustomMetadata?: Record<string, StoreMetadataItem>;
@@ -172,6 +191,231 @@ const INITIAL_ZUPERGIFT_STORES: ZupergiftStoreItem[] = [
   { id: 'rituals', name: 'Rituals', slug: 'rituals', isHidden: false, isExcluded: false, syncedAt: '2026-10-02T04:00:00.000Z' },
 ];
 
+export const INITIAL_RESOURCE_LINKS: ResourceLinkItem[] = [
+  {
+    id: 'bonussok',
+    name: 'BonusSøk (bonussok.no/sv)',
+    tagline: 'Sök och hitta lediga bonusresor med SAS och SkyTeam',
+    category: 'awards',
+    categoryLabel: 'Sök bonusresor',
+    categoryBadgeColor: 'bg-emerald-100 text-emerald-800 border-emerald-200',
+    badge: 'Mest populära sökmotorn',
+    badgeColor: 'bg-emerald-600 text-white',
+    description:
+      'Ett av de absolut mest uppskattade verktygen för skandinaviska EuroBonus-jägare. Sök snabbt och smidigt efter tillgängliga bonusplatser hos SAS och partnerflygbolag inom SkyTeam (t.ex. Air France, KLM, Delta och Virgin Atlantic). Kalenderöversikten visar tillgänglighet månad för månad i SAS Go, Plus och Business.',
+    features: [
+      'Kalendersök över SAS och SkyTeam bonusplatser',
+      'Se direkt tillgänglighet i Business, Premium & Economy',
+      'Svensk språkversion anpassad för skandinaviska resenärer',
+      'Filtrera på direktflyg, allianspartners eller specifika destinationer',
+    ],
+    url: 'https://www.bonussok.no/sv',
+    order: 1,
+    isHidden: false,
+  },
+  {
+    id: 'awardfares',
+    name: 'AwardFares',
+    tagline: 'Modernt och blixtsnabbt sökverktyg med platsbevakning',
+    category: 'awards',
+    categoryLabel: 'Sök bonusresor',
+    categoryBadgeColor: 'bg-emerald-100 text-emerald-800 border-emerald-200',
+    badge: 'Platsbevakning & Alerts',
+    badgeColor: 'bg-blue-600 text-white',
+    description:
+      'Avancerad sökmotor utvecklad specifikt för frekventa resenärer. Sök bonusresor över flera datum samtidigt, övervaka avgångar och få notiser direkt i samma sekund som en eftertraktad bonusplats i Business Class släpps av flygbolaget.',
+    features: [
+      'Blixtsnabb sökning av tillgängliga EuroBonus-bonusresor',
+      'Automatisk platsbevakning med e-post och pushnotiser',
+      'Tidslinjer och historik för hur bonusplatser brukar släppas',
+      'Stöd för SAS, SkyTeam och flera andra globala program',
+    ],
+    url: 'https://awardfares.com/',
+    order: 2,
+    isHidden: false,
+  },
+  {
+    id: 'seatspy',
+    name: 'SeatSpy',
+    tagline: 'Överskådlig helårskalender för bonusplatser',
+    category: 'awards',
+    categoryLabel: 'Sök bonusresor',
+    categoryBadgeColor: 'bg-emerald-100 text-emerald-800 border-emerald-200',
+    badge: 'Kalendersök',
+    badgeColor: 'bg-indigo-600 text-white',
+    description:
+      'Visar ett helt års tillgänglighet av bonusplatser på en enda skärm. Perfekt när du är flexibel med resdatum och letar efter lediga premiumstolar till populära långdistansresmål i USA, Asien eller Sydeuropa.',
+    features: [
+      'Helårskalender för SAS-avgångar i realtid',
+      'Stöd för SAS Business, SAS Plus och SAS Go',
+      'Enkelt att sätta upp bevakningar på specifika rutter',
+    ],
+    url: 'https://www.seatspy.com/',
+    order: 3,
+    isHidden: false,
+  },
+  {
+    id: 'chatflights',
+    name: 'Chatflights',
+    tagline: 'Personlig conciergetjänst för att boka din drömresa med poäng',
+    category: 'awards',
+    categoryLabel: 'Sök bonusresor',
+    categoryBadgeColor: 'bg-emerald-100 text-emerald-800 border-emerald-200',
+    badge: 'Bokningshjälp & App',
+    badgeColor: 'bg-purple-600 text-white',
+    description:
+      'Svensk app och bokningsbyrå specialiserad på poängresor. Erfarna poängexperter hjälper dig att hitta och boka de absolut bästa tillgängliga bonusresorna med dina EuroBonus-poäng och Amex 2-för-1-vouchers.',
+    features: [
+      'Personlig support via chatt i appen',
+      'Hjälper dig nyttja Amex 2-för-1-förmånen optimalt',
+      'Perfekt för komplexa rutter och multi-city-bokningar',
+    ],
+    url: 'https://chatflights.se/',
+    order: 4,
+    isHidden: false,
+  },
+  {
+    id: 'eurobonusguiden',
+    name: 'EuroBonusguiden.se',
+    tagline: 'Sveriges ledande guide- och nyhetssajt för EuroBonus',
+    category: 'shopping',
+    categoryLabel: 'Guider & Kampanjer',
+    categoryBadgeColor: 'bg-amber-100 text-amber-800 border-amber-200',
+    badge: 'Guider & Nyheter',
+    badgeColor: 'bg-amber-600 text-white',
+    description:
+      'En guldgruva av kunskap för alla som vill samla och maximera poäng. Här hittar du pedagogiska guider om aktuella kampanjer, kreditkortstester, strategier för statusjakt och smarta tips för vardagspoäng.',
+    features: [
+      'Nyheter om poängkampanjer och dubbla poäng-helger',
+      'Djupgående tester av SAS kreditkort',
+      'Eurobonusskolan från grunderna till expertnivå',
+    ],
+    url: 'https://eurobonusguiden.se/',
+    order: 5,
+    isHidden: false,
+  },
+  {
+    id: 'sas-online-shopping',
+    name: 'SAS EuroBonus Online Shopping',
+    tagline: 'Officiella shoppingportalen med över 450 butiker',
+    category: 'shopping',
+    categoryLabel: 'Poäng & Shopping',
+    categoryBadgeColor: 'bg-amber-100 text-amber-800 border-amber-200',
+    badge: 'Officiell SAS-portal',
+    badgeColor: 'bg-blue-700 text-white',
+    description:
+      'SAS egen shoppingportal. Genom att klicka dig vidare till anslutna webbutiker tjänar du Extrapoäng och Nivåpoäng på allt från elektronik och kläder till inredning, hotell och böcker.',
+    features: [
+      '450+ anslutna nätbutiker i Sverige och Norden',
+      'Regelbundna kampanjer med upp till 100 poäng per 100 kr',
+      'Poängen registreras automatiskt på ditt EuroBonus-konto',
+    ],
+    url: 'https://onlineshopping.flysas.com/sv-SE/',
+    order: 6,
+    isHidden: false,
+  },
+  {
+    id: 'sas-giftcards',
+    name: 'SAS EuroBonus Shop (Presentkort & Zupergift)',
+    tagline: 'Köp digitala presentkort och Zupergift med poängintjäning',
+    category: 'shopping',
+    categoryLabel: 'Poäng & Shopping',
+    categoryBadgeColor: 'bg-amber-100 text-amber-800 border-amber-200',
+    badge: 'Officiell shop',
+    badgeColor: 'bg-blue-700 text-white',
+    description:
+      'Den officiella poängshopen där du kan köpa digitala presentkort och Zupergift-kort med ditt betalkort och tjäna upp till 50 Extrapoäng per 100 kr vid aktiva kampanjer.',
+    features: [
+      'Digitala presentkort som levereras direkt via e-post/SMS',
+      'Zupergift som kan växlas till över 100 kända butiker',
+      'Kombinera med SAS kreditkort för maximal totalintjäning',
+    ],
+    url: 'https://www.saseurobonusshop.com/se/gift-cards-vouchers',
+    order: 7,
+    isHidden: false,
+  },
+  {
+    id: 'businessclass',
+    name: 'BusinessClass.se Forum',
+    tagline: 'Nordens största mötesplats för frekventa resenärer',
+    category: 'community',
+    categoryLabel: 'Forum & Community',
+    categoryBadgeColor: 'bg-purple-100 text-purple-800 border-purple-200',
+    badge: 'Nordens största forum',
+    badgeColor: 'bg-purple-600 text-white',
+    description:
+      'Den centrala mötesplatsen för svenska EuroBonus-entusiaster. Här diskuteras de senaste sweetspotsen, nysläppta bonusstolar, kreditkortsstrategier, lounge-upplevelser och flygnyheter.',
+    features: [
+      'Dedikerad sektion för SAS EuroBonus och SkyTeam',
+      'Trådar med tips om nyligen släppta bonusstolar i Business Class',
+      'Hjälp från erfarna resenärer med rutter och regler',
+    ],
+    url: 'https://www.businessclass.com/forum/',
+    order: 8,
+    isHidden: false,
+  },
+  {
+    id: 'facebook-group',
+    name: 'SAS EuroBonus Forum (Facebook)',
+    tagline: 'Aktiv Facebook-community med tiotusentals poängjägare',
+    category: 'community',
+    categoryLabel: 'Forum & Community',
+    categoryBadgeColor: 'bg-purple-100 text-purple-800 border-purple-200',
+    badge: 'Stor community',
+    badgeColor: 'bg-indigo-600 text-white',
+    description:
+      'Sveriges mest aktiva Facebook-grupp om EuroBonus. Tusentals inlägg och kommentarer varje månad med snabba svar på frågor, kampanjtips, kreditkortserfarenheter och medlemsförmåner.',
+    features: [
+      'Snabba svar på frågor om biljetter, skatter och vouchers',
+      'Realtidstips när kampanjer och kampanjkoder dyker upp',
+      'Aktivt erfarenhetsutbyte kring kreditkort och intjäning',
+    ],
+    url: 'https://www.facebook.com/groups/sas.eurobonus/',
+    order: 9,
+    isHidden: false,
+  },
+  {
+    id: 'flightconnections',
+    name: 'FlightConnections',
+    tagline: 'Interaktiv ruttkarta över alla världens direktflyg',
+    category: 'routes',
+    categoryLabel: 'Rutter & Allianser',
+    categoryBadgeColor: 'bg-cyan-100 text-cyan-800 border-cyan-200',
+    badge: 'Ruttkarta',
+    badgeColor: 'bg-cyan-700 text-white',
+    description:
+      'Ett ovärderligt verktyg när du planerar bonusresor. Filtrera på flygbolag (t.ex. SAS, KLM, Air France, Delta) eller alliansen SkyTeam för att se alla direktlinjer och möjliga transferflygplatser i världen.',
+    features: [
+      'Filtrera efter specifika SkyTeam-bolag eller SAS',
+      'Se vilka dagar i veckan linjer trafikeras',
+      'Upptäck oväntade rutter och transferhubbar för bonusresor',
+    ],
+    url: 'https://www.flightconnections.com/',
+    order: 10,
+    isHidden: false,
+  },
+  {
+    id: 'skyteam',
+    name: 'SkyTeam Alliance',
+    tagline: 'SAS globala flygallians sedan september 2024',
+    category: 'routes',
+    categoryLabel: 'Rutter & Allianser',
+    categoryBadgeColor: 'bg-cyan-100 text-cyan-800 border-cyan-200',
+    badge: 'Officiell allians',
+    badgeColor: 'bg-slate-800 text-white',
+    description:
+      'SAS är officiell medlem i SkyTeam. På alliansens webbplats hittar du information om alla 19 partnerflygbolag (Air France, KLM, Delta, Virgin Atlantic, Korean Air m.fl.), SkyPriority-förmåner och lounger.',
+    features: [
+      'Översikt över alla 19 medlemsflygbolag',
+      'Information om SkyTeam Elite och Elite Plus (motsvarar Silver & Guld)',
+      'Lounge-finder för över 750 flygplatslounger i världen',
+    ],
+    url: 'https://www.skyteam.com/',
+    order: 11,
+    isHidden: false,
+  },
+];
+
 export const INITIAL_CATEGORIES: DbCategory[] = [
   { id: 'food', name: 'Mat & Restaurang', order: 1, isActive: true },
   { id: 'kitchen', name: 'Hem & Kök', order: 2, isActive: true },
@@ -198,6 +442,7 @@ const INITIAL_DATA: DatabaseSchema = {
     note: 'Standardkampanj på SAS EuroBonus Shop för Zupergift',
   },
   zupergiftStores: INITIAL_ZUPERGIFT_STORES,
+  resourceLinks: INITIAL_RESOURCE_LINKS,
   categories: INITIAL_CATEGORIES,
   stores: [
     {
@@ -482,6 +727,12 @@ export function getDatabase(): DatabaseSchema {
     // Initialize excludedStoreIds if missing
     if (!parsed.excludedStoreIds || !Array.isArray(parsed.excludedStoreIds)) {
       parsed.excludedStoreIds = [];
+      saveDatabase(parsed);
+    }
+
+    // Initialize resourceLinks if missing (backward compat)
+    if (!parsed.resourceLinks || !Array.isArray(parsed.resourceLinks) || parsed.resourceLinks.length === 0) {
+      parsed.resourceLinks = INITIAL_RESOURCE_LINKS;
       saveDatabase(parsed);
     }
 

@@ -33,8 +33,10 @@ import {
   X,
   ChevronDown,
   Upload,
+  Globe,
+  Link2,
 } from 'lucide-react';
-import type { DatabaseSchema, DbStore, ZupergiftStoreItem } from '@/lib/db';
+import type { DatabaseSchema, DbStore, ZupergiftStoreItem, ResourceLinkItem } from '@/lib/db';
 import type { Store } from '@/types/domain';
 import { DEMO_CATEGORIES } from '@/lib/fixtures/demo-data';
 import { isCampaignActive, getCampaignRemainingInfo } from '@/lib/utils/campaign';
@@ -80,9 +82,44 @@ export default function AdminPage() {
   const [loginError, setLoginError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const [activeTab, setActiveTab] = useState<'all_stores' | 'zupergift' | 'sas_giftcards' | 'stores' | 'categories' | 'reports' | 'audit'>('all_stores');
+  const [activeTab, setActiveTab] = useState<'all_stores' | 'zupergift' | 'sas_giftcards' | 'stores' | 'categories' | 'links' | 'reports' | 'audit'>('all_stores');
   const [dbData, setDbData] = useState<AdminData | null>(null);
   const [statusMessage, setStatusMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
+
+  // Form & filter states for "Länkar & Resurser" tab
+  const [linksSearch, setLinksSearch] = useState('');
+  const [linksCategoryFilter, setLinksCategoryFilter] = useState<string>('all');
+  const [linksStatusFilter, setLinksStatusFilter] = useState<'all' | 'visible' | 'hidden'>('all');
+  const [editingLinkId, setEditingLinkId] = useState<string | null>(null);
+  const [isAddingLink, setIsAddingLink] = useState(false);
+  const [linkFormData, setLinkFormData] = useState<{
+    id?: string;
+    name: string;
+    tagline: string;
+    category: string;
+    categoryLabel: string;
+    badge: string;
+    badgeColor: string;
+    description: string;
+    featuresText: string;
+    url: string;
+    order: number;
+    isHidden: boolean;
+  }>({
+    name: '',
+    tagline: '',
+    category: 'awards',
+    categoryLabel: 'Sök bonusresor',
+    badge: '',
+    badgeColor: '',
+    description: '',
+    featuresText: '',
+    url: '',
+    order: 1,
+    isHidden: false,
+  });
+  const [savingLink, setSavingLink] = useState(false);
+  const [deletingLinkId, setDeletingLinkId] = useState<string | null>(null);
 
   // States for "Alla butiker" tab
   const [allStoresSearch, setAllStoresSearch] = useState('');
@@ -1014,6 +1051,169 @@ export default function AdminPage() {
     });
   }, [dbData?.allStores, allStoresFilter, allStoresCategoryFilter, allStoresSearch, excludeHidden, categoryNameMap, storeMetadataEdits]);
 
+  // Filtered links for "Länkar & Resurser" tab
+  const filteredResourceLinks = useMemo(() => {
+    const list = dbData?.resourceLinks || [];
+    return list.filter((item) => {
+      if (linksStatusFilter === 'visible' && item.isHidden) return false;
+      if (linksStatusFilter === 'hidden' && !item.isHidden) return false;
+      if (linksCategoryFilter !== 'all' && item.category !== linksCategoryFilter) return false;
+
+      if (linksSearch.trim()) {
+        const q = linksSearch.trim().toLowerCase();
+        const matchesName = (item.name || '').toLowerCase().includes(q);
+        const matchesTagline = (item.tagline || '').toLowerCase().includes(q);
+        const matchesUrl = (item.url || '').toLowerCase().includes(q);
+        const matchesDesc = (item.description || '').toLowerCase().includes(q);
+        const matchesBadge = (item.badge || '').toLowerCase().includes(q);
+        return matchesName || matchesTagline || matchesUrl || matchesDesc || matchesBadge;
+      }
+      return true;
+    }).sort((a, b) => (a.order ?? 999) - (b.order ?? 999));
+  }, [dbData?.resourceLinks, linksStatusFilter, linksCategoryFilter, linksSearch]);
+
+  const handleStartAddLink = () => {
+    const nextOrder = (dbData?.resourceLinks?.length || 0) + 1;
+    setLinkFormData({
+      name: '',
+      tagline: '',
+      category: 'awards',
+      categoryLabel: 'Sök bonusresor',
+      badge: '',
+      badgeColor: '',
+      description: '',
+      featuresText: '',
+      url: '',
+      order: nextOrder,
+      isHidden: false,
+    });
+    setEditingLinkId(null);
+    setIsAddingLink(true);
+  };
+
+  const handleStartEditLink = (item: ResourceLinkItem) => {
+    setLinkFormData({
+      id: item.id,
+      name: item.name,
+      tagline: item.tagline || '',
+      category: item.category,
+      categoryLabel: item.categoryLabel || '',
+      badge: item.badge || '',
+      badgeColor: item.badgeColor || '',
+      description: item.description || '',
+      featuresText: (item.features || []).join('\n'),
+      url: item.url,
+      order: item.order ?? 1,
+      isHidden: Boolean(item.isHidden),
+    });
+    setIsAddingLink(false);
+    setEditingLinkId(item.id);
+  };
+
+  const handleCancelLinkEdit = () => {
+    setIsAddingLink(false);
+    setEditingLinkId(null);
+  };
+
+  const handleSaveLink = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!linkFormData.name.trim() || !linkFormData.url.trim()) {
+      setStatusMessage({ text: 'Namn och URL är obligatoriska fält.', type: 'error' });
+      return;
+    }
+
+    setSavingLink(true);
+    try {
+      const cleanFeatures = linkFormData.featuresText
+        .split('\n')
+        .map((f) => f.trim())
+        .filter(Boolean);
+
+      const endpoint = '/api/admin/resource-link';
+      const isEdit = Boolean(editingLinkId);
+
+      const res = await fetch(endpoint, {
+        method: isEdit ? 'PATCH' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: editingLinkId,
+          name: linkFormData.name.trim(),
+          tagline: linkFormData.tagline.trim(),
+          category: linkFormData.category,
+          categoryLabel: linkFormData.categoryLabel.trim() || undefined,
+          badge: linkFormData.badge.trim() || undefined,
+          badgeColor: linkFormData.badgeColor.trim() || undefined,
+          description: linkFormData.description.trim(),
+          features: cleanFeatures,
+          url: linkFormData.url.trim(),
+          order: Number(linkFormData.order) || 1,
+          isHidden: linkFormData.isHidden,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Kunde inte spara länken');
+      }
+
+      setStatusMessage({
+        text: isEdit ? `Länken "${linkFormData.name}" har uppdaterats!` : `Ny länk "${linkFormData.name}" har lagts till!`,
+        type: 'success',
+      });
+      setIsAddingLink(false);
+      setEditingLinkId(null);
+      await fetchAdminData();
+    } catch (err: any) {
+      setStatusMessage({ text: err.message || 'Kunde inte spara länken', type: 'error' });
+    } finally {
+      setSavingLink(false);
+    }
+  };
+
+  const handleToggleLinkHidden = async (item: ResourceLinkItem) => {
+    try {
+      const res = await fetch('/api/admin/resource-link', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: item.id,
+          isHidden: !item.isHidden,
+        }),
+      });
+      if (res.ok) {
+        setStatusMessage({
+          text: item.isHidden ? `Länken "${item.name}" är nu synlig på /lankar` : `Länken "${item.name}" är nu dold`,
+          type: 'success',
+        });
+        await fetchAdminData();
+      }
+    } catch (err) {
+      setStatusMessage({ text: 'Kunde inte ändra status för länken', type: 'error' });
+    }
+  };
+
+  const handleDeleteLink = async (item: ResourceLinkItem) => {
+    if (!confirm(`Är du säker på att du vill ta bort länken "${item.name}" permanent från /lankar?`)) {
+      return;
+    }
+    setDeletingLinkId(item.id);
+    try {
+      const res = await fetch(`/api/admin/resource-link?id=${encodeURIComponent(item.id)}`, {
+        method: 'DELETE',
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Kunde inte ta bort länken');
+      }
+      setStatusMessage({ text: `Länken "${item.name}" har tagits bort.`, type: 'success' });
+      await fetchAdminData();
+    } catch (err: any) {
+      setStatusMessage({ text: err.message || 'Kunde inte ta bort länken', type: 'error' });
+    } finally {
+      setDeletingLinkId(null);
+    }
+  };
+
   if (isAuthenticated === false) {
     return (
       <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
@@ -1193,6 +1393,19 @@ export default function AdminPage() {
           >
             <Tag className="w-4 h-4 text-emerald-600" />
             <span>Kategorier ({dbData?.categories?.length || DEMO_CATEGORIES.length})</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab('links')}
+            className={`px-4 py-2.5 rounded-t-xl text-xs sm:text-sm font-bold flex items-center gap-2 border-b-2 transition-all ${
+              activeTab === 'links'
+                ? 'bg-white text-blue-600 border-blue-600 shadow-2xs'
+                : 'text-slate-600 hover:text-slate-900 border-transparent'
+            }`}
+          >
+            <Globe className="w-4 h-4 text-cyan-600" />
+            <span>Länkar &amp; Resurser ({dbData?.resourceLinks?.length || 0})</span>
           </button>
 
           <button
@@ -3535,6 +3748,430 @@ export default function AdminPage() {
                 onChange={handleCategoryFileUpload}
                 className="hidden"
               />
+            </div>
+          </div>
+        )}
+
+        {/* TAB: LÄNKAR & RESURSER (/lankar) */}
+        {activeTab === 'links' && (
+          <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-xs border border-slate-200/90 space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <h2 className="text-xl font-black text-slate-900 flex items-center gap-2">
+                  <Globe className="w-5 h-5 text-cyan-600" />
+                  <span>Länkar &amp; Resurser (/lankar)</span>
+                </h2>
+                <p className="text-xs sm:text-sm text-slate-500 mt-1">
+                  Administrera de externa verktygen, sökmotorerna, forumen och guiderna som rekommenderas för användarna.
+                </p>
+              </div>
+
+              {!isAddingLink && !editingLinkId && (
+                <button
+                  type="button"
+                  onClick={handleStartAddLink}
+                  className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs sm:text-sm flex items-center gap-2 shadow-xs transition-colors cursor-pointer self-start sm:self-auto"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Lägg till ny länk</span>
+                </button>
+              )}
+            </div>
+
+            {/* Formulär för att lägga till eller redigera länk */}
+            {(isAddingLink || editingLinkId) && (
+              <form
+                onSubmit={handleSaveLink}
+                className="p-6 rounded-2xl bg-slate-50 border border-slate-200 space-y-5"
+              >
+                <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+                  <h3 className="font-extrabold text-sm sm:text-base text-slate-900 flex items-center gap-2">
+                    {editingLinkId ? (
+                      <>
+                        <Edit2 className="w-4 h-4 text-blue-600" />
+                        <span>Redigera länk: {linkFormData.name || 'Namnlös'}</span>
+                      </>
+                    ) : (
+                      <>
+                        <Plus className="w-4 h-4 text-emerald-600" />
+                        <span>Lägg till ny extern länk</span>
+                      </>
+                    )}
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={handleCancelLinkEdit}
+                    className="text-xs font-semibold text-slate-500 hover:text-slate-800 flex items-center gap-1 cursor-pointer"
+                  >
+                    <X className="w-4 h-4" />
+                    <span>Avbryt</span>
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Namn */}
+                  <div className="space-y-1">
+                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                      Namn / Rubrik *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={linkFormData.name}
+                      onChange={(e) => setLinkFormData({ ...linkFormData, name: e.target.value })}
+                      placeholder="t.ex. BonusSøk (bonussok.no/sv)"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-xs sm:text-sm font-medium text-slate-900 focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
+                    />
+                  </div>
+
+                  {/* Webbadress URL */}
+                  <div className="space-y-1">
+                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                      Webbadress (URL) *
+                    </label>
+                    <input
+                      type="url"
+                      required
+                      value={linkFormData.url}
+                      onChange={(e) => setLinkFormData({ ...linkFormData, url: e.target.value })}
+                      placeholder="https://www.bonussok.no/sv"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-xs sm:text-sm font-medium text-slate-900 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 font-mono"
+                    />
+                  </div>
+
+                  {/* Tagline / Ingress */}
+                  <div className="space-y-1 md:col-span-2">
+                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                      Tagline / Kort sammanfattning
+                    </label>
+                    <input
+                      type="text"
+                      value={linkFormData.tagline}
+                      onChange={(e) => setLinkFormData({ ...linkFormData, tagline: e.target.value })}
+                      placeholder="t.ex. Sök och hitta lediga bonusresor med SAS och SkyTeam"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-xs sm:text-sm font-medium text-slate-900 focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
+                    />
+                  </div>
+
+                  {/* Kategori */}
+                  <div className="space-y-1">
+                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                      Kategori
+                    </label>
+                    <select
+                      value={linkFormData.category}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        let autoLabel = 'Sök bonusresor';
+                        if (val === 'shopping') autoLabel = 'Poäng & Shopping';
+                        if (val === 'community') autoLabel = 'Forum & Community';
+                        if (val === 'routes') autoLabel = 'Rutter & Allianser';
+                        setLinkFormData({
+                          ...linkFormData,
+                          category: val,
+                          categoryLabel: autoLabel,
+                        });
+                      }}
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-xs sm:text-sm font-medium text-slate-900 focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
+                    >
+                      <option value="awards">Sök bonusresor (awards)</option>
+                      <option value="shopping">Poäng &amp; Shopping (shopping)</option>
+                      <option value="community">Forum &amp; Community (community)</option>
+                      <option value="routes">Rutter &amp; Allianser (routes)</option>
+                    </select>
+                  </div>
+
+                  {/* Kategori-etikett */}
+                  <div className="space-y-1">
+                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                      Visningsetikett för kategori
+                    </label>
+                    <input
+                      type="text"
+                      value={linkFormData.categoryLabel}
+                      onChange={(e) => setLinkFormData({ ...linkFormData, categoryLabel: e.target.value })}
+                      placeholder="t.ex. Sök bonusresor"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-xs sm:text-sm font-medium text-slate-900 focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
+                    />
+                  </div>
+
+                  {/* Highlight-badge */}
+                  <div className="space-y-1">
+                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                      Valfri highlight-badge (t.ex. Mest populär)
+                    </label>
+                    <input
+                      type="text"
+                      value={linkFormData.badge}
+                      onChange={(e) => setLinkFormData({ ...linkFormData, badge: e.target.value })}
+                      placeholder="t.ex. Mest populära sökmotorn"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-xs sm:text-sm font-medium text-slate-900 focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
+                    />
+                  </div>
+
+                  {/* Sorteringsordning */}
+                  <div className="space-y-1">
+                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                      Sorteringsordning (1 = först)
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      value={linkFormData.order}
+                      onChange={(e) => setLinkFormData({ ...linkFormData, order: Number(e.target.value) || 1 })}
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-xs sm:text-sm font-medium text-slate-900 focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
+                    />
+                  </div>
+
+                  {/* Beskrivning */}
+                  <div className="space-y-1 md:col-span-2">
+                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                      Beskrivning
+                    </label>
+                    <textarea
+                      rows={3}
+                      value={linkFormData.description}
+                      onChange={(e) => setLinkFormData({ ...linkFormData, description: e.target.value })}
+                      placeholder="Beskriv vad tjänsten gör, fördelar och hur den hjälper EuroBonus-jägare..."
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-xs sm:text-sm font-medium text-slate-900 focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
+                    />
+                  </div>
+
+                  {/* Punkter / Funktioner */}
+                  <div className="space-y-1 md:col-span-2">
+                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                      Viktiga funktioner / punkter (en punkt per rad)
+                    </label>
+                    <textarea
+                      rows={4}
+                      value={linkFormData.featuresText}
+                      onChange={(e) => setLinkFormData({ ...linkFormData, featuresText: e.target.value })}
+                      placeholder={"Kalendersök över SAS och SkyTeam\nSe direkt tillgänglighet i Business Class\nStöd för flera avgångar"}
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-xs sm:text-sm font-medium text-slate-900 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 font-mono text-xs"
+                    />
+                  </div>
+
+                  {/* Dölj länken */}
+                  <div className="md:col-span-2 flex items-center gap-2 pt-2">
+                    <label className="inline-flex items-center gap-2 cursor-pointer select-none text-xs font-bold text-slate-700">
+                      <input
+                        type="checkbox"
+                        checked={linkFormData.isHidden}
+                        onChange={(e) => setLinkFormData({ ...linkFormData, isHidden: e.target.checked })}
+                        className="w-4 h-4 rounded border-slate-300 text-amber-600 focus:ring-amber-500 cursor-pointer"
+                      />
+                      <span>Dölj länken på /lankar (visas inte för vanliga besökare)</span>
+                    </label>
+                  </div>
+                </div>
+
+                {/* Knappar */}
+                <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-200">
+                  <button
+                    type="button"
+                    onClick={handleCancelLinkEdit}
+                    className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-200 transition-colors cursor-pointer"
+                  >
+                    Avbryt
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={savingLink}
+                    className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs sm:text-sm flex items-center gap-2 shadow-xs transition-colors cursor-pointer disabled:opacity-50"
+                  >
+                    <Save className="w-4 h-4" />
+                    <span>{savingLink ? 'Sparar...' : editingLinkId ? 'Uppdatera länk' : 'Skapa länk'}</span>
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {/* Sök och filterrad */}
+            <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between pt-2">
+              <div className="flex flex-col sm:flex-row gap-2 flex-1">
+                <div className="relative flex-1 max-w-sm">
+                  <Search className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
+                  <input
+                    type="text"
+                    value={linksSearch}
+                    onChange={(e) => setLinksSearch(e.target.value)}
+                    placeholder="Sök bland administrerade länkar..."
+                    className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-200 bg-white text-xs sm:text-sm font-medium text-slate-900 focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
+                  />
+                  {linksSearch && (
+                    <button
+                      type="button"
+                      onClick={() => setLinksSearch('')}
+                      className="absolute right-2.5 top-2.5 text-xs text-slate-400 hover:text-slate-600"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+
+                <select
+                  value={linksCategoryFilter}
+                  onChange={(e) => setLinksCategoryFilter(e.target.value)}
+                  className="px-3 py-2 rounded-xl border border-slate-200 bg-white text-xs sm:text-sm font-semibold text-slate-700 focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
+                >
+                  <option value="all">Alla kategorier</option>
+                  <option value="awards">Sök bonusresor</option>
+                  <option value="shopping">Poäng &amp; Shopping</option>
+                  <option value="community">Forum &amp; Community</option>
+                  <option value="routes">Rutter &amp; Allianser</option>
+                </select>
+
+                <select
+                  value={linksStatusFilter}
+                  onChange={(e) => setLinksStatusFilter(e.target.value as any)}
+                  className="px-3 py-2 rounded-xl border border-slate-200 bg-white text-xs sm:text-sm font-semibold text-slate-700 focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
+                >
+                  <option value="all">Alla statusar</option>
+                  <option value="visible">Endast synliga</option>
+                  <option value="hidden">Endast dolda</option>
+                </select>
+              </div>
+
+              <div className="text-xs text-slate-500 font-medium self-center sm:self-auto">
+                Visar {filteredResourceLinks.length} av {dbData?.resourceLinks?.length || 0} länkar
+              </div>
+            </div>
+
+            {/* Listning av länkar */}
+            <div className="space-y-3 pt-2">
+              {filteredResourceLinks.length === 0 ? (
+                <div className="p-8 text-center text-xs text-slate-500 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+                  Inga länkar matchade filtret eller sökningen.
+                </div>
+              ) : (
+                filteredResourceLinks.map((item) => {
+                  const isDeleting = deletingLinkId === item.id;
+                  return (
+                    <div
+                      key={item.id}
+                      className={`p-4 sm:p-5 rounded-2xl border transition-all ${
+                        item.isHidden
+                          ? 'bg-slate-50/80 border-slate-200 opacity-80'
+                          : 'bg-white border-slate-200 hover:border-slate-300 shadow-2xs'
+                      }`}
+                    >
+                      <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
+                        {/* Vänster: Information */}
+                        <div className="space-y-2 flex-1">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-mono text-[11px] text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">
+                              #{item.order ?? '-'}
+                            </span>
+                            <h3 className="font-bold text-sm sm:text-base text-slate-900 flex items-center gap-1.5">
+                              <span>{item.name}</span>
+                            </h3>
+                            <a
+                              href={item.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-xs text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1 font-mono break-all"
+                              title="Öppna länk i ny flik"
+                            >
+                              <span>{item.url}</span>
+                              <ExternalLink className="w-3 h-3 shrink-0" />
+                            </a>
+                          </div>
+
+                          {item.tagline && (
+                            <p className="text-xs font-semibold text-slate-700">
+                              {item.tagline}
+                            </p>
+                          )}
+
+                          {item.description && (
+                            <p className="text-xs text-slate-500 line-clamp-2">
+                              {item.description}
+                            </p>
+                          )}
+
+                          {/* Taggar & Badges */}
+                          <div className="flex items-center gap-1.5 flex-wrap pt-1">
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+                              {item.categoryLabel || item.category}
+                            </span>
+
+                            {item.badge && (
+                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-50 text-amber-800 border border-amber-200">
+                                ★ {item.badge}
+                              </span>
+                            )}
+
+                            {item.isHidden ? (
+                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-200 text-slate-600 flex items-center gap-1">
+                                <EyeOff className="w-3 h-3" />
+                                Dold på /lankar
+                              </span>
+                            ) : (
+                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 flex items-center gap-1">
+                                <Eye className="w-3 h-3" />
+                                Synlig på /lankar
+                              </span>
+                            )}
+
+                            {item.features && item.features.length > 0 && (
+                              <span className="text-[10px] text-slate-400">
+                                ({item.features.length} punkter angivna)
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Höger: Snabbknappar */}
+                        <div className="flex items-center gap-2 shrink-0 self-end md:self-start">
+                          <button
+                            type="button"
+                            onClick={() => handleToggleLinkHidden(item)}
+                            className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 border transition-colors cursor-pointer ${
+                              item.isHidden
+                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
+                                : 'bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200'
+                            }`}
+                            title={item.isHidden ? 'Gör synlig på /lankar' : 'Dölj från /lankar'}
+                          >
+                            {item.isHidden ? (
+                              <>
+                                <Eye className="w-3.5 h-3.5" />
+                                <span>Visa</span>
+                              </>
+                            ) : (
+                              <>
+                                <EyeOff className="w-3.5 h-3.5" />
+                                <span>Dölj</span>
+                              </>
+                            )}
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => handleStartEditLink(item)}
+                            className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 flex items-center gap-1.5 transition-colors cursor-pointer"
+                            title="Redigera länkinformation"
+                          >
+                            <Edit2 className="w-3.5 h-3.5" />
+                            <span>Redigera</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            disabled={isDeleting}
+                            onClick={() => handleDeleteLink(item)}
+                            className="px-3 py-1.5 rounded-xl text-xs font-semibold text-rose-600 hover:bg-rose-50 border border-rose-200 flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50"
+                            title="Ta bort länken permanent"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                            <span>{isDeleting ? 'Tar bort...' : 'Ta bort'}</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
             </div>
           </div>
         )}
