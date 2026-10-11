@@ -443,11 +443,6 @@ export const StoreMultiSelectDropdown: React.FC<StoreMultiSelectDropdownProps> =
                               </span>
                             )}
                           </div>
-                          {group.zupergiftSupported && (
-                            <span className="text-[10px] font-medium text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded">
-                              Zupergift
-                            </span>
-                          )}
                         </div>
                       </div>
 
@@ -522,11 +517,6 @@ export const StoreMultiSelectDropdown: React.FC<StoreMultiSelectDropdownProps> =
                               </span>
                             )}
                           </div>
-                          {group.zupergiftSupported && (
-                            <span className="text-[10px] font-normal text-slate-500">
-                              Zupergift
-                            </span>
-                          )}
                         </div>
                       </div>
 
