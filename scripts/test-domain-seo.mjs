@@ -31,6 +31,12 @@ async function testSeo() {
     console.error('✗ Robots MISSING sitemap pointer');
     passed = false;
   }
+  if (robotsText.includes('Allow: /api/config') && robotsText.includes('Disallow: /api/')) {
+    console.log('✓ Robots explicitly allows /api/config and disallows other /api/ routes');
+  } else {
+    console.error('✗ Robots missing /api/config allow rule');
+    passed = false;
+  }
 
   console.log('\n--- 3. Testing Canonical tags ---');
   const pagesToTest = [
