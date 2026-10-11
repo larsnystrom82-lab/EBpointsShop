@@ -8,11 +8,9 @@ import {
   ExternalLink,
   Flag,
   CheckCircle2,
-  Clock,
   Sparkles,
 } from 'lucide-react';
 import Image from 'next/image';
-import { formatLastChecked } from '@/lib/utils/formatDate';
 import { getCampaignRemainingInfo } from '@/lib/utils/campaign';
 
 export const CATEGORY_NAMES: Record<string, string> = {
@@ -181,12 +179,9 @@ export const AlternativeCard: React.FC<AlternativeCardProps> = ({
               )}
             </div>
 
-            {/* Breadcrumb och kontrolltid */}
+            {/* Breadcrumb */}
             <div className="text-xs text-slate-500 font-medium">
               {breadcrumb}
-            </div>
-            <div suppressHydrationWarning className="text-[11px] text-slate-400">
-              {formatLastChecked(route.lastCheckedAt)}
             </div>
           </div>
         </div>
@@ -318,9 +313,6 @@ export const AlternativeCard: React.FC<AlternativeCardProps> = ({
                     Engångsbonus
                   </span>
                 )}
-              </div>
-              <div suppressHydrationWarning className="text-[10px] text-slate-400 mt-0.5">
-                {formatLastChecked(route.lastCheckedAt)}
               </div>
             </div>
           </div>

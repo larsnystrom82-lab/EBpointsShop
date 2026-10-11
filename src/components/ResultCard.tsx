@@ -7,7 +7,6 @@ import {
   ChevronDown,
   ChevronUp,
   AlertCircle,
-  Clock,
   Sparkles,
   Footprints,
   CreditCard,
@@ -15,7 +14,6 @@ import {
   CheckCircle2,
 } from 'lucide-react';
 import Image from 'next/image';
-import { formatLastChecked } from '@/lib/utils/formatDate';
 
 interface ResultCardProps {
   route: RouteCalculationResult;
@@ -42,9 +40,6 @@ export const ResultCard: React.FC<ResultCardProps> = ({
   const bestOutcome = route.selectedCardOutcome;
   const totalBonusPoints = bestOutcome ? bestOutcome.totalBonusPoints : route.baseBonusPoints;
   const totalTierPoints = bestOutcome ? bestOutcome.totalTierPoints : route.baseTierPoints;
-
-  // Format date in Swedish locale
-  const formattedCheckedTime = formatLastChecked(route.lastCheckedAt, 'Kontrollerad');
 
   return (
     <article
@@ -300,17 +295,12 @@ export const ResultCard: React.FC<ResultCardProps> = ({
         </div>
       )}
 
-      {/* 7. Footer: Senaste kontroll, åtgärder, felrapportering */}
+      {/* 7. Footer: Åtgärder, felrapportering */}
       <div className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-white mt-auto">
         <div className="flex items-center gap-3 text-xs text-slate-500">
           <span className="flex items-center gap-1">
             <Footprints className="w-3.5 h-3.5 text-slate-400" />
-            {route.totalSteps} {route.totalSteps === 1 ? 'steg' : 'steg'}
-          </span>
-          <span>·</span>
-          <span className="flex items-center gap-1" title="Senaste lyckade kontroll" suppressHydrationWarning>
-            <Clock className="w-3.5 h-3.5 text-slate-400" />
-            {formattedCheckedTime}
+            {route.totalSteps} steg
           </span>
         </div>
 
