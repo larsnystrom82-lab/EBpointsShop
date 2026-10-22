@@ -292,8 +292,19 @@ export async function syncSasGiftCardStores(): Promise<{
     }
   }
 
-  // Fallback baseline: known stores if scraping completely failed
+  // Safety guard: if SAS EuroBonus Shop could not be reached and we already have stores in db.sasGiftCards,
+  // do NOT overwrite the catalog with a small baseline or mark existing stores as missing!
   if (discoveredMap.size === 0) {
+    if (db.sasGiftCards && db.sasGiftCards.length > 0) {
+      return {
+        success: false,
+        totalDiscovered: 0,
+        newStoresAdded: 0,
+        matchedStores: [],
+        message: `Kunde inte nå SAS EuroBonus Shop live. Befintliga ${db.sasGiftCards.length} presentkortsbutiker har behållits oförändrade.`,
+      };
+    }
+
     const baseline: { slug: string; name: string }[] = [
       { slug: 'ikea-se', name: 'IKEA' },
       { slug: 'presentkort-elgiganten', name: 'Elgiganten' },

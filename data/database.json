@@ -140,7 +140,7 @@
         "isCampaign": false,
         "startUrl": ""
       },
-      "zupergiftSupported": true
+      "zupergiftSupported": false
     },
     {
       "id": "elgiganten",
@@ -174,7 +174,7 @@
         "isCampaign": false,
         "startUrl": "https://www.saseurobonusshop.com/se/gift-cards-vouchers"
       },
-      "zupergiftSupported": true
+      "zupergiftSupported": false
     },
     {
       "id": "ahlens",
@@ -6107,7 +6107,7 @@
         "isCampaign": false,
         "startUrl": ""
       },
-      "zupergiftSupported": true,
+      "zupergiftSupported": false,
       "isZupergiftOnly": false
     },
     {
@@ -9679,7 +9679,7 @@
         "isCampaign": false,
         "startUrl": ""
       },
-      "zupergiftSupported": true,
+      "zupergiftSupported": false,
       "isZupergiftOnly": false
     },
     {
@@ -20162,9 +20162,43 @@
       "action": "sync_partner_stores",
       "details": "Synkade 462 partnerbutiker från SAS Online Shopping (0 nya, 462 uppdaterade, 0 borttagna från SAS, 37 kampanjer)",
       "user": "Admin"
+    },
+    {
+      "id": "audit-1792708040533",
+      "timestamp": "2026-10-22T22:27:20.520Z",
+      "action": "SYNC_ZUPERGIFT_LIVE",
+      "details": "Live-synkronisering mot Zupergift slutförd. Totalt 137 butiker funna live (2 nya tillagda i Zupergift-katalogen, 3 saknas hos Zupergift). Nya butiker: Presentkort Tidningskungen 100 Kr, Matmilen Värdebiljett.",
+      "user": "Admin",
+      "newStores": [
+        {
+          "id": "zupergift-presentkort-tidningskungen-100-kr-1792708040521-1",
+          "storeId": "presentkort-tidningskungen-100-kr",
+          "name": "Presentkort Tidningskungen 100 Kr",
+          "slug": "presentkort-tidningskungen-100-kr",
+          "source": "zupergift",
+          "syncedAt": "2026-10-22T22:27:20.520Z",
+          "bonusSummary": "Zupergift (50 p / 100 kr) · Fristående Zupergift-butik",
+          "isReviewed": false,
+          "reviewedAt": null
+        },
+        {
+          "id": "zupergift-matmilen-vardebiljett-1792708040521-2",
+          "storeId": "matmilen-vardebiljett",
+          "name": "Matmilen Värdebiljett",
+          "slug": "matmilen-vardebiljett",
+          "source": "zupergift",
+          "syncedAt": "2026-10-22T22:27:20.520Z",
+          "bonusSummary": "Zupergift (50 p / 100 kr) · Fristående Zupergift-butik",
+          "categories": [
+            "food"
+          ],
+          "isReviewed": false,
+          "reviewedAt": null
+        }
+      ]
     }
   ],
-  "lastZupergiftSync": "2026-10-02T11:10:41.783Z",
+  "lastZupergiftSync": "2026-10-22T22:27:20.520Z",
   "zupergiftStores": [
     {
       "id": "cervera",
@@ -20173,8 +20207,10 @@
       "isHidden": false,
       "isExcluded": false,
       "matchedStoreId": "cervera",
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "kitchen"
     },
     {
       "id": "ahlens",
@@ -20183,8 +20219,10 @@
       "isHidden": false,
       "isExcluded": false,
       "matchedStoreId": "ahlens",
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "kitchen"
     },
     {
       "id": "kitchentime",
@@ -20214,8 +20252,10 @@
       "slug": "zalando-presentkort",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "fashion"
     },
     {
       "id": "ikea",
@@ -20223,8 +20263,10 @@
       "slug": "ikea",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "kitchen"
     },
     {
       "id": "akademibokhandeln",
@@ -20232,9 +20274,11 @@
       "slug": "akademibokhandeln-retain24",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
+      "syncedAt": "2026-10-22T22:27:20.520Z",
       "matchedStoreId": "akademibokhandeln",
-      "isMissingFromSource": false
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "books"
     },
     {
       "id": "royaldesign",
@@ -20242,9 +20286,11 @@
       "slug": "royaldesign",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
+      "syncedAt": "2026-10-22T22:27:20.520Z",
       "matchedStoreId": "royal-design",
-      "isMissingFromSource": false
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "kitchen"
     },
     {
       "id": "stadium",
@@ -20252,8 +20298,10 @@
       "slug": "stadium",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "fashion"
     },
     {
       "id": "rituals",
@@ -20261,8 +20309,10 @@
       "slug": "rituals",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "kitchen"
     },
     {
       "id": "presentkort-caroline-svedbom",
@@ -20270,8 +20320,10 @@
       "slug": "presentkort-caroline-svedbom",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "fashion"
     },
     {
       "id": "kulturkortet-5252",
@@ -20279,8 +20331,10 @@
       "slug": "kulturkortet-5252",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "gifts"
     },
     {
       "id": "mcdonald-s",
@@ -20288,9 +20342,10 @@
       "slug": "mcdonald-s",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
+      "syncedAt": "2026-10-22T22:27:20.520Z",
       "category": "food",
-      "isMissingFromSource": false
+      "isMissingFromSource": false,
+      "missingSince": null
     },
     {
       "id": "samsonite",
@@ -20298,8 +20353,10 @@
       "slug": "samsonite",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "travel"
     },
     {
       "id": "granngarden-presentkort",
@@ -20307,8 +20364,10 @@
       "slug": "granngarden-presentkort",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "kitchen"
     },
     {
       "id": "naturkompaniet",
@@ -20316,8 +20375,10 @@
       "slug": "naturkompaniet",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "fashion"
     },
     {
       "id": "restaurangguiden",
@@ -20325,9 +20386,10 @@
       "slug": "restaurangguiden",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
+      "syncedAt": "2026-10-22T22:27:20.520Z",
       "category": "food",
-      "isMissingFromSource": false
+      "isMissingFromSource": false,
+      "missingSince": null
     },
     {
       "id": "jysk",
@@ -20335,8 +20397,10 @@
       "slug": "jysk",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "kitchen"
     },
     {
       "id": "clas-ohlson",
@@ -20344,17 +20408,10 @@
       "slug": "clas-ohlson",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
-    },
-    {
-      "id": "hemelektronik",
-      "name": "Hemelektronik",
-      "slug": "hemelektronik",
-      "isHidden": false,
-      "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "kitchen"
     },
     {
       "id": "tradera",
@@ -20362,17 +20419,10 @@
       "slug": "tradera",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
-    },
-    {
-      "id": "hallbarhet-second-hand",
-      "name": "Hallbarhet Second Hand",
-      "slug": "hallbarhet-second-hand",
-      "isHidden": false,
-      "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "kitchen"
     },
     {
       "id": "hotels-com",
@@ -20380,8 +20430,10 @@
       "slug": "hotels-com",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "travel"
     },
     {
       "id": "interflora",
@@ -20389,9 +20441,11 @@
       "slug": "interflora",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
+      "syncedAt": "2026-10-22T22:27:20.520Z",
       "matchedStoreId": "interflora",
-      "isMissingFromSource": false
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "kitchen"
     },
     {
       "id": "bokus",
@@ -20399,18 +20453,11 @@
       "slug": "bokus",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
+      "syncedAt": "2026-10-22T22:27:20.520Z",
       "matchedStoreId": "bokus-play",
-      "isMissingFromSource": false
-    },
-    {
-      "id": "streamingtjanster",
-      "name": "Streamingtjanster",
-      "slug": "streamingtjanster",
-      "isHidden": false,
-      "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "books"
     },
     {
       "id": "plantagen",
@@ -20418,8 +20465,10 @@
       "slug": "plantagen",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "kitchen"
     },
     {
       "id": "bokadirekt",
@@ -20427,17 +20476,10 @@
       "slug": "bokadirekt",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
-    },
-    {
-      "id": "friskvard",
-      "name": "Friskvard",
-      "slug": "friskvard",
-      "isHidden": false,
-      "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "health"
     },
     {
       "id": "polarn-o-pyret",
@@ -20445,9 +20487,11 @@
       "slug": "polarn-o-pyret",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
+      "syncedAt": "2026-10-22T22:27:20.520Z",
       "matchedStoreId": "polarnopyret",
-      "isMissingFromSource": false
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "baby"
     },
     {
       "id": "movs",
@@ -20455,17 +20499,10 @@
       "slug": "movs",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
-    },
-    {
-      "id": "fordon-drivmedel",
-      "name": "Fordon Drivmedel",
-      "slug": "fordon-drivmedel",
-      "isHidden": false,
-      "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "sports"
     },
     {
       "id": "chokladbudet-se",
@@ -20473,8 +20510,10 @@
       "slug": "chokladbudet-se",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "food"
     },
     {
       "id": "presentkort-ving",
@@ -20482,8 +20521,10 @@
       "slug": "presentkort-ving",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "travel"
     },
     {
       "id": "presentkort-ticket",
@@ -20491,8 +20532,10 @@
       "slug": "presentkort-ticket",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "travel"
     },
     {
       "id": "holy-greens",
@@ -20500,8 +20543,10 @@
       "slug": "holy-greens",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "food"
     },
     {
       "id": "lekia",
@@ -20509,8 +20554,10 @@
       "slug": "lekia",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "baby"
     },
     {
       "id": "blomsterlandet",
@@ -20518,8 +20565,10 @@
       "slug": "blomsterlandet",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "kitchen"
     },
     {
       "id": "foodora",
@@ -20527,9 +20576,10 @@
       "slug": "foodora",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
+      "syncedAt": "2026-10-22T22:27:20.520Z",
       "category": "food",
-      "isMissingFromSource": false
+      "isMissingFromSource": false,
+      "missingSince": null
     },
     {
       "id": "mio",
@@ -20537,8 +20587,10 @@
       "slug": "mio",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "kitchen"
     },
     {
       "id": "lagerhaus",
@@ -20546,8 +20598,10 @@
       "slug": "lagerhaus",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "kitchen"
     },
     {
       "id": "granit",
@@ -20555,9 +20609,11 @@
       "slug": "granit",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
+      "syncedAt": "2026-10-22T22:27:20.520Z",
       "matchedStoreId": "granit",
-      "isMissingFromSource": false
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "kitchen"
     },
     {
       "id": "presentkort-jula",
@@ -20565,8 +20621,10 @@
       "slug": "presentkort-jula",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "kitchen"
     },
     {
       "id": "h-m-zg",
@@ -20574,8 +20632,10 @@
       "slug": "h-m-zg",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "kitchen"
     },
     {
       "id": "stjarnurmakarna",
@@ -20583,9 +20643,11 @@
       "slug": "stjarnurmakarna",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
+      "syncedAt": "2026-10-22T22:27:20.520Z",
       "matchedStoreId": "stjarnurmakarna-1",
-      "isMissingFromSource": false
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "fashion"
     },
     {
       "id": "norrgavel",
@@ -20593,8 +20655,10 @@
       "slug": "norrgavel",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "kitchen"
     },
     {
       "id": "mr-cake",
@@ -20602,8 +20666,10 @@
       "slug": "mr-cake",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "food"
     },
     {
       "id": "bastard-burgers",
@@ -20611,9 +20677,10 @@
       "slug": "bastard-burgers",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
+      "syncedAt": "2026-10-22T22:27:20.520Z",
       "category": "food",
-      "isMissingFromSource": false
+      "isMissingFromSource": false,
+      "missingSince": null
     },
     {
       "id": "grandparfymeri-se",
@@ -20621,9 +20688,10 @@
       "slug": "grandparfymeri-se",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": true,
-      "missingSince": "2026-10-11T14:59:27.146Z"
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "health"
     },
     {
       "id": "ticketmaster-presentkort",
@@ -20631,8 +20699,10 @@
       "slug": "ticketmaster-presentkort",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "gifts"
     },
     {
       "id": "sas-sek",
@@ -20640,8 +20710,10 @@
       "slug": "sas-sek",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "travel"
     },
     {
       "id": "zoo-se",
@@ -20649,9 +20721,11 @@
       "slug": "zoo-se",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
+      "syncedAt": "2026-10-22T22:27:20.520Z",
       "matchedStoreId": "zoo.se-1",
-      "isMissingFromSource": false
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "kitchen"
     },
     {
       "id": "skopunkten",
@@ -20659,8 +20733,10 @@
       "slug": "skopunkten",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "fashion"
     },
     {
       "id": "goteborgsfamiljen",
@@ -20668,18 +20744,10 @@
       "slug": "goteborgsfamiljen",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
-    },
-    {
-      "id": "bokadirekt-region-vasternorrland",
-      "name": "Bokadirekt (Region Västernorrland)",
-      "slug": "bokadirekt-region-vasternorrland",
-      "isHidden": false,
-      "isExcluded": false,
-      "syncedAt": "2026-10-02T10:17:35.864Z",
-      "isMissingFromSource": true,
-      "missingSince": "2026-10-11T14:59:27.146Z"
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "gifts"
     },
     {
       "id": "jaktia",
@@ -20687,8 +20755,10 @@
       "slug": "jaktia",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "sports"
     },
     {
       "id": "espresso-house-valfri-varm-dryck",
@@ -20696,9 +20766,10 @@
       "slug": "espresso-house-valfri-varm-dryck",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
+      "syncedAt": "2026-10-22T22:27:20.520Z",
       "category": "food",
-      "isMissingFromSource": false
+      "isMissingFromSource": false,
+      "missingSince": null
     },
     {
       "id": "kopenscooter-nu",
@@ -20706,8 +20777,9 @@
       "slug": "kopenscooter-nu",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null
     },
     {
       "id": "readly-2-manader",
@@ -20715,9 +20787,11 @@
       "slug": "readly-2-manader",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
+      "syncedAt": "2026-10-22T22:27:20.520Z",
       "matchedStoreId": "readly",
-      "isMissingFromSource": false
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "books"
     },
     {
       "id": "padelspecialisten-se",
@@ -20725,8 +20799,10 @@
       "slug": "padelspecialisten-se",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "sports"
     },
     {
       "id": "presentkort-adidas",
@@ -20734,9 +20810,11 @@
       "slug": "presentkort-adidas",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
+      "syncedAt": "2026-10-22T22:27:20.520Z",
       "matchedStoreId": "adidas",
-      "isMissingFromSource": false
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "fashion"
     },
     {
       "id": "swedol",
@@ -20744,8 +20822,10 @@
       "slug": "swedol",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "kitchen"
     },
     {
       "id": "espresso-house-valfri-dryck-valfritt-bakverk",
@@ -20753,9 +20833,10 @@
       "slug": "espresso-house-valfri-dryck-valfritt-bakverk",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
+      "syncedAt": "2026-10-22T22:27:20.520Z",
       "category": "food",
-      "isMissingFromSource": false
+      "isMissingFromSource": false,
+      "missingSince": null
     },
     {
       "id": "espresso-house-frukostmacka-varm-dryck",
@@ -20763,9 +20844,10 @@
       "slug": "espresso-house-frukostmacka-varm-dryck",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
+      "syncedAt": "2026-10-22T22:27:20.520Z",
       "category": "food",
-      "isMissingFromSource": false
+      "isMissingFromSource": false,
+      "missingSince": null
     },
     {
       "id": "espresso-house-valfritt-bakverk",
@@ -20773,9 +20855,10 @@
       "slug": "espresso-house-valfritt-bakverk",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
+      "syncedAt": "2026-10-22T22:27:20.520Z",
       "category": "food",
-      "isMissingFromSource": false
+      "isMissingFromSource": false,
+      "missingSince": null
     },
     {
       "id": "ivinio",
@@ -20783,8 +20866,10 @@
       "slug": "ivinio",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "food"
     },
     {
       "id": "humana",
@@ -20792,8 +20877,10 @@
       "slug": "humana",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "fashion"
     },
     {
       "id": "yogobe-3-manader",
@@ -20801,8 +20888,9 @@
       "slug": "yogobe-3-manader",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null
     },
     {
       "id": "presentkort-elefun",
@@ -20810,8 +20898,10 @@
       "slug": "presentkort-elefun",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "electronics"
     },
     {
       "id": "presentkort-sbhf-bowling",
@@ -20819,8 +20909,10 @@
       "slug": "presentkort-sbhf-bowling",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "sports"
     },
     {
       "id": "sf-anytime-valfri-hyrfilm-12-manader-1-film",
@@ -20828,8 +20920,10 @@
       "slug": "sf-anytime-valfri-hyrfilm-12-manader-1-film",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "gifts"
     },
     {
       "id": "dinsko",
@@ -20837,8 +20931,10 @@
       "slug": "dinsko",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "fashion"
     },
     {
       "id": "bokus-play",
@@ -20846,9 +20942,11 @@
       "slug": "bokus-play",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
+      "syncedAt": "2026-10-22T22:27:20.520Z",
       "matchedStoreId": "bokus-play",
-      "isMissingFromSource": false
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "books"
     },
     {
       "id": "movesgood",
@@ -20856,8 +20954,10 @@
       "slug": "movesgood",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "fashion"
     },
     {
       "id": "name-it",
@@ -20865,8 +20965,10 @@
       "slug": "name-it",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "fashion"
     },
     {
       "id": "vero-moda",
@@ -20874,8 +20976,10 @@
       "slug": "vero-moda",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "fashion"
     },
     {
       "id": "jack-jones",
@@ -20883,8 +20987,10 @@
       "slug": "jack-jones",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "fashion"
     },
     {
       "id": "fashioncheque",
@@ -20892,8 +20998,10 @@
       "slug": "fashioncheque",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "fashion"
     },
     {
       "id": "selected",
@@ -20901,8 +21009,10 @@
       "slug": "selected",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "fashion"
     },
     {
       "id": "bik-bok",
@@ -20910,9 +21020,11 @@
       "slug": "bik-bok",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
+      "syncedAt": "2026-10-22T22:27:20.520Z",
       "matchedStoreId": "bik-bok",
-      "isMissingFromSource": false
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "fashion"
     },
     {
       "id": "carlings",
@@ -20920,8 +21032,10 @@
       "slug": "carlings",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "fashion"
     },
     {
       "id": "cubus",
@@ -20929,8 +21043,10 @@
       "slug": "cubus",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "fashion"
     },
     {
       "id": "dressmann",
@@ -20938,9 +21054,11 @@
       "slug": "dressmann",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
+      "syncedAt": "2026-10-22T22:27:20.520Z",
       "matchedStoreId": "dressmann",
-      "isMissingFromSource": false
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "fashion"
     },
     {
       "id": "volt",
@@ -20948,9 +21066,11 @@
       "slug": "volt",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
+      "syncedAt": "2026-10-22T22:27:20.520Z",
       "matchedStoreId": "volt",
-      "isMissingFromSource": false
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "fashion"
     },
     {
       "id": "electrolux-home",
@@ -20958,9 +21078,11 @@
       "slug": "electrolux-home",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
+      "syncedAt": "2026-10-22T22:27:20.520Z",
       "matchedStoreId": "electrolux",
-      "isMissingFromSource": false
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "kitchen"
     },
     {
       "id": "operakallaren",
@@ -20978,8 +21100,10 @@
       "slug": "grillkung-se",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "kitchen"
     },
     {
       "id": "svenska-spahotell",
@@ -20987,8 +21111,10 @@
       "slug": "svenska-spahotell",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "travel"
     },
     {
       "id": "zitybreak",
@@ -20996,8 +21122,10 @@
       "slug": "zitybreak",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "travel"
     },
     {
       "id": "o-learys",
@@ -21005,8 +21133,10 @@
       "slug": "o-learys",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "travel"
     },
     {
       "id": "junkyard",
@@ -21014,9 +21144,11 @@
       "slug": "junkyard",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
+      "syncedAt": "2026-10-22T22:27:20.520Z",
       "matchedStoreId": "junkyard",
-      "isMissingFromSource": false
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "fashion"
     },
     {
       "id": "coolstuff",
@@ -21024,8 +21156,10 @@
       "slug": "coolstuff",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "kitchen"
     },
     {
       "id": "gateau-sek",
@@ -21033,8 +21167,10 @@
       "slug": "gateau-sek",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "food"
     },
     {
       "id": "lofbergs",
@@ -21042,8 +21178,10 @@
       "slug": "lofbergs",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "food"
     },
     {
       "id": "presentkort-golfhaftet",
@@ -21051,8 +21189,10 @@
       "slug": "presentkort-golfhaftet",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "sports"
     },
     {
       "id": "bookie",
@@ -21060,9 +21200,11 @@
       "slug": "bookie",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
+      "syncedAt": "2026-10-22T22:27:20.520Z",
       "matchedStoreId": "bookie",
-      "isMissingFromSource": false
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "books"
     },
     {
       "id": "sportson",
@@ -21070,8 +21212,10 @@
       "slug": "sportson",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "sports"
     },
     {
       "id": "revolution-race-presentkort",
@@ -21079,9 +21223,11 @@
       "slug": "revolution-race-presentkort",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
+      "syncedAt": "2026-10-22T22:27:20.520Z",
       "matchedStoreId": "revolutionrace",
-      "isMissingFromSource": false
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "fashion"
     },
     {
       "id": "indiska",
@@ -21089,8 +21235,10 @@
       "slug": "indiska",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "fashion"
     },
     {
       "id": "gothia-towers",
@@ -21098,8 +21246,10 @@
       "slug": "gothia-towers",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "travel"
     },
     {
       "id": "designtorget",
@@ -21107,9 +21257,11 @@
       "slug": "designtorget",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
+      "syncedAt": "2026-10-22T22:27:20.520Z",
       "matchedStoreId": "designtorget",
-      "isMissingFromSource": false
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "kitchen"
     },
     {
       "id": "sembo",
@@ -21117,8 +21269,10 @@
       "slug": "sembo",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "travel"
     },
     {
       "id": "nextory-unlimited",
@@ -21126,9 +21280,11 @@
       "slug": "nextory-unlimited",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
+      "syncedAt": "2026-10-22T22:27:20.520Z",
       "matchedStoreId": "nextory",
-      "isMissingFromSource": false
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "books"
     },
     {
       "id": "tv4-play-sport-total",
@@ -21136,10 +21292,12 @@
       "slug": "tv4-play-sport-total",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
+      "syncedAt": "2026-10-22T22:27:20.520Z",
       "matchedStoreId": "tv4-play",
       "alias": "TV4 Play",
-      "isMissingFromSource": false
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "gaming-streaming"
     },
     {
       "id": "tv4-play-sport-fotboll",
@@ -21147,9 +21305,11 @@
       "slug": "tv4-play-sport-fotboll",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
+      "syncedAt": "2026-10-22T22:27:20.520Z",
       "alias": "TV4 Play",
-      "isMissingFromSource": false
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "gaming-streaming"
     },
     {
       "id": "tv4-play-utan-reklam",
@@ -21157,9 +21317,11 @@
       "slug": "tv4-play-utan-reklam",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
+      "syncedAt": "2026-10-22T22:27:20.520Z",
       "alias": "TV4 Play",
-      "isMissingFromSource": false
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "gaming-streaming"
     },
     {
       "id": "tv4-play-med-reklam",
@@ -21167,9 +21329,11 @@
       "slug": "tv4-play-med-reklam",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
+      "syncedAt": "2026-10-22T22:27:20.520Z",
       "alias": "TV4 Play",
-      "isMissingFromSource": false
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "gaming-streaming"
     },
     {
       "id": "kaplans-auktioner",
@@ -21177,8 +21341,10 @@
       "slug": "kaplans-auktioner",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "fashion"
     },
     {
       "id": "presentkort-pressbyran-50-sek",
@@ -21186,8 +21352,10 @@
       "slug": "presentkort-pressbyran-50-sek",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "food"
     },
     {
       "id": "presentkort-pressbyran-150-sek",
@@ -21195,8 +21363,10 @@
       "slug": "presentkort-pressbyran-150-sek",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "food"
     },
     {
       "id": "kryssningar-se",
@@ -21204,8 +21374,10 @@
       "slug": "kryssningar-se",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "travel"
     },
     {
       "id": "presentkort-longlife-active-basic",
@@ -21213,8 +21385,10 @@
       "slug": "presentkort-longlife-active-basic",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "health"
     },
     {
       "id": "presentkort-longlife-active-standard",
@@ -21222,8 +21396,10 @@
       "slug": "presentkort-longlife-active-standard",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "health"
     },
     {
       "id": "presentkort-olonglife-active-premium",
@@ -21231,8 +21407,10 @@
       "slug": "presentkort-olonglife-active-premium",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "health"
     },
     {
       "id": "sagaform",
@@ -21240,8 +21418,10 @@
       "slug": "sagaform",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "kitchen"
     },
     {
       "id": "readly-12-manader",
@@ -21249,8 +21429,10 @@
       "slug": "readly-12-manader",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "books"
     },
     {
       "id": "mymowo-sek",
@@ -21258,9 +21440,11 @@
       "slug": "mymowo-sek",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
+      "syncedAt": "2026-10-22T22:27:20.520Z",
       "matchedStoreId": "mywowo",
-      "isMissingFromSource": false
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "health"
     },
     {
       "id": "smartasaker",
@@ -21268,8 +21452,10 @@
       "slug": "smartasaker",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "kitchen"
     },
     {
       "id": "presentkort-maitres",
@@ -21277,8 +21463,10 @@
       "slug": "presentkort-maitres",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "food"
     },
     {
       "id": "presentkort-circlek-biltvatt-standard",
@@ -21286,8 +21474,9 @@
       "slug": "presentkort-circlek-biltvatt-standard",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null
     },
     {
       "id": "presentkort-golfkuponger",
@@ -21295,8 +21484,10 @@
       "slug": "presentkort-golfkuponger",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "sports"
     },
     {
       "id": "liveit",
@@ -21304,9 +21495,11 @@
       "slug": "liveit",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
+      "syncedAt": "2026-10-22T22:27:20.520Z",
       "matchedStoreId": "live-it",
-      "isMissingFromSource": false
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "gifts"
     },
     {
       "id": "presentkort-melanders",
@@ -21314,8 +21507,10 @@
       "slug": "presentkort-melanders",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "food"
     },
     {
       "id": "nelly",
@@ -21323,9 +21518,11 @@
       "slug": "nelly",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
+      "syncedAt": "2026-10-22T22:27:20.520Z",
       "matchedStoreId": "nelly.com",
-      "isMissingFromSource": false
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "fashion"
     },
     {
       "id": "presentkort-pressbyran-7-eleven-100-sek",
@@ -21333,9 +21530,11 @@
       "slug": "presentkort-pressbyran-7-eleven-100-sek",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
+      "syncedAt": "2026-10-22T22:27:20.520Z",
       "matchedStoreId": "eleven",
-      "isMissingFromSource": false
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "food"
     },
     {
       "id": "presentkort-pressbyran-7-eleven-75-sek",
@@ -21343,8 +21542,10 @@
       "slug": "presentkort-pressbyran-7-eleven-75-sek",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "food"
     },
     {
       "id": "sniph",
@@ -21352,8 +21553,10 @@
       "slug": "sniph",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "health"
     },
     {
       "id": "lope",
@@ -21361,8 +21564,10 @@
       "slug": "lope",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "fashion"
     },
     {
       "id": "tv-4-play-sport",
@@ -21370,9 +21575,11 @@
       "slug": "tv-4-play-sport",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
+      "syncedAt": "2026-10-22T22:27:20.520Z",
       "alias": "TV4 Play",
-      "isMissingFromSource": false
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "gaming-streaming"
     },
     {
       "id": "ostermalms-saluhall",
@@ -21380,8 +21587,10 @@
       "slug": "ostermalms-saluhall",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "food"
     },
     {
       "id": "presentkort-care-of-carl-sek",
@@ -21389,8 +21598,10 @@
       "slug": "presentkort-care-of-carl-sek",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "fashion"
     },
     {
       "id": "hotelbox-kort-semester-for-tva-3-natter",
@@ -21398,8 +21609,10 @@
       "slug": "hotelbox-kort-semester-for-tva-3-natter",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "travel"
     },
     {
       "id": "hotelbox-kort-semester-for-tva-2-natter",
@@ -21407,8 +21620,9 @@
       "slug": "hotelbox-kort-semester-for-tva-2-natter",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null
     },
     {
       "id": "yumwalk-premium-bites",
@@ -21416,8 +21630,10 @@
       "slug": "yumwalk-premium-bites",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "gifts"
     },
     {
       "id": "skicka-vidare",
@@ -21425,17 +21641,9 @@
       "slug": "skicka-vidare",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
-    },
-    {
-      "id": "valgorenhet",
-      "name": "Valgorenhet",
-      "slug": "valgorenhet",
-      "isHidden": false,
-      "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null
     },
     {
       "id": "sf-menybiljett-digital",
@@ -21443,8 +21651,10 @@
       "slug": "sf-menybiljett-digital",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "gifts"
     },
     {
       "id": "tailor-store",
@@ -21452,8 +21662,10 @@
       "slug": "tailor-store",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "fashion"
     },
     {
       "id": "presentkort-supekort-supreme",
@@ -21461,8 +21673,10 @@
       "slug": "presentkort-supekort-supreme",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "food"
     },
     {
       "id": "kosta-boda-art-hotel",
@@ -21470,8 +21684,10 @@
       "slug": "kosta-boda-art-hotel",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "travel"
     },
     {
       "id": "language-course-english-uk",
@@ -21479,17 +21695,10 @@
       "slug": "language-course-english-uk",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
-    },
-    {
-      "id": "kurser",
-      "name": "Kurser",
-      "slug": "kurser",
-      "isHidden": false,
-      "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "books"
     },
     {
       "id": "language-course-german",
@@ -21497,8 +21706,10 @@
       "slug": "language-course-german",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "books"
     },
     {
       "id": "language-course-french",
@@ -21506,8 +21717,10 @@
       "slug": "language-course-french",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "books"
     },
     {
       "id": "language-course-italian",
@@ -21515,8 +21728,10 @@
       "slug": "language-course-italian",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "books"
     },
     {
       "id": "language-course-spanish",
@@ -21524,8 +21739,31 @@
       "slug": "language-course-spanish",
       "isHidden": false,
       "isExcluded": false,
-      "syncedAt": "2026-10-02T11:10:41.783Z",
-      "isMissingFromSource": false
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "category": "books"
+    },
+    {
+      "id": "presentkort-tidningskungen-100-kr",
+      "name": "Presentkort Tidningskungen 100 Kr",
+      "slug": "presentkort-tidningskungen-100-kr",
+      "isHidden": false,
+      "isExcluded": false,
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "syncedAt": "2026-10-22T22:27:20.520Z"
+    },
+    {
+      "id": "matmilen-vardebiljett",
+      "name": "Matmilen Värdebiljett",
+      "slug": "matmilen-vardebiljett",
+      "category": "food",
+      "isHidden": false,
+      "isExcluded": false,
+      "isMissingFromSource": false,
+      "missingSince": null,
+      "syncedAt": "2026-10-22T22:27:20.520Z"
     }
   ],
   "lastPartnerSync": "2026-10-08T13:58:45.286Z",
@@ -23823,6 +24061,33 @@
       "url": "https://www.skyteam.com/",
       "order": 11,
       "isHidden": false
+    }
+  ],
+  "syncNewStores": [
+    {
+      "id": "zupergift-presentkort-tidningskungen-100-kr-1792708040521-1",
+      "storeId": "presentkort-tidningskungen-100-kr",
+      "name": "Presentkort Tidningskungen 100 Kr",
+      "slug": "presentkort-tidningskungen-100-kr",
+      "source": "zupergift",
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "bonusSummary": "Zupergift (50 p / 100 kr) · Fristående Zupergift-butik",
+      "isReviewed": false,
+      "reviewedAt": null
+    },
+    {
+      "id": "zupergift-matmilen-vardebiljett-1792708040521-2",
+      "storeId": "matmilen-vardebiljett",
+      "name": "Matmilen Värdebiljett",
+      "slug": "matmilen-vardebiljett",
+      "source": "zupergift",
+      "syncedAt": "2026-10-22T22:27:20.520Z",
+      "bonusSummary": "Zupergift (50 p / 100 kr) · Fristående Zupergift-butik",
+      "categories": [
+        "food"
+      ],
+      "isReviewed": false,
+      "reviewedAt": null
     }
   ]
 }

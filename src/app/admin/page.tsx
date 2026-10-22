@@ -281,7 +281,7 @@ export default function AdminPage() {
         setStatusMessage({ text: data.message, type: 'success' });
         await fetchAdminData();
       } else {
-        setStatusMessage({ text: 'Synkronisering mot Zupergift misslyckades', type: 'error' });
+        setStatusMessage({ text: data.message || data.error || 'Synkronisering mot Zupergift misslyckades', type: 'error' });
       }
     } catch {
       setStatusMessage({ text: 'Kunde inte ansluta till Zupergift', type: 'error' });
@@ -301,7 +301,7 @@ export default function AdminPage() {
         setStatusMessage({ text: data.message, type: 'success' });
         await fetchAdminData();
       } else {
-        setStatusMessage({ text: 'Synkronisering mot SAS Shop misslyckades', type: 'error' });
+        setStatusMessage({ text: data.message || data.error || 'Synkronisering mot SAS Shop misslyckades', type: 'error' });
       }
     } catch {
       setStatusMessage({ text: 'Kunde inte ansluta till SAS EuroBonus Shop', type: 'error' });
