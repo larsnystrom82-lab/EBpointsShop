@@ -170,14 +170,75 @@ export async function syncSasGiftCardStores(): Promise<{
   const db = getDatabase();
   const discoveredMap = new Map<string, { slug: string; name: string }>();
 
-  const baseCategories = [
-    'https://www.saseurobonusshop.com/se/gift-cards-vouchers',
-    'https://www.saseurobonusshop.com/se/gift-cards-vouchers/shopping',
-    'https://www.saseurobonusshop.com/se/gift-cards-vouchers/streaming-services',
-    'https://www.saseurobonusshop.com/se/gift-cards-vouchers/experiences',
-    'https://www.saseurobonusshop.com/se/gift-cards-vouchers/lottery-games',
-    'https://www.saseurobonusshop.com/se/gift-cards-vouchers/language-courses',
-  ];
+  // 1. Primary method: Fast GraphQL query against https://www.saseurobonusshop.com/se/graphql
+  // Returns all 146+ gift card products in ~0.5s instead of 2+ minutes of HTML pagination scraping.
+  const graphqlQuery = {
+    query:
+      '{ route(path: "gift-cards-vouchers") { ... on RouteCategory { category { name url products(pageSize: 1000) { totalCount items { name sku url categories { name url } } } } } } }',
+  };
+
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      const response = await fetch('https://www.saseurobonusshop.com/se/graphql', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'User-Agent':
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+          Accept: 'application/json',
+          'Accept-Language': 'sv-SE,sv;q=0.9,en-US;q=0.8,en;q=0.7',
+        },
+        body: JSON.stringify(graphqlQuery),
+        next: { revalidate: 0 },
+      });
+
+      if (response.ok) {
+        const json = await response.json();
+        const items: { name?: string; url?: string }[] =
+          json?.data?.route?.category?.products?.items || [];
+
+        for (const prod of items) {
+          if (!prod.url || !prod.name) continue;
+          const slug = prod.url.replace(/^\/?(?:se\/)?/, '').replace(/\/$/, '').toLowerCase();
+          if (!slug || NON_STORE_SLUGS.has(slug)) continue;
+
+          const cleanName = cleanStoreName(prod.name);
+          if (
+            cleanName.length >= 2 &&
+            !NON_STORE_NAMES.has(cleanName.toLowerCase()) &&
+            cleanName.toLowerCase() !== 'presentkort'
+          ) {
+            if (!discoveredMap.has(slug)) {
+              discoveredMap.set(slug, { slug, name: cleanName });
+            }
+          }
+        }
+
+        if (discoveredMap.size > 0) {
+          break;
+        }
+      }
+    } catch (err) {
+      console.warn(`SAS GiftCard GraphQL attempt ${attempt} failed:`, err);
+    }
+
+    if (attempt < 3) {
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+    }
+  }
+
+  // 2. Fallback method: HTML pagination scraping if GraphQL returned 0 items
+  const baseCategories =
+    discoveredMap.size === 0
+      ? [
+          'https://www.saseurobonusshop.com/se/gift-cards-vouchers',
+          'https://www.saseurobonusshop.com/se/gift-cards-vouchers/shopping',
+          'https://www.saseurobonusshop.com/se/gift-cards-vouchers/streaming-services',
+          'https://www.saseurobonusshop.com/se/gift-cards-vouchers/experiences',
+          'https://www.saseurobonusshop.com/se/gift-cards-vouchers/lottery-games',
+          'https://www.saseurobonusshop.com/se/gift-cards-vouchers/language-courses',
+        ]
+      : [];
 
   for (const base of baseCategories) {
     let page = 1;
