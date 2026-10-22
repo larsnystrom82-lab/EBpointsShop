@@ -63,12 +63,38 @@ export function buildAllStores(db: DatabaseSchema, options?: { includeExcluded?:
       if (s.partnerRule) {
         const isCampActive = isCampaignActive(s.partnerRule.isCampaign, s.partnerRule.campaignValidUntil);
         if (s.partnerRule.isCampaign && !isCampActive) {
+          const fallbackBonus = s.partnerRule.regularBonusPer100Kr ?? s.partnerRule.bonusPer100Kr;
+          const fallbackFixedBonus = s.partnerRule.regularFixedBonusPoints ?? s.partnerRule.fixedBonusPoints;
+          const fallbackTier =
+            s.partnerRule.regularTierPer100Kr !== undefined
+              ? s.partnerRule.regularTierPer100Kr
+              : s.partnerRule.regularBonusPer100Kr !== undefined &&
+                s.partnerRule.bonusPer100Kr > 0 &&
+                s.partnerRule.tierPer100Kr > 0 &&
+                s.partnerRule.bonusPer100Kr !== s.partnerRule.regularBonusPer100Kr
+              ? Math.round(s.partnerRule.regularBonusPer100Kr * (s.partnerRule.tierPer100Kr / s.partnerRule.bonusPer100Kr))
+              : s.partnerRule.tierPer100Kr;
+          const fallbackFixedTier =
+            s.partnerRule.regularFixedTierPoints !== undefined
+              ? s.partnerRule.regularFixedTierPoints
+              : s.partnerRule.regularFixedBonusPoints !== undefined &&
+                (s.partnerRule.fixedBonusPoints ?? 0) > 0 &&
+                (s.partnerRule.fixedTierPoints ?? 0) > 0 &&
+                s.partnerRule.fixedBonusPoints !== s.partnerRule.regularFixedBonusPoints
+              ? Math.round(
+                  s.partnerRule.regularFixedBonusPoints *
+                    ((s.partnerRule.fixedTierPoints ?? 0) / (s.partnerRule.fixedBonusPoints ?? 1))
+                )
+              : s.partnerRule.fixedTierPoints;
+
           resolvedPartnerRule = {
             ...s.partnerRule,
             isCampaign: false,
             campaignValidUntil: null,
-            bonusPer100Kr: s.partnerRule.regularBonusPer100Kr ?? s.partnerRule.bonusPer100Kr,
-            fixedBonusPoints: s.partnerRule.regularFixedBonusPoints ?? s.partnerRule.fixedBonusPoints,
+            bonusPer100Kr: fallbackBonus,
+            fixedBonusPoints: fallbackFixedBonus,
+            tierPer100Kr: fallbackTier,
+            fixedTierPoints: fallbackFixedTier,
           };
         }
       }
@@ -101,11 +127,25 @@ export function buildAllStores(db: DatabaseSchema, options?: { includeExcluded?:
       };
     });
 
-  const baseStoreIds = new Set(db.stores.map((s) => s.id));
+  const allBaseStoreKeys = new Set<string>();
+  for (const s of db.stores || []) {
+    allBaseStoreKeys.add(s.id.toLowerCase());
+    if (s.slug) allBaseStoreKeys.add(s.slug.toLowerCase());
+    allBaseStoreKeys.add(cleanStoreSlug(s.id));
+    if (s.slug) allBaseStoreKeys.add(cleanStoreSlug(s.slug));
+    allBaseStoreKeys.add(s.name.trim().toLowerCase());
+  }
 
   const extraZuperStores: Store[] = (db.zupergiftStores || [])
     .filter((zs) => {
-      if (baseStoreIds.has(zs.id) || (zs.matchedStoreId && baseStoreIds.has(zs.matchedStoreId))) {
+      if (
+        allBaseStoreKeys.has(zs.id.toLowerCase()) ||
+        (zs.slug && allBaseStoreKeys.has(zs.slug.toLowerCase())) ||
+        allBaseStoreKeys.has(cleanStoreSlug(zs.id)) ||
+        (zs.slug && allBaseStoreKeys.has(cleanStoreSlug(zs.slug))) ||
+        (zs.name && allBaseStoreKeys.has(zs.name.trim().toLowerCase())) ||
+        (zs.matchedStoreId && allBaseStoreKeys.has(zs.matchedStoreId.toLowerCase()))
+      ) {
         return false;
       }
       if (options?.includeExcluded) return true;
@@ -208,6 +248,20 @@ export function buildAllStores(db: DatabaseSchema, options?: { includeExcluded?:
     const matchedId = findExistingStoreId(gc);
     if (matchedId) {
       // Store already exists (either in baseStores or extraZuperStores)
+      continue;
+    }
+
+    // If this gift card belongs to a base store that is already defined in db.stores,
+    // do not create a duplicate or resurrected extraSasStore
+    const isBaseStoreMatch =
+      allBaseStoreKeys.has(gc.id.toLowerCase()) ||
+      (gc.slug && allBaseStoreKeys.has(gc.slug.toLowerCase())) ||
+      allBaseStoreKeys.has(cleanStoreSlug(gc.id)) ||
+      (gc.slug && allBaseStoreKeys.has(cleanStoreSlug(gc.slug))) ||
+      (gc.name && allBaseStoreKeys.has(gc.name.trim().toLowerCase())) ||
+      (gc.matchedStoreId && allBaseStoreKeys.has(gc.matchedStoreId.toLowerCase()));
+
+    if (isBaseStoreMatch) {
       continue;
     }
 
@@ -319,5 +373,15 @@ export function buildAllStores(db: DatabaseSchema, options?: { includeExcluded?:
     }
   }
 
-  return allStores.sort((a, b) => a.name.localeCompare(b.name, 'sv'));
+  const validStores = options?.includeExcluded
+    ? allStores
+    : allStores.filter(
+        (s) =>
+          Boolean(s.hasPartnerLink) ||
+          Boolean(s.zupergiftSupported) ||
+          Boolean(s.hasSasGiftCard) ||
+          Boolean(s.giftCardRule?.hasDirectGiftCard)
+      );
+
+  return validStores.sort((a, b) => a.name.localeCompare(b.name, 'sv'));
 }

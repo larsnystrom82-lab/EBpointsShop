@@ -111,6 +111,46 @@ export default function Home() {
       });
   }, []);
 
+  // Synka/expandera valda butiker om någon butik har ett alias så att hela aliasgruppen alltid väljs (endast aktiva butiker)
+  useEffect(() => {
+    if (selectedStoreIds.length > 0 && allStores.length > 0) {
+      const activeStores = allStores.filter((s) => !s.isHidden && s.isActive !== false);
+      const activeStoreIds = new Set(activeStores.map((s) => s.id));
+      const selectedSet = new Set(selectedStoreIds.filter((id) => activeStoreIds.has(id)));
+
+      const selectedAliases = new Set(
+        activeStores
+          .filter((s) => selectedSet.has(s.id) && s.alias?.trim())
+          .map((s) => s.alias!.trim().toLowerCase())
+      );
+
+      const fullIds = Array.from(
+        new Set([
+          ...selectedSet,
+          ...(selectedAliases.size > 0
+            ? activeStores
+                .filter((s) => s.alias?.trim() && selectedAliases.has(s.alias.trim().toLowerCase()))
+                .map((s) => s.id)
+            : []),
+        ])
+      );
+
+      if (
+        fullIds.length !== selectedStoreIds.length ||
+        fullIds.some((id, i) => id !== selectedStoreIds[i])
+      ) {
+        setSelectedStoreIds(fullIds);
+        try {
+          const saved = localStorage.getItem(STORAGE_KEY);
+          const current = saved ? JSON.parse(saved) : {};
+          localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...current, selectedStoreIds: fullIds }));
+        } catch {
+          // Ignore
+        }
+      }
+    }
+  }, [allStores, selectedStoreIds]);
+
   const savePreferences = (updated: Record<string, unknown>) => {
     try {
       const current = {
@@ -133,14 +173,32 @@ export default function Home() {
   };
 
   const handleToggleStores = (storeIds: string[]) => {
-    const anySelected = storeIds.some((id) => selectedStoreIds.includes(id));
+    const activeStores = allStores.filter((s) => !s.isHidden && s.isActive !== false);
+    // Expand storeIds to include all active stores sharing the same alias in allStores
+    const aliasSet = new Set<string>();
+    for (const id of storeIds) {
+      const store = activeStores.find((s) => s.id === id);
+      if (store?.alias?.trim()) {
+        aliasSet.add(store.alias.trim().toLowerCase());
+      }
+    }
+    const fullStoreIds = Array.from(
+      new Set([
+        ...storeIds.filter((id) => activeStores.some((s) => s.id === id)),
+        ...activeStores
+          .filter((s) => s.alias?.trim() && aliasSet.has(s.alias.trim().toLowerCase()))
+          .map((s) => s.id),
+      ])
+    );
+
+    const anySelected = fullStoreIds.some((id) => selectedStoreIds.includes(id));
     let updated: string[];
     if (anySelected) {
-      const toRemove = new Set(storeIds);
+      const toRemove = new Set(fullStoreIds);
       updated = selectedStoreIds.filter((id) => !toRemove.has(id));
     } else {
-      const currentSet = new Set(selectedStoreIds);
-      for (const id of storeIds) currentSet.add(id);
+      const currentSet = new Set(selectedStoreIds.filter((id) => activeStores.some((s) => s.id === id)));
+      for (const id of fullStoreIds) currentSet.add(id);
       updated = Array.from(currentSet);
     }
     setSelectedStoreIds(updated);
@@ -157,15 +215,17 @@ export default function Home() {
   };
 
   const handleSelectAllStores = (storeIds?: string[]) => {
+    const activeStores = allStores.filter((s) => !s.isHidden && s.isActive !== false);
     if (storeIds && Array.isArray(storeIds)) {
-      setSelectedStoreIds(storeIds);
-      savePreferences({ selectedStoreIds: storeIds });
+      const filtered = storeIds.filter((id) => activeStores.some((s) => s.id === id));
+      setSelectedStoreIds(filtered);
+      savePreferences({ selectedStoreIds: filtered });
       return;
     }
     const candidateStores =
       selectedCategoryIds.length > 0
-        ? allStores.filter((s) => s.categories.some((c) => selectedCategoryIds.includes(c)))
-        : allStores;
+        ? activeStores.filter((s) => s.categories.some((c) => selectedCategoryIds.includes(c)))
+        : activeStores;
     const all = candidateStores.map((s) => s.id);
     setSelectedStoreIds(all);
     savePreferences({ selectedStoreIds: all });
@@ -180,8 +240,9 @@ export default function Home() {
     // If categories are active, prune selectedStoreIds to only keep stores matching active categories
     let updatedStoreIds = selectedStoreIds;
     if (updated.length > 0 && selectedStoreIds.length > 0) {
+      const activeStores = allStores.filter((s) => !s.isHidden && s.isActive !== false);
       const allowedStoreIds = new Set(
-        allStores
+        activeStores
           .filter((s) => s.categories.some((c) => updated.includes(c)))
           .map((s) => s.id)
       );
@@ -293,9 +354,9 @@ export default function Home() {
     selectedCardIds,
   ]);
 
-  // Filter stores based on store selection, categories and search query
+  // Filter stores based on store selection, categories and search query (dolda butiker exkluderas helt)
   const matchingStores = useMemo(() => {
-    let list = allStores.filter((store) => store.isActive);
+    let list = allStores.filter((store) => !store.isHidden && store.isActive !== false);
 
     // 1. Filter by selected categories if any
     if (selectedCategoryIds.length > 0) {
@@ -304,9 +365,20 @@ export default function Home() {
       );
     }
 
-    // 2. Filter by specific selected stores if any
+    // 2. Filter by specific selected stores if any (including all active variants sharing the same alias)
     if (selectedStoreIds.length > 0) {
-      list = list.filter((store) => selectedStoreIds.includes(store.id));
+      const selectedSet = new Set(selectedStoreIds);
+      const selectedAliases = new Set(
+        list
+          .filter((s) => selectedSet.has(s.id) && s.alias?.trim())
+          .map((s) => s.alias!.trim().toLowerCase())
+      );
+
+      list = list.filter(
+        (store) =>
+          selectedSet.has(store.id) ||
+          (store.alias?.trim() && selectedAliases.has(store.alias.trim().toLowerCase()))
+      );
     }
 
     // 3. Filter by search query if any
@@ -317,7 +389,7 @@ export default function Home() {
         const matchesSingleAlias = store.alias ? store.alias.toLowerCase().includes(query) : false;
         const matchesAliases = store.aliases?.some((a) => a.toLowerCase().includes(query));
         const matchesCategory = store.categories.some((c) => {
-          const cat = DEMO_CATEGORIES.find((item) => item.id === c);
+          const cat = categories.find((item) => item.id === c) || DEMO_CATEGORIES.find((item) => item.id === c);
           return cat && cat.name.toLowerCase().includes(query);
         });
         return matchesName || matchesSingleAlias || matchesAliases || matchesCategory;
@@ -414,6 +486,25 @@ export default function Home() {
       .join(', ');
   }, [selectedCategoryIds, categories]);
 
+  // Formatera visningstext för valda butiker/grupper (dolda butiker räknas ej)
+  const selectedStoresLabel = useMemo(() => {
+    if (selectedStoreIds.length === 0) return categoryNames;
+    const activeStores = allStores.filter((s) => !s.isHidden && s.isActive !== false);
+    const selectedStores = activeStores.filter((s) => selectedStoreIds.includes(s.id));
+    if (selectedStores.length === 0) return categoryNames;
+    const distinctGroups = new Set(selectedStores.map((s) => s.alias?.trim() || s.id));
+    const groupCount = distinctGroups.size;
+    if (groupCount === 1) {
+      const singleStore = selectedStores[0];
+      const displayName = singleStore.alias?.trim() || singleStore.name;
+      if (selectedStores.length > 1) {
+        return `${displayName} (${selectedStores.length} erbjudanden)`;
+      }
+      return `${displayName} (1 butik)`;
+    }
+    return `${groupCount} valda butiker (${selectedStores.length} erbjudanden)`;
+  }, [selectedStoreIds, allStores, categoryNames]);
+
   return (
     <div className="min-h-screen flex flex-col bg-[#F4F6F9] text-slate-900">
       <Navbar />
@@ -505,7 +596,7 @@ export default function Home() {
                 </h2>
               </div>
               <p className="text-xs sm:text-sm text-slate-500 font-medium mt-0.5 flex items-center flex-wrap gap-1.5">
-                <span>Baserat på {purchaseAmountKr ? `${purchaseAmountKr.toLocaleString('sv-SE')} kr` : 'angivet köpbelopp'} • {selectedStoreIds.length > 0 ? `${selectedStoreIds.length} valda butiker` : categoryNames}</span>
+                <span>Baserat på {purchaseAmountKr ? `${purchaseAmountKr.toLocaleString('sv-SE')} kr` : 'angivet köpbelopp'} • {selectedStoresLabel}</span>
                 {tierPointsImportant && (
                   <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800">
                     Endast med nivåpoäng

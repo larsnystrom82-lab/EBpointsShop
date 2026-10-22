@@ -1,4 +1,4 @@
-import { getDatabase, saveDatabase, ZupergiftStoreItem } from '@/lib/db';
+import { getDatabase, saveDatabase, ZupergiftStoreItem, SyncNewStoreItem } from '@/lib/db';
 
 /**
  * Normalizes title strings from HTML (e.g. &#x27; -> ')
@@ -22,6 +22,7 @@ export async function syncZupergiftCatalog(): Promise<{
   totalDiscovered: number;
   newStoresAdded: number;
   matchedStores: string[];
+  newStores?: SyncNewStoreItem[];
   message: string;
 }> {
   const db = getDatabase();
@@ -134,6 +135,7 @@ export async function syncZupergiftCatalog(): Promise<{
 
   // Synchronize with database, respecting admin overrides (isHidden & isExcluded)
   let newStoresAdded = 0;
+  const addedStores: SyncNewStoreItem[] = [];
   const now = new Date().toISOString();
 
   for (const [slug, item] of discoveredMap.entries()) {
@@ -169,6 +171,20 @@ export async function syncZupergiftCatalog(): Promise<{
         missingSince: null,
         matchedStoreId: matchedStore?.id,
         syncedAt: now,
+      });
+
+      addedStores.push({
+        id: `zupergift-${slug}-${Date.now()}-${newStoresAdded}`,
+        storeId: matchedStore?.id || slug,
+        name: item.name,
+        slug,
+        source: 'zupergift',
+        syncedAt: now,
+        matchedStoreId: matchedStore?.id,
+        bonusSummary: `Zupergift (${db.zupergiftConfig?.ratePer100Kr ?? 20} p / 100 kr)${matchedStore ? ` · Matchad med ${matchedStore.name}` : ' · Fristående Zupergift-butik'}`,
+        categories: matchedStore?.categories,
+        isReviewed: false,
+        reviewedAt: null,
       });
     }
   }
@@ -216,12 +232,25 @@ export async function syncZupergiftCatalog(): Promise<{
 
   db.lastZupergiftSync = now;
 
+  if (!db.syncNewStores) {
+    db.syncNewStores = [];
+  }
+  if (addedStores.length > 0) {
+    db.syncNewStores = [...addedStores, ...db.syncNewStores];
+  }
+
+  const newNamesSummary =
+    addedStores.length > 0
+      ? ` Nya butiker: ${addedStores.map((s) => s.name).join(', ')}.`
+      : '';
+
   db.auditEvents.push({
     id: `audit-${Date.now()}`,
     timestamp: now,
     action: 'SYNC_ZUPERGIFT_LIVE',
-    details: `Live-synkronisering mot Zupergift slutförd. Totalt ${discoveredMap.size} butiker funna live (${newStoresAdded} nya tillagda i Zupergift-katalogen, ${missingCount} saknas hos Zupergift).`,
+    details: `Live-synkronisering mot Zupergift slutförd. Totalt ${discoveredMap.size} butiker funna live (${newStoresAdded} nya tillagda i Zupergift-katalogen, ${missingCount} saknas hos Zupergift).${newNamesSummary}`,
     user: 'Admin',
+    newStores: addedStores.length > 0 ? addedStores : undefined,
   });
 
   saveDatabase(db);
@@ -235,6 +264,7 @@ export async function syncZupergiftCatalog(): Promise<{
     totalDiscovered: discoveredMap.size,
     newStoresAdded,
     matchedStores: matchedStoresList,
-    message: `Live-synk lyckades: ${discoveredMap.size} butiker hittades live på Zupergift (${newStoresAdded} nya). Katalogen har ${totalInCatalog} butiker (${activeInCatalog} aktiva, ${hiddenCount} dolda, ${missingCount} saknas hos Zupergift). ${matchedStoresList.length} butiker är kopplade till Poängpilotens jämförelse.`,
+    newStores: addedStores,
+    message: `Live-synk lyckades: ${discoveredMap.size} butiker hittades live på Zupergift (${newStoresAdded} nya). Katalogen har ${totalInCatalog} butiker (${activeInCatalog} aktiva, ${hiddenCount} dolda, ${missingCount} saknas hos Zupergift). ${matchedStoresList.length} butiker är kopplade till Poängpilotens jämförelse.${newNamesSummary}`,
   };
 }

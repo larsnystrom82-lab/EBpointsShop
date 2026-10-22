@@ -15,7 +15,9 @@ export interface StorePartnerRule {
   isOneTimeOffer?: boolean;
   oneTimeTerms?: string;
   regularBonusPer100Kr?: number;
+  regularTierPer100Kr?: number;
   regularFixedBonusPoints?: number;
+  regularFixedTierPoints?: number;
   uuid?: string;
 }
 
@@ -178,7 +180,9 @@ export interface RouteCalculationResult {
   isExplicitCampaign: boolean;
   campaignValidUntil?: string;
   regularBonusPer100Kr?: number;
+  regularTierPer100Kr?: number;
   regularFixedBonusPoints?: number;
+  regularFixedTierPoints?: number;
   isOneTimeOffer?: boolean;
   oneTimeTerms?: string;
   rewardType?: 'rate' | 'fixed';

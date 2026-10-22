@@ -149,4 +149,336 @@ describe('Store Resolver - Alias and Grouping', () => {
     expect(stores[0].name).toBe('Cervera');
     expect(stores[0].alias).toBeNull();
   });
+
+  it('filters out stores with no active earning channel (no partner, no Zupergift, no SAS gift card)', () => {
+    const mockDb: DatabaseSchema = {
+      stores: [
+        {
+          id: 'valid-partner',
+          name: 'Giltig Partner',
+          slug: 'valid-partner',
+          aliases: [],
+          logoUrl: '/logos/test.svg',
+          categories: ['home'],
+          isActive: true,
+          partnerRule: {
+            hasPartnerLink: true,
+            bonusPer100Kr: 20,
+            tierPer100Kr: 0,
+            isCampaign: false,
+            campaignValidUntil: null,
+            startUrl: 'https://test.se',
+          },
+          giftCardRule: {
+            hasDirectGiftCard: false,
+            bonusPer100Kr: 0,
+            denominationsKr: [],
+            feeKr: 0,
+            isCampaign: false,
+            startUrl: '',
+          },
+          zupergiftSupported: false,
+        },
+        {
+          id: 'dead-demo-store',
+          name: 'Död Demobutik',
+          slug: 'dead-demo-store',
+          aliases: [],
+          logoUrl: '/logos/dead.svg',
+          categories: ['health'],
+          isActive: true,
+          partnerRule: {
+            hasPartnerLink: false,
+            bonusPer100Kr: 0,
+            tierPer100Kr: 0,
+            isCampaign: false,
+            campaignValidUntil: null,
+            startUrl: '',
+          },
+          giftCardRule: {
+            hasDirectGiftCard: false,
+            bonusPer100Kr: 0,
+            denominationsKr: [],
+            feeKr: 0,
+            isCampaign: false,
+            startUrl: '',
+          },
+          zupergiftSupported: false,
+        },
+      ],
+      zupergiftStores: [],
+      sasGiftCards: [],
+      zupergiftConfig: {
+        ratePer100Kr: 30,
+        isCampaign: false,
+        campaignValidUntil: null,
+        note: '',
+      },
+      storeCustomMetadata: {},
+      errorReports: [],
+      auditEvents: [],
+      lastZupergiftSync: null,
+      lastSasGiftCardSync: null,
+    };
+
+    const stores = buildAllStores(mockDb);
+    expect(stores).toHaveLength(1);
+    expect(stores[0].id).toBe('valid-partner');
+  });
+
+  it('keeps alias group visible with only active stores when 1 store is active and 1 is hidden', () => {
+    const mockDb: DatabaseSchema = {
+      stores: [
+        {
+          id: 'tv4-play-standard',
+          name: 'TV4 Play Standard',
+          slug: 'tv4-play-standard',
+          aliases: [],
+          logoUrl: '/logos/tv4.svg',
+          categories: ['streaming'],
+          isActive: true,
+          partnerRule: {
+            hasPartnerLink: true,
+            bonusPer100Kr: 20,
+            tierPer100Kr: 0,
+            isCampaign: false,
+            campaignValidUntil: null,
+            startUrl: 'https://tv4.se',
+          },
+          giftCardRule: {
+            hasDirectGiftCard: false,
+            bonusPer100Kr: 0,
+            denominationsKr: [],
+            feeKr: 0,
+            isCampaign: false,
+            startUrl: '',
+          },
+          zupergiftSupported: false,
+        },
+        {
+          id: 'tv4-play-sport',
+          name: 'TV4 Play Sport',
+          slug: 'tv4-play-sport',
+          aliases: [],
+          logoUrl: '/logos/tv4.svg',
+          categories: ['streaming'],
+          isActive: true,
+          partnerRule: {
+            hasPartnerLink: true,
+            bonusPer100Kr: 30,
+            tierPer100Kr: 0,
+            isCampaign: false,
+            campaignValidUntil: null,
+            startUrl: 'https://tv4.se/sport',
+          },
+          giftCardRule: {
+            hasDirectGiftCard: false,
+            bonusPer100Kr: 0,
+            denominationsKr: [],
+            feeKr: 0,
+            isCampaign: false,
+            startUrl: '',
+          },
+          zupergiftSupported: false,
+        },
+      ],
+      zupergiftStores: [],
+      sasGiftCards: [],
+      zupergiftConfig: {
+        ratePer100Kr: 30,
+        isCampaign: false,
+        campaignValidUntil: null,
+        note: '',
+      },
+      storeCustomMetadata: {
+        'tv4-play-standard': {
+          alias: 'TV4 Play',
+          isHidden: false,
+        },
+        'tv4-play-sport': {
+          alias: 'TV4 Play',
+          isHidden: true, // Dold av admin!
+        },
+      },
+      errorReports: [],
+      auditEvents: [],
+      lastZupergiftSync: null,
+      lastSasGiftCardSync: null,
+    };
+
+    // Public call: hidden store must NOT be included, active store must be included with alias
+    const publicStores = buildAllStores(mockDb);
+    expect(publicStores).toHaveLength(1);
+    expect(publicStores[0].id).toBe('tv4-play-standard');
+    expect(publicStores[0].alias).toBe('TV4 Play');
+    expect(publicStores[0].isHidden).toBe(false);
+
+    // Admin call (includeExcluded): both stores are returned, with correct isHidden flags
+    const adminStores = buildAllStores(mockDb, { includeExcluded: true });
+    expect(adminStores).toHaveLength(2);
+    const hiddenStore = adminStores.find((s) => s.id === 'tv4-play-sport');
+    const activeStore = adminStores.find((s) => s.id === 'tv4-play-standard');
+    expect(hiddenStore?.isHidden).toBe(true);
+    expect(hiddenStore?.isActive).toBe(false);
+    expect(activeStore?.isHidden).toBe(false);
+    expect(activeStore?.isActive).toBe(true);
+  });
+
+  it('does not resurrect hidden base store via extra SAS gift card', () => {
+    const mockDb: DatabaseSchema = {
+      stores: [
+        {
+          id: 'bokus-play',
+          name: 'Bokus Play',
+          slug: 'bokus-play',
+          aliases: [],
+          logoUrl: '/logos/bokus.svg',
+          categories: ['books'],
+          isActive: false,
+          isHidden: true,
+          partnerRule: {
+            hasPartnerLink: false,
+            bonusPer100Kr: 0,
+            tierPer100Kr: 0,
+            isCampaign: false,
+            campaignValidUntil: null,
+            startUrl: '',
+          },
+          giftCardRule: {
+            hasDirectGiftCard: false,
+            bonusPer100Kr: 0,
+            denominationsKr: [],
+            feeKr: 0,
+            isCampaign: false,
+            startUrl: '',
+          },
+          zupergiftSupported: false,
+        },
+      ],
+      zupergiftStores: [],
+      sasGiftCards: [
+        {
+          id: 'bokus-play',
+          name: 'Bokus Play',
+          slug: 'bokus-play',
+          bonusPer100Kr: 50,
+          isCampaign: false,
+          campaignValidUntil: null,
+          isHidden: false,
+          isExcluded: false,
+          note: '',
+          syncedAt: '2026-10-01',
+          updatedAt: null,
+        },
+      ],
+      zupergiftConfig: {
+        ratePer100Kr: 30,
+        isCampaign: false,
+        campaignValidUntil: null,
+        note: '',
+      },
+      storeCustomMetadata: {
+        'bokus-play': {
+          isHidden: true,
+        },
+      },
+      errorReports: [],
+      auditEvents: [],
+      lastZupergiftSync: null,
+      lastSasGiftCardSync: null,
+    };
+
+    const publicStores = buildAllStores(mockDb);
+    expect(publicStores).toHaveLength(0);
+  });
+
+  it('reverts expired partner campaign tier points to regularTierPer100Kr and regularFixedTierPoints', () => {
+    const mockDb: DatabaseSchema = {
+      stores: [
+        {
+          id: 'expired-rate-store',
+          name: 'Expired Rate Store',
+          slug: 'expired-rate-store',
+          aliases: [],
+          logoUrl: '',
+          categories: ['fashion'],
+          isActive: true,
+          partnerRule: {
+            hasPartnerLink: true,
+            bonusPer100Kr: 50,
+            regularBonusPer100Kr: 25,
+            tierPer100Kr: 10,
+            regularTierPer100Kr: 5,
+            isCampaign: true,
+            campaignValidUntil: '2020-01-01',
+            startUrl: 'https://example.com',
+          },
+          giftCardRule: {
+            hasDirectGiftCard: false,
+            bonusPer100Kr: 0,
+            denominationsKr: [],
+            feeKr: 0,
+            isCampaign: false,
+            startUrl: '',
+          },
+          zupergiftSupported: false,
+        },
+        {
+          id: 'expired-fixed-store',
+          name: 'Expired Fixed Store',
+          slug: 'expired-fixed-store',
+          aliases: [],
+          logoUrl: '',
+          categories: ['services'],
+          isActive: true,
+          partnerRule: {
+            hasPartnerLink: true,
+            bonusPer100Kr: 0,
+            tierPer100Kr: 0,
+            rewardType: 'fixed',
+            fixedBonusPoints: 1000,
+            regularFixedBonusPoints: 500,
+            fixedTierPoints: 200,
+            regularFixedTierPoints: 100,
+            isCampaign: true,
+            campaignValidUntil: '2020-01-01',
+            startUrl: 'https://example.com/fixed',
+          },
+          giftCardRule: {
+            hasDirectGiftCard: false,
+            bonusPer100Kr: 0,
+            denominationsKr: [],
+            feeKr: 0,
+            isCampaign: false,
+            startUrl: '',
+          },
+          zupergiftSupported: false,
+        },
+      ],
+      zupergiftStores: [],
+      sasGiftCards: [],
+      zupergiftConfig: {
+        ratePer100Kr: 30,
+        isCampaign: false,
+        campaignValidUntil: null,
+        note: '',
+      },
+      storeCustomMetadata: {},
+      errorReports: [],
+      auditEvents: [],
+      lastZupergiftSync: null,
+      lastSasGiftCardSync: null,
+    };
+
+    const resolved = buildAllStores(mockDb);
+    const rateStore = resolved.find((s) => s.id === 'expired-rate-store');
+    expect(rateStore?.partnerRule.isCampaign).toBe(false);
+    expect(rateStore?.partnerRule.bonusPer100Kr).toBe(25);
+    expect(rateStore?.partnerRule.tierPer100Kr).toBe(5);
+
+    const fixedStore = resolved.find((s) => s.id === 'expired-fixed-store');
+    expect(fixedStore?.partnerRule.isCampaign).toBe(false);
+    expect(fixedStore?.partnerRule.fixedBonusPoints).toBe(500);
+    expect(fixedStore?.partnerRule.fixedTierPoints).toBe(100);
+  });
 });

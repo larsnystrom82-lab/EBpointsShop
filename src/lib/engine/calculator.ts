@@ -131,7 +131,7 @@ export function generateCandidateRoutes(options: RouteGenerationOptions): RouteC
     allowPartnerStores &&
     (Boolean(store.partnerRule?.hasPartnerLink) ||
       storePartnerBonusPer100Kr !== undefined ||
-      ['bagaren-och-kocken', 'kitchentime', 'netonnet', 'apotek-hjartat', 'boozt', 'ahlens'].includes(store.id));
+      ['bagaren-och-kocken', 'kitchentime', 'ahlens'].includes(store.id));
 
   if (isDirectPartner) {
     const partnerRule = store.partnerRule;
@@ -144,10 +144,26 @@ export function generateCandidateRoutes(options: RouteGenerationOptions): RouteC
             ? partnerRule.bonusPer100Kr
             : (partnerRule.regularBonusPer100Kr ?? partnerRule.bonusPer100Kr))
         : 20);
+
+    const resolvedRegularTierPer100Kr =
+      partnerRule?.regularTierPer100Kr !== undefined
+        ? partnerRule.regularTierPer100Kr
+        : partnerRule?.regularBonusPer100Kr !== undefined &&
+          partnerRule.regularBonusPer100Kr > 0 &&
+          partnerRule?.bonusPer100Kr !== undefined &&
+          partnerRule.bonusPer100Kr > 0 &&
+          partnerRule?.tierPer100Kr !== undefined &&
+          partnerRule.tierPer100Kr > 0 &&
+          partnerRule.bonusPer100Kr !== partnerRule.regularBonusPer100Kr
+        ? Math.round(partnerRule.regularBonusPer100Kr * (partnerRule.tierPer100Kr / partnerRule.bonusPer100Kr))
+        : partnerRule?.tierPer100Kr;
+
     let partnerRateTier =
       storePartnerTierPer100Kr ??
       (partnerRule?.tierPer100Kr !== undefined
-        ? partnerRule.tierPer100Kr
+        ? (isCampaignValid
+            ? partnerRule.tierPer100Kr
+            : (resolvedRegularTierPer100Kr ?? partnerRule.tierPer100Kr))
         : 0);
     let isExplicitCampaign = isCampaignValid;
 
@@ -155,13 +171,6 @@ export function generateCandidateRoutes(options: RouteGenerationOptions): RouteC
       if (store.id === 'bagaren-och-kocken' || store.id === 'kitchentime') {
         partnerRateBonus = 23.81;
         partnerRateTier = 4.762;
-      } else if (store.id === 'netonnet') {
-        partnerRateBonus = 10;
-        partnerRateTier = 0;
-      } else if (store.id === 'apotek-hjartat') {
-        partnerRateBonus = 25;
-        partnerRateTier = 0;
-        isExplicitCampaign = true;
       }
     }
 
@@ -171,6 +180,20 @@ export function generateCandidateRoutes(options: RouteGenerationOptions): RouteC
       (partnerRule?.fixedBonusPoints !== undefined && partnerRule.fixedBonusPoints > 0) ||
       ((partnerRule?.bonusPer100Kr ?? 0) >= 200 && storePartnerBonusPer100Kr === undefined);
 
+    const resolvedRegularFixedTierPoints =
+      partnerRule?.regularFixedTierPoints !== undefined
+        ? partnerRule.regularFixedTierPoints
+        : partnerRule?.regularFixedBonusPoints !== undefined &&
+          partnerRule.regularFixedBonusPoints > 0 &&
+          (partnerRule?.fixedBonusPoints ?? 0) > 0 &&
+          (partnerRule?.fixedTierPoints ?? 0) > 0 &&
+          partnerRule.fixedBonusPoints !== partnerRule.regularFixedBonusPoints
+        ? Math.round(
+            partnerRule.regularFixedBonusPoints *
+              ((partnerRule.fixedTierPoints ?? 0) / (partnerRule.fixedBonusPoints ?? 1))
+          )
+        : partnerRule?.fixedTierPoints;
+
     let baseBonusPoints: number;
     let baseTierPoints: number;
     let breakdownDesc: string;
@@ -179,15 +202,14 @@ export function generateCandidateRoutes(options: RouteGenerationOptions): RouteC
       baseBonusPoints = isCampaignValid
         ? (partnerRule?.fixedBonusPoints ?? partnerRule?.bonusPer100Kr ?? partnerRateBonus)
         : (partnerRule?.regularFixedBonusPoints ?? partnerRule?.fixedBonusPoints ?? partnerRule?.bonusPer100Kr ?? partnerRateBonus);
-      baseTierPoints =
-        partnerRule?.fixedTierPoints ??
-        partnerRule?.tierPer100Kr ??
-        partnerRateTier;
+      baseTierPoints = isCampaignValid
+        ? (partnerRule?.fixedTierPoints ?? partnerRule?.tierPer100Kr ?? partnerRateTier)
+        : (resolvedRegularFixedTierPoints ?? partnerRule?.fixedTierPoints ?? partnerRule?.tierPer100Kr ?? partnerRateTier);
       breakdownDesc = `Fast engångsbonus (${baseBonusPoints.toLocaleString('sv-SE')} Extrapoäng${baseTierPoints > 0 ? ` + ${baseTierPoints.toLocaleString('sv-SE')} nivåpoäng` : ''})`;
     } else {
       baseBonusPoints = Math.floor((purchaseAmountOre * partnerRateBonus) / 10000);
       baseTierPoints = partnerRateTier > 0 ? Math.floor((purchaseAmountOre * partnerRateTier) / 10000) : 0;
-      breakdownDesc = `Partnerlänk ger ${partnerRateBonus} bonuspoäng per 100 kr`;
+      breakdownDesc = `Partnerlänk ger ${partnerRateBonus} bonuspoäng${partnerRateTier > 0 ? ` + ${partnerRateTier} nivåpoäng` : ''} per 100 kr`;
     }
 
     const totalOutlayOre = purchaseAmountOre;
@@ -257,7 +279,9 @@ export function generateCandidateRoutes(options: RouteGenerationOptions): RouteC
       isExplicitCampaign,
       campaignValidUntil: isCampaignValid ? (partnerRule?.campaignValidUntil || undefined) : undefined,
       regularBonusPer100Kr: partnerRule?.regularBonusPer100Kr,
+      regularTierPer100Kr: resolvedRegularTierPer100Kr,
       regularFixedBonusPoints: partnerRule?.regularFixedBonusPoints,
+      regularFixedTierPoints: resolvedRegularFixedTierPoints,
       isOneTimeOffer: isFixedReward,
       oneTimeTerms: store.partnerRule?.oneTimeTerms || (isFixedReward ? 'Engångsbonus – gäller vanligtvis ny kund vid första köpet' : undefined),
       rewardType: isFixedReward ? 'fixed' : 'rate',

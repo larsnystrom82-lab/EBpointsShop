@@ -127,6 +127,21 @@ describe('campaign utilities', () => {
       expect(summary?.detailText).toContain('(ord. 400 p)');
     });
 
+    it('includes tier points comparison when campaign tier points exceed regular tier points', () => {
+      const summary = getCampaignOfferSummary({
+        currentBonusPer100Kr: 50,
+        regularBonusPer100Kr: 25,
+        currentTierPer100Kr: 10,
+        regularTierPer100Kr: 5,
+      });
+      expect(summary).not.toBeNull();
+      expect(summary?.badgeText).toBe('Dubbla poäng');
+      expect(summary?.tierDetailText).toBe('Nivåpoäng: 10 p / 100 kr (ord. 5 p / 100 kr)');
+      expect(summary?.detailText).toContain(
+        'Just nu 50 p / 100 kr (ord. 25 p / 100 kr) · Nivåpoäng: 10 p / 100 kr (ord. 5 p / 100 kr)'
+      );
+    });
+
     it('returns null if no regular points or current points <= regular points', () => {
       expect(getCampaignOfferSummary({ currentBonusPer100Kr: 25, regularBonusPer100Kr: 25 })).toBeNull();
       expect(getCampaignOfferSummary({ currentBonusPer100Kr: 25, regularBonusPer100Kr: undefined })).toBeNull();

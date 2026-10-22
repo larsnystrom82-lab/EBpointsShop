@@ -56,15 +56,42 @@ export const AlternativeCard: React.FC<AlternativeCardProps> = ({
   const cardBonusPoints = bestOutcome ? bestOutcome.cardBonusPoints : 0;
   const baseBonusPoints = route.baseBonusPoints;
   const baseTierPoints = route.baseTierPoints;
+
+  const currentBonusRate =
+    route.routeType === 'direct_partner' && !route.isOneTimeOffer && route.purchaseAmountOre > 0
+      ? Math.round((route.baseBonusPoints / (route.purchaseAmountOre / 10000)) * 10) / 10
+      : undefined;
+  const currentTierRate =
+    route.routeType === 'direct_partner' && !route.isOneTimeOffer && route.purchaseAmountOre > 0
+      ? Math.round((route.baseTierPoints / (route.purchaseAmountOre / 10000)) * 10) / 10
+      : undefined;
+
+  const regularBaseTierPoints =
+    route.routeType === 'direct_partner'
+      ? route.isOneTimeOffer
+        ? route.regularFixedTierPoints
+        : route.regularTierPer100Kr !== undefined
+        ? Math.floor((route.purchaseAmountOre * route.regularTierPer100Kr) / 10000)
+        : undefined
+      : undefined;
+
+  const hasElevatedCampaignTier =
+    route.isExplicitCampaign &&
+    route.routeType === 'direct_partner' &&
+    regularBaseTierPoints !== undefined &&
+    baseTierPoints > regularBaseTierPoints;
+
   const campaignInfo = route.isExplicitCampaign ? getCampaignRemainingInfo(route.campaignValidUntil) : null;
   const campaignOffer = route.isExplicitCampaign
     ? getCampaignOfferSummary({
-        currentBonusPer100Kr: route.routeType === 'direct_partner' && !route.isOneTimeOffer && route.purchaseAmountOre > 0
-          ? Math.round((route.baseBonusPoints / (route.purchaseAmountOre / 10000)) * 10) / 10
-          : undefined,
+        currentBonusPer100Kr: currentBonusRate,
         regularBonusPer100Kr: route.regularBonusPer100Kr,
+        currentTierPer100Kr: currentTierRate,
+        regularTierPer100Kr: route.regularTierPer100Kr,
         currentFixedPoints: route.isOneTimeOffer ? route.baseBonusPoints : undefined,
         regularFixedPoints: route.regularFixedBonusPoints,
+        currentFixedTierPoints: route.isOneTimeOffer ? route.baseTierPoints : undefined,
+        regularFixedTierPoints: route.regularFixedTierPoints,
       })
     : null;
 
@@ -228,7 +255,9 @@ export const AlternativeCard: React.FC<AlternativeCardProps> = ({
             </span>
             <span className="text-[11px] text-slate-400 block">
               {baseTierPoints > 0
-                ? route.isOneTimeOffer
+                ? hasElevatedCampaignTier && regularBaseTierPoints !== undefined
+                  ? `Kampanj (ord. ${regularBaseTierPoints.toLocaleString('sv-SE')})`
+                  : route.isOneTimeOffer
                   ? 'Fast engångsbonus'
                   : 'Från partnerbutik'
                 : '–'}
@@ -353,7 +382,11 @@ export const AlternativeCard: React.FC<AlternativeCardProps> = ({
               <span className={`text-base font-extrabold block leading-tight ${baseTierPoints > 0 ? 'text-emerald-700 font-black' : 'text-slate-400'}`}>
                 {baseTierPoints > 0 ? baseTierPoints.toLocaleString('sv-SE') : '0'}
               </span>
-              <span className="text-[10px] text-slate-400">Nivåpoäng</span>
+              <span className="text-[10px] text-slate-400">
+                {hasElevatedCampaignTier && regularBaseTierPoints !== undefined
+                  ? `Nivå (ord. ${regularBaseTierPoints.toLocaleString('sv-SE')})`
+                  : 'Nivåpoäng'}
+              </span>
             </div>
             <div>
               <span className="text-base font-extrabold text-blue-600 block leading-tight">

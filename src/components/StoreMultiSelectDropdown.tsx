@@ -81,7 +81,10 @@ export const StoreMultiSelectDropdown: React.FC<StoreMultiSelectDropdownProps> =
     const aliasGroupMap = new Map<string, StoreFilterGroup>();
     const result: StoreFilterGroup[] = [];
 
-    for (const store of allStores) {
+    // Filter out hidden or inactive stores for user-facing dropdown
+    const visibleStores = allStores.filter((store) => !store.isHidden && store.isActive !== false);
+
+    for (const store of visibleStores) {
       const aliasClean = store.alias?.trim();
       if (aliasClean) {
         const aliasKey = aliasClean.toLowerCase();
@@ -205,14 +208,15 @@ export const StoreMultiSelectDropdown: React.FC<StoreMultiSelectDropdownProps> =
       const newSelection = Array.from(new Set([...selectedStoreIds, ...matchingIds]));
       onSelectAll(newSelection);
     } else {
-      const allIds = allStores.map((s) => s.id);
+      const allIds = filterGroups.flatMap((g) => g.storeIds);
       onSelectAll(allIds);
     }
   };
 
+  const visibleCount = filterGroups.flatMap((g) => g.storeIds).length;
   const canSelectAll =
     Boolean(onSelectAll) &&
-    (query ? filteredUnselected.length > 0 : selectedStoreIds.length < allStores.length);
+    (query ? filteredUnselected.length > 0 : selectedStoreIds.length < visibleCount);
 
   return (
     <div className="relative w-full" ref={dropdownRef}>

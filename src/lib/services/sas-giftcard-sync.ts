@@ -1,4 +1,4 @@
-import { getDatabase, saveDatabase, SasGiftCardStoreItem } from '@/lib/db';
+import { getDatabase, saveDatabase, SasGiftCardStoreItem, SyncNewStoreItem } from '@/lib/db';
 
 /**
  * Normalizes title strings from HTML entities
@@ -164,6 +164,7 @@ export async function syncSasGiftCardStores(): Promise<{
   totalDiscovered: number;
   newStoresAdded: number;
   matchedStores: string[];
+  newStores?: SyncNewStoreItem[];
   message: string;
 }> {
   const db = getDatabase();
@@ -374,6 +375,7 @@ export async function syncSasGiftCardStores(): Promise<{
   }
 
   let newStoresAdded = 0;
+  const addedStores: SyncNewStoreItem[] = [];
 
   for (const [slug, item] of discoveredMap.entries()) {
     const existing = db.sasGiftCards.find((s) => s.slug === slug || s.id === slug);
@@ -410,6 +412,19 @@ export async function syncSasGiftCardStores(): Promise<{
       };
 
       db.sasGiftCards.push(newItem);
+
+      addedStores.push({
+        id: `sas-gc-${slug}-${Date.now()}-${newStoresAdded}`,
+        storeId: matchedStoreId || slug,
+        name: item.name,
+        slug,
+        source: 'sas_giftcard',
+        syncedAt: now,
+        matchedStoreId,
+        bonusSummary: 'Ej konfigurerad – ange poäng/100 kr under SAS Presentkort',
+        isReviewed: false,
+        reviewedAt: null,
+      });
     }
   }
 
@@ -442,12 +457,25 @@ export async function syncSasGiftCardStores(): Promise<{
 
   db.lastSasGiftCardSync = now;
 
+  if (!db.syncNewStores) {
+    db.syncNewStores = [];
+  }
+  if (addedStores.length > 0) {
+    db.syncNewStores = [...addedStores, ...db.syncNewStores];
+  }
+
+  const newNamesSummary =
+    addedStores.length > 0
+      ? ` Nya butiker: ${addedStores.map((s) => s.name).join(', ')}.`
+      : '';
+
   db.auditEvents.push({
     id: `audit-${Date.now()}`,
     timestamp: now,
     action: 'SYNC_SAS_GIFTCARDS',
-    details: `Synkronisering mot SAS EuroBonus Shop presentkort slutförd. Totalt ${discoveredMap.size} butiker identifierade live (${newStoresAdded} nya, ${missingSasCount} saknas på SAS Shop).`,
+    details: `Synkronisering mot SAS EuroBonus Shop presentkort slutförd. Totalt ${discoveredMap.size} butiker identifierade live (${newStoresAdded} nya, ${missingSasCount} saknas på SAS Shop).${newNamesSummary}`,
     user: 'Admin',
+    newStores: addedStores.length > 0 ? addedStores : undefined,
   });
 
   saveDatabase(db);
@@ -457,6 +485,7 @@ export async function syncSasGiftCardStores(): Promise<{
     totalDiscovered: discoveredMap.size,
     newStoresAdded,
     matchedStores,
-    message: `Synk lyckades: ${discoveredMap.size} presentkortsbutiker identifierade på SAS EuroBonus Shop (${newStoresAdded} nya, ${missingSasCount} saknas hos SAS). ${matchedStores.length} butiker är aktiva (har konfigurerade poäng).`,
+    newStores: addedStores,
+    message: `Synk lyckades: ${discoveredMap.size} presentkortsbutiker identifierade på SAS EuroBonus Shop (${newStoresAdded} nya, ${missingSasCount} saknas hos SAS). ${matchedStores.length} butiker är aktiva (har konfigurerade poäng).${newNamesSummary}`,
   };
 }

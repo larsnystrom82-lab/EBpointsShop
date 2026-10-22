@@ -614,7 +614,7 @@ describe('EuroBonus Beräkningsmotor – Acceptanstester A03–A16', () => {
     expect(ranked[1].baseBonusPoints).toBe(300);
   });
 
-  it('Campaign handling: active campaigns retain campaign points while expired campaigns revert to regular rate', () => {
+  it('Campaign handling: active campaigns retain campaign bonus and tier points while expired campaigns revert to regular rate', () => {
     const activeStore: Store = {
       id: 'active-store',
       name: 'Aktiv Butik',
@@ -626,7 +626,8 @@ describe('EuroBonus Beräkningsmotor – Acceptanstester A03–A16', () => {
         hasPartnerLink: true,
         bonusPer100Kr: 50,
         regularBonusPer100Kr: 25,
-        tierPer100Kr: 5,
+        tierPer100Kr: 10,
+        regularTierPer100Kr: 5,
         isCampaign: true,
         campaignValidUntil: '2099-12-31',
         startUrl: 'https://example.com/active',
@@ -652,7 +653,8 @@ describe('EuroBonus Beräkningsmotor – Acceptanstester A03–A16', () => {
         hasPartnerLink: true,
         bonusPer100Kr: 100,
         regularBonusPer100Kr: 50,
-        tierPer100Kr: 5,
+        tierPer100Kr: 20,
+        regularTierPer100Kr: 10,
         isCampaign: true,
         campaignValidUntil: '2020-01-01',
         startUrl: 'https://example.com/expired',
@@ -674,6 +676,9 @@ describe('EuroBonus Beräkningsmotor – Acceptanstester A03–A16', () => {
     expect(activeRoutes[0].isExplicitCampaign).toBe(true);
     expect(activeRoutes[0].campaignValidUntil).toBe('2099-12-31');
     expect(activeRoutes[0].baseBonusPoints).toBe(500); // 1000 kr * 50 / 100
+    expect(activeRoutes[0].baseTierPoints).toBe(100); // 1000 kr * 10 / 100 (campaign tier rate)
+    expect(activeRoutes[0].regularBonusPer100Kr).toBe(25);
+    expect(activeRoutes[0].regularTierPer100Kr).toBe(5);
 
     const expiredRoutes = generateCandidateRoutes({
       store: expiredStore,
@@ -682,6 +687,7 @@ describe('EuroBonus Beräkningsmotor – Acceptanstester A03–A16', () => {
     expect(expiredRoutes[0].isExplicitCampaign).toBe(false);
     expect(expiredRoutes[0].campaignValidUntil).toBeUndefined();
     expect(expiredRoutes[0].baseBonusPoints).toBe(500); // 1000 kr * 50 / 100 (reverted to regularBonusPer100Kr 50)
+    expect(expiredRoutes[0].baseTierPoints).toBe(100); // 1000 kr * 10 / 100 (reverted to regularTierPer100Kr 10)
 
     // Filter onlyCampaigns
     const onlyCampRanked = processAndRankRoutes([...activeRoutes, ...expiredRoutes], {

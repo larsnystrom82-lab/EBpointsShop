@@ -36,7 +36,7 @@ import {
   Globe,
   Link2,
 } from 'lucide-react';
-import type { DatabaseSchema, DbStore, ZupergiftStoreItem, ResourceLinkItem } from '@/lib/db';
+import type { DatabaseSchema, DbStore, ZupergiftStoreItem, ResourceLinkItem, SyncNewStoreItem } from '@/lib/db';
 import type { Store } from '@/types/domain';
 import { DEMO_CATEGORIES } from '@/lib/fixtures/demo-data';
 import { isCampaignActive, getCampaignRemainingInfo } from '@/lib/utils/campaign';
@@ -123,8 +123,14 @@ export default function AdminPage() {
 
   // States for "Alla butiker" tab
   const [allStoresSearch, setAllStoresSearch] = useState('');
-  const [allStoresFilter, setAllStoresFilter] = useState<'all' | 'partner' | 'zupergift' | 'sas' | 'has_logo' | 'custom_logo' | 'missing_logo' | 'has_comment' | 'hidden' | 'excluded' | 'missing_source'>('all');
+  const [allStoresFilter, setAllStoresFilter] = useState<'all' | 'partner' | 'zupergift' | 'sas' | 'has_logo' | 'custom_logo' | 'missing_logo' | 'has_comment' | 'hidden' | 'excluded' | 'missing_source' | 'new_synced'>('all');
   const [allStoresCategoryFilter, setAllStoresCategoryFilter] = useState<string>('all');
+
+  // States for Sync New Stores Log & Audit Log
+  const [syncLogSourceFilter, setSyncLogSourceFilter] = useState<'all' | 'partner' | 'sas_giftcard' | 'zupergift'>('all');
+  const [syncLogStatusFilter, setSyncLogStatusFilter] = useState<'unreviewed' | 'reviewed' | 'all'>('unreviewed');
+  const [syncLogSearch, setSyncLogSearch] = useState('');
+  const [auditTypeFilter, setAuditTypeFilter] = useState<'all' | 'sync_only'>('all');
   const [excludeHidden, setExcludeHidden] = useState<boolean>(true);
   const [storeMetadataEdits, setStoreMetadataEdits] = useState<Record<string, {
     customLogoUrl: string;
@@ -834,6 +840,59 @@ export default function AdminPage() {
     }
   };
 
+  // Manage Sync New Stores Log (mark reviewed, clear reviewed, delete)
+  const handleSyncLogAction = async (
+    action: 'toggle-review' | 'mark-all-reviewed' | 'clear-reviewed' | 'delete',
+    options?: { id?: string; source?: 'partner' | 'sas_giftcard' | 'zupergift' }
+  ) => {
+    try {
+      const res = await fetch('/api/admin/sync-log', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action, ...options }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setStatusMessage({ text: data.message, type: 'success' });
+        await fetchAdminData();
+      } else {
+        setStatusMessage({ text: data.error || 'Kunde inte uppdatera synklogg', type: 'error' });
+      }
+    } catch {
+      setStatusMessage({ text: 'Ett fel uppstod vid uppdatering av synklogg', type: 'error' });
+    } finally {
+      setTimeout(() => setStatusMessage(null), 3500);
+    }
+  };
+
+  // Jump directly to a newly synced store to inspect it
+  const handleInspectNewStore = (item: SyncNewStoreItem, target: 'all_stores' | 'source') => {
+    if (target === 'all_stores') {
+      setActiveTab('all_stores');
+      setAllStoresFilter('all');
+      setAllStoresCategoryFilter('all');
+      setExcludeHidden(false);
+      setAllStoresSearch(item.name || item.slug);
+      return;
+    }
+
+    if (item.source === 'partner') {
+      setActiveTab('stores');
+      setStoreFilter('all');
+      setStoreCategoryFilter('all');
+      setStoreSearch(item.name || item.slug);
+    } else if (item.source === 'sas_giftcard') {
+      setActiveTab('sas_giftcards');
+      setSasGcFilter('all');
+      setSasGcSearch(item.name || item.slug);
+    } else if (item.source === 'zupergift') {
+      setActiveTab('zupergift');
+      setZgFilter('all');
+      setZgCategoryFilter('all');
+      setZgSearch(item.name || item.slug);
+    }
+  };
+
   // Filtered Zupergift stores list
   const filteredZupergiftStores = useMemo(() => {
     if (!dbData?.zupergiftStores) return [];
@@ -928,6 +987,23 @@ export default function AdminPage() {
     });
   }, [dbData?.sasGiftCards, sasGcSearch, sasGcFilter]);
 
+  // Unreviewed newly synced store IDs/slugs lookup
+  const unreviewedSyncStoreSet = useMemo(() => {
+    const set = new Set<string>();
+    for (const entry of dbData?.syncNewStores || []) {
+      if (!entry.isReviewed) {
+        if (entry.storeId) set.add(entry.storeId.toLowerCase());
+        if (entry.slug) set.add(entry.slug.toLowerCase());
+        if (entry.matchedStoreId) set.add(entry.matchedStoreId.toLowerCase());
+      }
+    }
+    return set;
+  }, [dbData?.syncNewStores]);
+
+  const unreviewedSyncCount = useMemo(() => {
+    return (dbData?.syncNewStores || []).filter((s) => !s.isReviewed).length;
+  }, [dbData?.syncNewStores]);
+
   // Aggregated counts for store statistics respecting excludeHidden setting
   const storeCounts = useMemo(() => {
     const all = dbData?.allStores || [];
@@ -940,6 +1016,11 @@ export default function AdminPage() {
       zupergift: active.filter((s) => s.zupergiftSupported).length,
       sas: active.filter((s) => s.hasSasGiftCard).length,
       missingSource: active.filter((s) => s.isMissingFromSource || s.isMissingFromPartner).length,
+      newSynced: nonExcluded.filter(
+        (s) =>
+          unreviewedSyncStoreSet.has(s.id.toLowerCase()) ||
+          unreviewedSyncStoreSet.has(s.slug.toLowerCase())
+      ).length,
       missingLogo: active.filter((s) => isStoreMissingLogo(s)).length,
       customLogo: active.filter((s) => Boolean(s.customLogoUrl?.trim())).length,
       hasLogo: active.filter((s) => !isStoreMissingLogo(s)).length,
@@ -947,7 +1028,7 @@ export default function AdminPage() {
       hidden: nonExcluded.filter((s) => s.isHidden).length,
       excluded: all.filter((s) => s.isExcluded).length,
     };
-  }, [dbData?.allStores, excludeHidden]);
+  }, [dbData?.allStores, excludeHidden, unreviewedSyncStoreSet]);
 
   const categoriesList = useMemo(() => {
     const list = dbData?.categories && dbData.categories.length > 0 ? dbData.categories : DEMO_CATEGORIES;
@@ -1006,6 +1087,13 @@ export default function AdminPage() {
       if (allStoresFilter === 'zupergift' && !item.zupergiftSupported) return false;
       if (allStoresFilter === 'sas' && !item.hasSasGiftCard) return false;
       if (allStoresFilter === 'missing_source' && !item.isMissingFromSource && !item.isMissingFromPartner) return false;
+      if (
+        allStoresFilter === 'new_synced' &&
+        !unreviewedSyncStoreSet.has(item.id.toLowerCase()) &&
+        !unreviewedSyncStoreSet.has(item.slug.toLowerCase())
+      ) {
+        return false;
+      }
       if (allStoresFilter === 'has_logo' && isStoreMissingLogo(item)) return false;
       if (allStoresFilter === 'missing_logo' && !isStoreMissingLogo(item)) return false;
       if (allStoresFilter === 'custom_logo' && !item.customLogoUrl?.trim()) return false;
@@ -1049,7 +1137,7 @@ export default function AdminPage() {
       }
       return true;
     });
-  }, [dbData?.allStores, allStoresFilter, allStoresCategoryFilter, allStoresSearch, excludeHidden, categoryNameMap, storeMetadataEdits]);
+  }, [dbData?.allStores, allStoresFilter, allStoresCategoryFilter, allStoresSearch, excludeHidden, categoryNameMap, storeMetadataEdits, unreviewedSyncStoreSet]);
 
   // Filtered links for "Länkar & Resurser" tab
   const filteredResourceLinks = useMemo(() => {
@@ -1431,7 +1519,12 @@ export default function AdminPage() {
             }`}
           >
             <History className="w-4 h-4 text-slate-500" />
-            <span>Auditlogg</span>
+            <span>Synk- &amp; Auditlogg</span>
+            {unreviewedSyncCount > 0 && (
+              <span className="px-1.5 py-0.5 rounded-full bg-emerald-600 text-white text-[10px] font-black">
+                {unreviewedSyncCount} nya
+              </span>
+            )}
           </button>
         </div>
 
@@ -1536,6 +1629,23 @@ export default function AdminPage() {
                     <span>Saknas hos källa</span>
                   </div>
                   <div className="text-lg font-black">{storeCounts.missingSource}</div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setAllStoresFilter('new_synced')}
+                  className={`text-left rounded-2xl p-3 border transition-all ${
+                    allStoresFilter === 'new_synced'
+                      ? 'bg-teal-700 text-white border-teal-700 shadow-xs ring-2 ring-teal-200'
+                      : 'bg-teal-50/90 hover:bg-teal-100 border-teal-200 text-teal-900'
+                  }`}
+                  title="Visa nya butiker från synkronisering som ännu inte markerats som kontrollerade"
+                >
+                  <div className={`text-[11px] font-semibold flex items-center gap-1 ${allStoresFilter === 'new_synced' ? 'text-teal-100' : 'text-teal-700'}`}>
+                    <Sparkles className="w-3 h-3" />
+                    <span>Nya vid synk</span>
+                  </div>
+                  <div className="text-lg font-black">{storeCounts.newSynced}</div>
                 </button>
 
                 <button
@@ -2372,6 +2482,45 @@ export default function AdminPage() {
                 </button>
               </div>
 
+              {/* Notis om nya butiker från Zupergift-synk */}
+              {(() => {
+                const newZg = (dbData?.syncNewStores || []).filter((s) => s.source === 'zupergift' && !s.isReviewed);
+                if (newZg.length === 0) return null;
+                return (
+                  <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                    <div className="flex items-start gap-2.5">
+                      <Sparkles className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+                      <div>
+                        <span className="font-bold">{newZg.length} nya Zupergift-butiker tillagda vid synk:</span>
+                        <p className="text-[11px] text-emerald-800 mt-0.5">
+                          {newZg.map((s) => s.name).join(', ')}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0 self-start sm:self-auto">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSyncLogSourceFilter('zupergift');
+                          setSyncLogStatusFilter('unreviewed');
+                          setActiveTab('audit');
+                        }}
+                        className="px-3 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white font-bold transition-colors"
+                      >
+                        Öppna synklogg ({newZg.length})
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleSyncLogAction('mark-all-reviewed', { source: 'zupergift' })}
+                        className="px-3 py-1.5 rounded-lg bg-white hover:bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold transition-colors"
+                      >
+                        ✓ Markera kontrollerade
+                      </button>
+                    </div>
+                  </div>
+                );
+              })()}
+
               {/* Varning om butiker saknas hos Zupergift live */}
               {(() => {
                 const missingCount = (dbData?.zupergiftStores || []).filter((s) => s.isMissingFromSource && !s.isExcluded).length;
@@ -2687,6 +2836,45 @@ export default function AdminPage() {
                   <span>{syncingSasGc ? 'Synkar mot SAS Shop...' : 'Synka från SAS Shop'}</span>
                 </button>
               </div>
+
+              {/* Notis om nya butiker från SAS Presentkort-synk */}
+              {(() => {
+                const newSasGc = (dbData?.syncNewStores || []).filter((s) => s.source === 'sas_giftcard' && !s.isReviewed);
+                if (newSasGc.length === 0) return null;
+                return (
+                  <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                    <div className="flex items-start gap-2.5">
+                      <Sparkles className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+                      <div>
+                        <span className="font-bold">{newSasGc.length} nya presentkortsbutiker hittades vid synk mot SAS Shop:</span>
+                        <p className="text-[11px] text-emerald-800 mt-0.5">
+                          {newSasGc.map((s) => s.name).join(', ')}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0 self-start sm:self-auto">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSyncLogSourceFilter('sas_giftcard');
+                          setSyncLogStatusFilter('unreviewed');
+                          setActiveTab('audit');
+                        }}
+                        className="px-3 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white font-bold transition-colors"
+                      >
+                        Öppna synklogg ({newSasGc.length})
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleSyncLogAction('mark-all-reviewed', { source: 'sas_giftcard' })}
+                        className="px-3 py-1.5 rounded-lg bg-white hover:bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold transition-colors"
+                      >
+                        ✓ Markera kontrollerade
+                      </button>
+                    </div>
+                  </div>
+                );
+              })()}
 
               {/* Varning om butiker saknas på SAS Shop */}
               {(() => {
@@ -3045,6 +3233,45 @@ export default function AdminPage() {
                 <span>{syncingPartner ? 'Synkar SAS Online Shopping...' : 'Kör live-synk mot SAS Online Shopping'}</span>
               </button>
             </div>
+
+            {/* Notis om nya partnerbutiker vid synk */}
+            {(() => {
+              const newPartners = (dbData?.syncNewStores || []).filter((s) => s.source === 'partner' && !s.isReviewed);
+              if (newPartners.length === 0) return null;
+              return (
+                <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                  <div className="flex items-start gap-2.5">
+                    <Sparkles className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+                    <div>
+                      <span className="font-bold">{newPartners.length} nya partnerbutiker tillagda vid synk mot SAS Online Shopping:</span>
+                      <p className="text-[11px] text-emerald-800 mt-0.5">
+                        {newPartners.map((s) => s.name).join(', ')}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0 self-start sm:self-auto">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSyncLogSourceFilter('partner');
+                        setSyncLogStatusFilter('unreviewed');
+                        setActiveTab('audit');
+                      }}
+                      className="px-3 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white font-bold transition-colors"
+                    >
+                      Öppna synklogg ({newPartners.length})
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleSyncLogAction('mark-all-reviewed', { source: 'partner' })}
+                      className="px-3 py-1.5 rounded-lg bg-white hover:bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold transition-colors"
+                    >
+                      ✓ Markera kontrollerade
+                    </button>
+                  </div>
+                </div>
+              );
+            })()}
 
             {/* Varning om butiker tagits bort från SAS partnerkatalog */}
             {(() => {
@@ -3427,6 +3654,18 @@ export default function AdminPage() {
                           {store.partnerRule?.rewardType === 'fixed' || store.partnerRule?.isOneTimeOffer
                             ? 'Fast bonuspoäng'
                             : 'Bonus / 100 kr'}
+                          {store.partnerRule?.isCampaign &&
+                            (store.partnerRule?.rewardType === 'fixed' || store.partnerRule?.isOneTimeOffer
+                              ? store.partnerRule?.regularFixedBonusPoints != null && (
+                                  <span className="ml-1 text-[10px] font-normal text-amber-700">
+                                    (ord. {store.partnerRule.regularFixedBonusPoints})
+                                  </span>
+                                )
+                              : store.partnerRule?.regularBonusPer100Kr != null && (
+                                  <span className="ml-1 text-[10px] font-normal text-amber-700">
+                                    (ord. {store.partnerRule.regularBonusPer100Kr})
+                                  </span>
+                                ))}
                         </span>
                         <input
                           type="number"
@@ -3466,6 +3705,18 @@ export default function AdminPage() {
                           {store.partnerRule?.rewardType === 'fixed' || store.partnerRule?.isOneTimeOffer
                             ? 'Fasta nivåpoäng'
                             : 'Nivå / 100 kr'}
+                          {store.partnerRule?.isCampaign &&
+                            (store.partnerRule?.rewardType === 'fixed' || store.partnerRule?.isOneTimeOffer
+                              ? store.partnerRule?.regularFixedTierPoints != null && (
+                                  <span className="ml-1 text-[10px] font-normal text-amber-700">
+                                    (ord. {store.partnerRule.regularFixedTierPoints})
+                                  </span>
+                                )
+                              : store.partnerRule?.regularTierPer100Kr != null && (
+                                  <span className="ml-1 text-[10px] font-normal text-amber-700">
+                                    (ord. {store.partnerRule.regularTierPer100Kr})
+                                  </span>
+                                ))}
                         </span>
                         <input
                           type="number"
@@ -4285,31 +4536,387 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* TAB 4: AUDITLOGG */}
+        {/* TAB: SYNK- & AUDITLOGG */}
         {activeTab === 'audit' && (
-          <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-xs border border-slate-200/90 space-y-6">
-            <div>
-              <h2 className="text-xl font-black text-slate-900">Auditlogg</h2>
-              <p className="text-xs sm:text-sm text-slate-500 mt-1">
-                Spårbarhet över alla administrativa ändringar i systemet.
-              </p>
-            </div>
-
-            <div className="space-y-2">
-              {dbData?.auditEvents.map((event) => (
-                <div
-                  key={event.id}
-                  className="p-3 rounded-xl border border-slate-200 bg-slate-50 text-xs flex items-center justify-between"
-                >
-                  <div>
-                    <span className="font-bold text-slate-900 mr-2">[{event.action}]</span>
-                    <span className="text-slate-700">{event.details}</span>
+          <div className="space-y-6">
+            {/* Box 1: Logg över nya butiker vid synkronisering */}
+            <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-xs border border-slate-200/90 space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                  <div className="flex items-center gap-2 text-xs font-bold text-teal-600 uppercase tracking-wider mb-1">
+                    <Sparkles className="w-4 h-4" />
+                    Kvalitetskontroll vid synk
                   </div>
-                  <div className="text-slate-400 shrink-0 ml-4">
-                    {new Date(event.timestamp).toLocaleString('sv-SE')} ({event.user})
+                  <h2 className="text-xl font-black text-slate-900">
+                    Nya butiker vid synkronisering ({(dbData?.syncNewStores || []).length})
+                  </h2>
+                  <p className="text-xs sm:text-sm text-slate-500 mt-1 max-w-3xl">
+                    Här loggas alla nya butiker som upptäcks när du synkar mot <strong>SAS Online Shopping (Partner)</strong>, <strong>SAS EuroBonus Shop (Presentkort)</strong> eller <strong>Zupergift</strong>. Kontrollera logga, kategori, poäng och söktermer och bocka sedan av butiken som kontrollerad.
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2 shrink-0 self-start sm:self-auto">
+                  {unreviewedSyncCount > 0 && (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleSyncLogAction('mark-all-reviewed', {
+                          source: syncLogSourceFilter === 'all' ? undefined : syncLogSourceFilter,
+                        })
+                      }
+                      className="px-3.5 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white flex items-center gap-1.5 transition-colors shadow-xs cursor-pointer"
+                    >
+                      <Check className="w-3.5 h-3.5" />
+                      <span>
+                        Markera alla kontrollerade (
+                        {syncLogSourceFilter === 'all'
+                          ? unreviewedSyncCount
+                          : (dbData?.syncNewStores || []).filter((s) => s.source === syncLogSourceFilter && !s.isReviewed).length}
+                        )
+                      </span>
+                    </button>
+                  )}
+
+                  {(dbData?.syncNewStores || []).some((s) => s.isReviewed) && (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleSyncLogAction('clear-reviewed', {
+                          source: syncLogSourceFilter === 'all' ? undefined : syncLogSourceFilter,
+                        })
+                      }
+                      className="px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 flex items-center gap-1.5 transition-colors cursor-pointer"
+                    >
+                      <Trash2 className="w-3.5 h-3.5 text-slate-500" />
+                      <span>Rensa kontrollerade</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Filter & Sök för nya butiker */}
+              <div className="flex flex-col lg:flex-row gap-3 lg:items-center lg:justify-between pt-1">
+                <div className="flex flex-wrap items-center gap-1.5 text-xs">
+                  <span className="text-slate-400 font-semibold mr-1">Källa:</span>
+                  <button
+                    type="button"
+                    onClick={() => setSyncLogSourceFilter('all')}
+                    className={`px-3 py-1.5 rounded-lg font-bold transition-colors ${
+                      syncLogSourceFilter === 'all'
+                        ? 'bg-slate-900 text-white'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    Alla ({(dbData?.syncNewStores || []).length})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSyncLogSourceFilter('partner')}
+                    className={`px-3 py-1.5 rounded-lg font-bold transition-colors ${
+                      syncLogSourceFilter === 'partner'
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-blue-50 text-blue-800 hover:bg-blue-100'
+                    }`}
+                  >
+                    SAS Partner ({(dbData?.syncNewStores || []).filter((s) => s.source === 'partner').length})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSyncLogSourceFilter('sas_giftcard')}
+                    className={`px-3 py-1.5 rounded-lg font-bold transition-colors ${
+                      syncLogSourceFilter === 'sas_giftcard'
+                        ? 'bg-indigo-600 text-white'
+                        : 'bg-indigo-50 text-indigo-800 hover:bg-indigo-100'
+                    }`}
+                  >
+                    SAS Presentkort ({(dbData?.syncNewStores || []).filter((s) => s.source === 'sas_giftcard').length})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSyncLogSourceFilter('zupergift')}
+                    className={`px-3 py-1.5 rounded-lg font-bold transition-colors ${
+                      syncLogSourceFilter === 'zupergift'
+                        ? 'bg-amber-600 text-white'
+                        : 'bg-amber-50 text-amber-800 hover:bg-amber-100'
+                    }`}
+                  >
+                    Zupergift ({(dbData?.syncNewStores || []).filter((s) => s.source === 'zupergift').length})
+                  </button>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2 text-xs">
+                  <div className="relative w-full sm:w-56">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                      <Search className="w-3.5 h-3.5" />
+                    </div>
+                    <input
+                      type="text"
+                      value={syncLogSearch}
+                      onChange={(e) => setSyncLogSearch(e.target.value)}
+                      placeholder="Sök ny butik..."
+                      className="w-full pl-8 pr-3 py-1.5 rounded-xl border border-slate-300 text-xs bg-slate-50 focus:bg-white"
+                    />
+                  </div>
+
+                  <div className="flex items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={() => setSyncLogStatusFilter('unreviewed')}
+                      className={`px-3 py-1.5 rounded-lg font-bold transition-colors ${
+                        syncLogStatusFilter === 'unreviewed'
+                          ? 'bg-teal-700 text-white'
+                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                      }`}
+                    >
+                      Att kontrollera ({(dbData?.syncNewStores || []).filter((s) => !s.isReviewed).length})
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSyncLogStatusFilter('reviewed')}
+                      className={`px-3 py-1.5 rounded-lg font-bold transition-colors ${
+                        syncLogStatusFilter === 'reviewed'
+                          ? 'bg-emerald-700 text-white'
+                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                      }`}
+                    >
+                      Kontrollerade ({(dbData?.syncNewStores || []).filter((s) => s.isReviewed).length})
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSyncLogStatusFilter('all')}
+                      className={`px-3 py-1.5 rounded-lg font-bold transition-colors ${
+                        syncLogStatusFilter === 'all'
+                          ? 'bg-slate-800 text-white'
+                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                      }`}
+                    >
+                      Alla ({(dbData?.syncNewStores || []).length})
+                    </button>
                   </div>
                 </div>
-              ))}
+              </div>
+
+              {/* Lista med nya butiker från synkronisering */}
+              {(() => {
+                const list = (dbData?.syncNewStores || []).filter((item) => {
+                  if (syncLogSourceFilter !== 'all' && item.source !== syncLogSourceFilter) return false;
+                  if (syncLogStatusFilter === 'unreviewed' && item.isReviewed) return false;
+                  if (syncLogStatusFilter === 'reviewed' && !item.isReviewed) return false;
+                  if (syncLogSearch.trim()) {
+                    const q = syncLogSearch.toLowerCase();
+                    return (
+                      item.name.toLowerCase().includes(q) ||
+                      item.slug.toLowerCase().includes(q) ||
+                      (item.bonusSummary || '').toLowerCase().includes(q)
+                    );
+                  }
+                  return true;
+                });
+
+                if (list.length === 0) {
+                  return (
+                    <div className="p-8 text-center text-xs text-slate-500 bg-slate-50 rounded-2xl border border-dashed border-slate-200 space-y-1">
+                      <p className="font-bold text-slate-700">
+                        {syncLogStatusFilter === 'unreviewed'
+                          ? 'Inga nya okontrollerade butiker i synkloggen just nu.'
+                          : 'Inga loggade nya butiker matchar filtret.'}
+                      </p>
+                      <p className="text-slate-400">
+                        När nya butiker tillkommer vid synkning mot SAS Online Shopping, SAS Presentkort eller Zupergift visas de här automatiskt.
+                      </p>
+                    </div>
+                  );
+                }
+
+                return (
+                  <div className="space-y-2.5 max-h-[520px] overflow-y-auto pr-1">
+                    {list.map((entry) => {
+                      const sourceLabel =
+                        entry.source === 'partner'
+                          ? 'SAS Partnerbutik'
+                          : entry.source === 'sas_giftcard'
+                          ? 'SAS Presentkort'
+                          : 'Zupergift';
+                      const sourceBadgeClass =
+                        entry.source === 'partner'
+                          ? 'bg-blue-100 text-blue-800 border-blue-200'
+                          : entry.source === 'sas_giftcard'
+                          ? 'bg-indigo-100 text-indigo-800 border-indigo-200'
+                          : 'bg-amber-100 text-amber-800 border-amber-200';
+
+                      return (
+                        <div
+                          key={entry.id}
+                          className={`p-4 rounded-2xl border transition-all flex flex-col md:flex-row md:items-center justify-between gap-3 ${
+                            entry.isReviewed
+                              ? 'bg-slate-50/70 border-slate-200 opacity-75'
+                              : 'bg-teal-50/30 border-teal-200 border-l-4 border-l-teal-500'
+                          }`}
+                        >
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className={`px-2 py-0.5 rounded-md font-bold text-[10px] border ${sourceBadgeClass}`}>
+                                {sourceLabel}
+                              </span>
+                              <span className="font-bold text-sm text-slate-900">{entry.name}</span>
+                              <span className="font-mono text-[11px] text-slate-400">({entry.slug})</span>
+                              {entry.isReviewed ? (
+                                <span className="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 text-[10px] font-bold flex items-center gap-1">
+                                  <CheckCircle className="w-3 h-3" />
+                                  Kontrollerad
+                                </span>
+                              ) : (
+                                <span className="px-2 py-0.5 rounded-md bg-amber-100 text-amber-800 text-[10px] font-bold">
+                                  Ny – ej kontrollerad
+                                </span>
+                              )}
+                            </div>
+
+                            <div className="flex items-center gap-3 flex-wrap text-xs text-slate-600">
+                              {entry.bonusSummary && (
+                                <span className="font-semibold text-slate-700">{entry.bonusSummary}</span>
+                              )}
+                              {entry.categories && entry.categories.length > 0 && (
+                                <span className="text-[11px] text-slate-500">
+                                  Kategori: {entry.categories.map((c) => categoryNameMap.get(c) || c).join(', ')}
+                                </span>
+                              )}
+                              <span className="text-[11px] text-slate-400">
+                                Synkad: {new Date(entry.syncedAt).toLocaleString('sv-SE')}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2 flex-wrap shrink-0">
+                            <button
+                              type="button"
+                              onClick={() => handleInspectNewStore(entry, 'all_stores')}
+                              className="px-3 py-1.5 rounded-xl text-xs font-bold bg-indigo-50 hover:bg-indigo-100 text-indigo-800 border border-indigo-200 transition-colors cursor-pointer"
+                              title="Öppna butiken i fliken Alla butiker för att kontrollera logga, kategori och alias"
+                            >
+                              Öppna i Alla butiker
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleInspectNewStore(entry, 'source')}
+                              className="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200 transition-colors cursor-pointer"
+                              title="Öppna butiken i källfliken (Partner / SAS Presentkort / Zupergift)"
+                            >
+                              Öppna i {entry.source === 'partner' ? 'Partnerregler' : entry.source === 'sas_giftcard' ? 'SAS Presentkort' : 'Zupergift'}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleSyncLogAction('toggle-review', { id: entry.id })}
+                              className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1 transition-colors cursor-pointer ${
+                                entry.isReviewed
+                                  ? 'bg-slate-200 hover:bg-slate-300 text-slate-700'
+                                  : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-2xs'
+                              }`}
+                            >
+                              <Check className="w-3.5 h-3.5" />
+                              <span>{entry.isReviewed ? 'Ångra kontroll' : 'Markera kontrollerad'}</span>
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })()}
+            </div>
+
+            {/* Box 2: Auditlogg */}
+            <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-xs border border-slate-200/90 space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                  <h2 className="text-xl font-black text-slate-900">Auditlogg (Systemhändelser)</h2>
+                  <p className="text-xs sm:text-sm text-slate-500 mt-1">
+                    Spårbarhet över alla synkroniseringar och administrativa ändringar i systemet (nyaste överst).
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-1.5 text-xs">
+                  <button
+                    type="button"
+                    onClick={() => setAuditTypeFilter('all')}
+                    className={`px-3 py-1.5 rounded-lg font-bold transition-colors ${
+                      auditTypeFilter === 'all'
+                        ? 'bg-slate-900 text-white'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    Alla händelser ({(dbData?.auditEvents || []).length})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAuditTypeFilter('sync_only')}
+                    className={`px-3 py-1.5 rounded-lg font-bold transition-colors ${
+                      auditTypeFilter === 'sync_only'
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-blue-50 text-blue-800 hover:bg-blue-100'
+                    }`}
+                  >
+                    Endast synkroniseringar (
+                    {(dbData?.auditEvents || []).filter((e) => e.action.toLowerCase().includes('sync')).length})
+                  </button>
+                </div>
+              </div>
+
+              <div className="space-y-2 max-h-[500px] overflow-y-auto pr-1">
+                {[...(dbData?.auditEvents || [])]
+                  .reverse()
+                  .filter((event) =>
+                    auditTypeFilter === 'sync_only' ? event.action.toLowerCase().includes('sync') : true
+                  )
+                  .map((event) => {
+                    const isSync = event.action.toLowerCase().includes('sync');
+                    return (
+                      <div
+                        key={event.id}
+                        className={`p-3.5 rounded-xl border text-xs space-y-2 ${
+                          isSync
+                            ? 'border-blue-200 bg-blue-50/40'
+                            : 'border-slate-200 bg-slate-50'
+                        }`}
+                      >
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                          <div>
+                            <span
+                              className={`font-bold mr-2 px-1.5 py-0.5 rounded text-[11px] ${
+                                isSync ? 'bg-blue-100 text-blue-900' : 'text-slate-900'
+                              }`}
+                            >
+                              [{event.action}]
+                            </span>
+                            <span className="text-slate-700">{event.details}</span>
+                          </div>
+                          <div className="text-slate-400 shrink-0 sm:ml-4 text-[11px]">
+                            {new Date(event.timestamp).toLocaleString('sv-SE')} ({event.user})
+                          </div>
+                        </div>
+
+                        {event.newStores && event.newStores.length > 0 && (
+                          <div className="pt-1 flex items-center gap-1.5 flex-wrap">
+                            <span className="text-[11px] font-bold text-teal-800">
+                              Nya butiker vid denna synk ({event.newStores.length}):
+                            </span>
+                            {event.newStores.map((ns) => (
+                              <button
+                                key={ns.id}
+                                type="button"
+                                onClick={() => handleInspectNewStore(ns, 'all_stores')}
+                                className="px-2 py-0.5 rounded-md bg-white hover:bg-teal-50 text-teal-900 border border-teal-300 font-semibold text-[11px] transition-colors cursor-pointer"
+                                title="Klicka för att visa butiken i Alla butiker"
+                              >
+                                {ns.name} ({ns.slug})
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+              </div>
             </div>
           </div>
         )}

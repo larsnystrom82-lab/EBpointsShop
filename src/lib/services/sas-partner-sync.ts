@@ -1,4 +1,4 @@
-import { getDatabase, saveDatabase, DbStore, ZupergiftStoreItem } from '@/lib/db';
+import { getDatabase, saveDatabase, DbStore, ZupergiftStoreItem, SyncNewStoreItem } from '@/lib/db';
 
 interface LoyaltyKeyShop {
   uuid: string;
@@ -73,6 +73,7 @@ export async function syncSasPartnerStores(): Promise<{
   totalUpdated: number;
   totalNewAdded: number;
   campaignCount: number;
+  newStores?: SyncNewStoreItem[];
   message: string;
 }> {
   const db = getDatabase();
@@ -164,6 +165,8 @@ export async function syncSasPartnerStores(): Promise<{
     let updatedCount = 0;
     let newCount = 0;
     let campaignCount = 0;
+    const addedStores: SyncNewStoreItem[] = [];
+    const syncTime = new Date().toISOString();
 
     for (const shop of allShops) {
       if (!shop.name || !shop.slug) continue;
@@ -199,6 +202,27 @@ export async function syncSasPartnerStores(): Promise<{
       const campaignPoints = shop.points_campaign && shop.points_campaign > 0 ? shop.points_campaign : regularPoints;
       const pointsRaw = isCampaign ? campaignPoints : regularPoints;
 
+      // LoyaltyKey API `points_channel` provides the current tier/level points for the store.
+      // When `apiHasCampaign` is true, `points_channel` reflects the campaign tier points (e.g. 20% of campaignPoints),
+      // while the store's normal/regular tier points correspond to `regularPoints` at the same ratio (20%).
+      const apiChannelTier =
+        typeof shop.points_channel === 'number' && shop.points_channel >= 0
+          ? shop.points_channel
+          : Math.round((apiHasCampaign ? campaignPoints : regularPoints) * 0.2);
+
+      const tierRatio =
+        apiHasCampaign && campaignPoints > 0 && apiChannelTier > 0
+          ? apiChannelTier / campaignPoints
+          : !apiHasCampaign && regularPoints > 0 && apiChannelTier > 0
+          ? apiChannelTier / regularPoints
+          : 0.2;
+
+      const regularTierRaw = apiHasCampaign
+        ? Math.round(regularPoints * tierRatio)
+        : apiChannelTier;
+      const campaignTierRaw = apiHasCampaign ? apiChannelTier : regularTierRaw;
+      const tierPointsRaw = isCampaign ? campaignTierRaw : regularTierRaw;
+
       // User rule & API flag: Any store with commission_type === 'fixed' OR points >= 200
       // is a fixed one-time offer (e.g. Factor giving 2 000p once, Telinet 8 000p once, HelloFresh 1 000p once)
       const isFixedApi = shop.commission_type === 'fixed';
@@ -208,11 +232,12 @@ export async function syncSasPartnerStores(): Promise<{
       const rewardType: 'rate' | 'fixed' = isOneTimeOrFixed ? 'fixed' : 'rate';
       const fixedBonusPoints = isOneTimeOrFixed ? pointsRaw : 0;
       const regularFixedBonusPoints = isOneTimeOrFixed ? regularPoints : 0;
-      // In the LoyaltyKey API, points_channel provides exact level/tier points for fixed offers (e.g. 400 for Factor, 1600 for Telinet)
-      const fixedTierPoints = isOneTimeOrFixed ? (shop.points_channel || 0) : 0;
+      const fixedTierPoints = isOneTimeOrFixed ? tierPointsRaw : 0;
+      const regularFixedTierPoints = isOneTimeOrFixed ? regularTierRaw : 0;
       const bonusPer100Kr = isOneTimeOrFixed ? 0 : pointsRaw;
       const regularBonusPer100Kr = isOneTimeOrFixed ? 0 : regularPoints;
-      const tierPer100Kr = isOneTimeOrFixed ? 0 : 5;
+      const tierPer100Kr = isOneTimeOrFixed ? 0 : tierPointsRaw;
+      const regularTierPer100Kr = isOneTimeOrFixed ? 0 : regularTierRaw;
       const isOneTimeOffer = isOneTimeOrFixed;
       const oneTimeTerms = isOneTimeOrFixed
         ? 'Engångsbonus – gäller vanligtvis ny kund vid första köpet'
@@ -252,7 +277,9 @@ export async function syncSasPartnerStores(): Promise<{
         isCampaign,
         campaignValidUntil: isCampaign ? (validUntilDateStr || shop.campaign_ends || null) : null,
         regularBonusPer100Kr,
+        regularTierPer100Kr,
         regularFixedBonusPoints,
+        regularFixedTierPoints,
         uuid: shop.uuid || undefined,
         startUrl: partnerShopUrl,
       };
@@ -301,6 +328,24 @@ export async function syncSasPartnerStores(): Promise<{
         existingStoresById.set(shopSlug, newStore);
         existingStoresByName.set(shopNormName, newStore);
         newCount++;
+
+        const bonusSummary = isOneTimeOrFixed
+          ? `Fast bonus: ${fixedBonusPoints} bonusp / ${fixedTierPoints} nivåp${isCampaign ? ' (Kampanj)' : ''}`
+          : `${bonusPer100Kr} bonusp / ${tierPer100Kr} nivåp per 100 kr${isCampaign ? ' (Kampanj)' : ''}`;
+
+        addedStores.push({
+          id: `partner-${shop.slug}-${Date.now()}-${newCount}`,
+          storeId: newStore.id,
+          name: newStore.name,
+          slug: newStore.slug,
+          source: 'partner',
+          syncedAt: syncTime,
+          matchedStoreId: newStore.id,
+          bonusSummary,
+          categories: newStore.categories,
+          isReviewed: false,
+          reviewedAt: null,
+        });
       }
     }
 
@@ -332,14 +377,27 @@ export async function syncSasPartnerStores(): Promise<{
       }
     }
 
-    db.lastPartnerSync = new Date().toISOString();
+    db.lastPartnerSync = syncTime;
+
+    if (!db.syncNewStores) {
+      db.syncNewStores = [];
+    }
+    if (addedStores.length > 0) {
+      db.syncNewStores = [...addedStores, ...db.syncNewStores];
+    }
+
+    const newNamesSummary =
+      addedStores.length > 0
+        ? ` Nya butiker: ${addedStores.map((s) => s.name).join(', ')}.`
+        : '';
 
     db.auditEvents.push({
       id: `audit-${Date.now()}`,
-      timestamp: new Date().toISOString(),
+      timestamp: syncTime,
       action: 'sync_partner_stores',
-      details: `Synkade ${allShops.length} partnerbutiker från SAS Online Shopping (${newCount} nya, ${updatedCount} uppdaterade, ${removedFromSasCount} borttagna från SAS, ${campaignCount} kampanjer)`,
+      details: `Synkade ${allShops.length} partnerbutiker från SAS Online Shopping (${newCount} nya, ${updatedCount} uppdaterade, ${removedFromSasCount} borttagna från SAS, ${campaignCount} kampanjer).${newNamesSummary}`,
       user: 'Admin',
+      newStores: addedStores.length > 0 ? addedStores : undefined,
     });
 
     saveDatabase(db);
@@ -350,7 +408,8 @@ export async function syncSasPartnerStores(): Promise<{
       totalUpdated: updatedCount,
       totalNewAdded: newCount,
       campaignCount,
-      message: `Synkade ${allShops.length} partnerbutiker (${newCount} nya, ${updatedCount} uppdaterade, ${campaignCount} aktiva kampanjer).`,
+      newStores: addedStores,
+      message: `Synkade ${allShops.length} partnerbutiker (${newCount} nya, ${updatedCount} uppdaterade, ${campaignCount} aktiva kampanjer).${newNamesSummary}`,
     };
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err);

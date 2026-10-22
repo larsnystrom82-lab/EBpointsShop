@@ -38,7 +38,9 @@ export interface StorePartnerRule {
   isOneTimeOffer?: boolean; // Flagga om engångserbjudande
   oneTimeTerms?: string; // Villkorsnotis
   regularBonusPer100Kr?: number; // Ordinarie poäng innan kampanj
+  regularTierPer100Kr?: number; // Ordinarie nivåpoäng innan kampanj
   regularFixedBonusPoints?: number; // Ordinarie fast bonus innan kampanj
+  regularFixedTierPoints?: number; // Ordinarie fasta nivåpoäng innan kampanj
   uuid?: string;
 }
 
@@ -87,12 +89,27 @@ export interface DbErrorReport {
   adminNotes?: string;
 }
 
+export interface SyncNewStoreItem {
+  id: string;
+  storeId: string;
+  name: string;
+  slug: string;
+  source: 'partner' | 'sas_giftcard' | 'zupergift';
+  syncedAt: string;
+  matchedStoreId?: string;
+  bonusSummary?: string;
+  categories?: string[];
+  isReviewed?: boolean;
+  reviewedAt?: string | null;
+}
+
 export interface DbAuditEvent {
   id: string;
   timestamp: string;
   action: string;
   details: string;
   user: string;
+  newStores?: SyncNewStoreItem[];
 }
 
 export interface DbCategory {
@@ -161,6 +178,7 @@ export interface DatabaseSchema {
   excludedStoreIds?: string[];
   errorReports: DbErrorReport[];
   auditEvents: DbAuditEvent[];
+  syncNewStores?: SyncNewStoreItem[];
   lastZupergiftSync: string | null;
   lastPartnerSync?: string | null;
   lastSasGiftCardSync: string | null;
@@ -575,84 +593,6 @@ const INITIAL_DATA: DatabaseSchema = {
       },
       zupergiftSupported: true,
     },
-    {
-      id: 'netonnet',
-      name: 'NetOnNet',
-      slug: 'netonnet',
-      aliases: ['netonnet.se', 'net on net'],
-      logoUrl: '/logos/netonnet.svg',
-      categories: ['electronics'],
-      isActive: true,
-      partnerRule: {
-        hasPartnerLink: true,
-        bonusPer100Kr: 10,
-        tierPer100Kr: 0,
-        isCampaign: false,
-        campaignValidUntil: null,
-        startUrl: 'https://onlineshopping.flysas.com/se/netonnet',
-      },
-      giftCardRule: {
-        hasDirectGiftCard: false,
-        bonusPer100Kr: 0,
-        denominationsKr: [],
-        feeKr: 0,
-        isCampaign: false,
-        startUrl: '',
-      },
-      zupergiftSupported: false,
-    },
-    {
-      id: 'apotek-hjartat',
-      name: 'Apotek Hjärtat',
-      slug: 'apotek-hjartat',
-      aliases: ['apotekhjartat.se', 'hjartat'],
-      logoUrl: '/logos/apotek-hjartat.svg',
-      categories: ['health'],
-      isActive: true,
-      partnerRule: {
-        hasPartnerLink: true,
-        bonusPer100Kr: 25,
-        tierPer100Kr: 0,
-        isCampaign: true,
-        campaignValidUntil: '2026-10-31',
-        startUrl: 'https://onlineshopping.flysas.com/se/apotek-hjartat',
-      },
-      giftCardRule: {
-        hasDirectGiftCard: false,
-        bonusPer100Kr: 0,
-        denominationsKr: [],
-        feeKr: 0,
-        isCampaign: false,
-        startUrl: '',
-      },
-      zupergiftSupported: false,
-    },
-    {
-      id: 'boozt',
-      name: 'Boozt',
-      slug: 'boozt',
-      aliases: ['boozt.com', 'booztlet'],
-      logoUrl: '/logos/boozt.svg',
-      categories: ['fashion'],
-      isActive: true,
-      partnerRule: {
-        hasPartnerLink: true,
-        bonusPer100Kr: 30,
-        tierPer100Kr: 0,
-        isCampaign: false,
-        campaignValidUntil: null,
-        startUrl: 'https://onlineshopping.flysas.com/se/boozt',
-      },
-      giftCardRule: {
-        hasDirectGiftCard: false,
-        bonusPer100Kr: 0,
-        denominationsKr: [],
-        feeKr: 0,
-        isCampaign: false,
-        startUrl: '',
-      },
-      zupergiftSupported: false,
-    },
   ],
   errorReports: [],
   sasGiftCards: [],
@@ -733,6 +673,12 @@ export function getDatabase(): DatabaseSchema {
     // Initialize resourceLinks if missing (backward compat)
     if (!parsed.resourceLinks || !Array.isArray(parsed.resourceLinks) || parsed.resourceLinks.length === 0) {
       parsed.resourceLinks = INITIAL_RESOURCE_LINKS;
+      saveDatabase(parsed);
+    }
+
+    // Initialize syncNewStores if missing
+    if (!parsed.syncNewStores || !Array.isArray(parsed.syncNewStores)) {
+      parsed.syncNewStores = [];
       saveDatabase(parsed);
     }
 

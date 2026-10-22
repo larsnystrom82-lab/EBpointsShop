@@ -110,13 +110,14 @@ export const SearchFilterBox: React.FC<SearchFilterBoxProps> = ({
     }
   };
 
-  // Filtrera butiker för butiksväljaren baserat på valda kategorier
+  // Filtrera butiker för butiksväljaren baserat på valda kategorier (dolda butiker exkluderas)
   const storesForDropdown = useMemo(() => {
+    const visibleStores = allStores.filter((store) => !store.isHidden && store.isActive !== false);
     if (selectedCategoryIds.length === 0) {
-      return allStores;
+      return visibleStores;
     }
     const catSet = new Set(selectedCategoryIds);
-    return allStores.filter(
+    return visibleStores.filter(
       (store) =>
         selectedStoreIds.includes(store.id) ||
         store.categories.some((c) => catSet.has(c))

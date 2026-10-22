@@ -159,15 +159,29 @@ export function getCampaignRemainingInfo(
 }
 
 /**
- * Generates an informative campaign summary (e.g. "4x poäng (ord. 25 p/100 kr)" or "Dubbla poäng").
+ * Generates an informative campaign summary (e.g. "4x poäng (ord. 25 p/100 kr)" or "Dubbla poäng"),
+ * including tier points comparison when elevated during a partner store campaign.
  */
 export function getCampaignOfferSummary(params: {
   currentBonusPer100Kr?: number;
   regularBonusPer100Kr?: number;
+  currentTierPer100Kr?: number;
+  regularTierPer100Kr?: number;
   currentFixedPoints?: number;
   regularFixedPoints?: number;
-}): { badgeText: string; detailText: string } | null {
-  const { currentBonusPer100Kr, regularBonusPer100Kr, currentFixedPoints, regularFixedPoints } = params;
+  currentFixedTierPoints?: number;
+  regularFixedTierPoints?: number;
+}): { badgeText: string; detailText: string; tierDetailText?: string } | null {
+  const {
+    currentBonusPer100Kr,
+    regularBonusPer100Kr,
+    currentTierPer100Kr,
+    regularTierPer100Kr,
+    currentFixedPoints,
+    regularFixedPoints,
+    currentFixedTierPoints,
+    regularFixedTierPoints,
+  } = params;
 
   // Rate-based campaign
   if (currentBonusPer100Kr && regularBonusPer100Kr && regularBonusPer100Kr > 0 && currentBonusPer100Kr > regularBonusPer100Kr) {
@@ -187,8 +201,18 @@ export function getCampaignOfferSummary(params: {
       badgeText = `+${diff} p extra`;
     }
 
-    const detailText = `Just nu ${currentBonusPer100Kr} p / 100 kr (ord. ${regularBonusPer100Kr} p / 100 kr)`;
-    return { badgeText, detailText };
+    const tierDetailText =
+      currentTierPer100Kr !== undefined &&
+      regularTierPer100Kr !== undefined &&
+      currentTierPer100Kr > regularTierPer100Kr
+        ? `Nivåpoäng: ${currentTierPer100Kr} p / 100 kr (ord. ${regularTierPer100Kr} p / 100 kr)`
+        : undefined;
+
+    const detailText = tierDetailText
+      ? `Just nu ${currentBonusPer100Kr} p / 100 kr (ord. ${regularBonusPer100Kr} p / 100 kr) · ${tierDetailText}`
+      : `Just nu ${currentBonusPer100Kr} p / 100 kr (ord. ${regularBonusPer100Kr} p / 100 kr)`;
+
+    return { badgeText, detailText, tierDetailText };
   }
 
   // Fixed offer campaign (e.g. BookBeat 1 000p vs regular 400p)
@@ -207,8 +231,18 @@ export function getCampaignOfferSummary(params: {
       badgeText = `+${diff.toLocaleString('sv-SE')} p extra`;
     }
 
-    const detailText = `Just nu ${currentFixedPoints.toLocaleString('sv-SE')} p (ord. ${regularFixedPoints.toLocaleString('sv-SE')} p)`;
-    return { badgeText, detailText };
+    const tierDetailText =
+      currentFixedTierPoints !== undefined &&
+      regularFixedTierPoints !== undefined &&
+      currentFixedTierPoints > regularFixedTierPoints
+        ? `Nivåpoäng: ${currentFixedTierPoints.toLocaleString('sv-SE')} p (ord. ${regularFixedTierPoints.toLocaleString('sv-SE')} p)`
+        : undefined;
+
+    const detailText = tierDetailText
+      ? `Just nu ${currentFixedPoints.toLocaleString('sv-SE')} p (ord. ${regularFixedPoints.toLocaleString('sv-SE')} p) · ${tierDetailText}`
+      : `Just nu ${currentFixedPoints.toLocaleString('sv-SE')} p (ord. ${regularFixedPoints.toLocaleString('sv-SE')} p)`;
+
+    return { badgeText, detailText, tierDetailText };
   }
 
   return null;
