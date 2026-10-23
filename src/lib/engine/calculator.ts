@@ -305,7 +305,15 @@ export function generateCandidateRoutes(options: RouteGenerationOptions): RouteC
       ? Boolean(store.giftCardRule.hasDirectGiftCard)
       : ['elgiganten', 'ahlens'].includes(store.id);
 
-  if (allowGiftCards && hasDirectGiftCard) {
+  const hasActiveSasGiftCardItem = Boolean(
+    sasGiftCardItem &&
+      !sasGiftCardItem.isHidden &&
+      !sasGiftCardItem.isExcluded &&
+      !sasGiftCardItem.isMissingFromSource &&
+      (sasGiftCardItem.bonusPer100Kr ?? 0) > 0
+  );
+
+  if (allowGiftCards && hasDirectGiftCard && !hasActiveSasGiftCardItem) {
     const denominationOre = 100000; // 1 000 kr valör
     const neededCards = Math.ceil(purchaseAmountOre / denominationOre);
     const giftCardTotalValueOre = neededCards * denominationOre;
@@ -480,9 +488,15 @@ export function generateCandidateRoutes(options: RouteGenerationOptions): RouteC
     });
   }
 
-  // ROUTE TYPE 4: SAS EuroBonus Shop – butikspresentkort (admin-konfigurerat)
-  // Activated when admin has filled in bonusPer100Kr > 0 for a matched SAS gift card store.
-  if (allowGiftCards && sasGiftCardItem && !sasGiftCardItem.isHidden && !sasGiftCardItem.isExcluded) {
+  // ROUTE TYPE 4: SAS EuroBonus Shop – butikspresentkort (synkat/konfigurerat)
+  // Activated when bonusPer100Kr > 0 for a matched SAS gift card store.
+  if (
+    allowGiftCards &&
+    sasGiftCardItem &&
+    !sasGiftCardItem.isHidden &&
+    !sasGiftCardItem.isExcluded &&
+    !sasGiftCardItem.isMissingFromSource
+  ) {
     const rate = sasGiftCardItem.bonusPer100Kr;
     if (rate !== null && rate > 0) {
       const minPurchaseKr = sasGiftCardItem.minPurchaseAmount ?? 0;
@@ -496,10 +510,16 @@ export function generateCandidateRoutes(options: RouteGenerationOptions): RouteC
       const baseTierPoints = 0;
 
       const cardValueKr = giftCardValueOre / 100;
+      const denoms = sasGiftCardItem.denominationsKr || [];
+      const denomsText =
+        denoms.length > 0
+          ? ` (valörer: ${denoms.slice(0, 6).map((d) => d.toLocaleString('sv-SE')).join(', ')}${denoms.length > 6 ? ' …' : ''} kr)`
+          : '';
+
       const breakdownText =
         minPurchaseKr > 0 && purchaseAmountKr < minPurchaseKr
           ? `Köp av ${sasGiftCardItem.name}-presentkort (${cardValueKr.toLocaleString('sv-SE')} kr, minimiköp ${minPurchaseKr} kr) ger ${rate} Extrapoäng per 100 kr`
-          : `Köp av ${sasGiftCardItem.name}-presentkort ger ${rate} Extrapoäng per 100 kr (administreras av admin)`;
+          : `Köp av ${sasGiftCardItem.name}-presentkort ger ${rate} Extrapoäng per 100 kr${denomsText}`;
 
       const breakdown: RouteBreakdownItem[] = [
         {
@@ -516,7 +536,7 @@ export function generateCandidateRoutes(options: RouteGenerationOptions): RouteC
       const step1Desc =
         minPurchaseKr > 0 && purchaseAmountKr < minPurchaseKr
           ? `Besök SAS EuroBonus Shop och köp ett presentkort från ${sasGiftCardItem.name} för ${cardValueKr.toLocaleString('sv-SE')} kr (minimiköp ${minPurchaseKr} kr, kvarvarande saldo ${(remainingBalanceOre / 100).toLocaleString('sv-SE')} kr sparas till senare köp). Du får ${rate} Extrapoäng per 100 kr.`
-          : `Besök SAS EuroBonus Shop och köp ett presentkort från ${sasGiftCardItem.name} för ${purchaseAmountKr.toLocaleString('sv-SE')} kr. Du får ${rate} Extrapoäng per 100 kr.`;
+          : `Besök SAS EuroBonus Shop och köp ett presentkort från ${sasGiftCardItem.name} för ${purchaseAmountKr.toLocaleString('sv-SE')} kr${denomsText}. Du får ${rate} Extrapoäng per 100 kr.`;
 
       const uncertainties =
         minPurchaseKr > 0 && purchaseAmountKr < minPurchaseKr
@@ -524,12 +544,13 @@ export function generateCandidateRoutes(options: RouteGenerationOptions): RouteC
           : [];
 
       const sasGiftCardUrl = `https://www.saseurobonusshop.com/se/${sasGiftCardItem.slug || sasGiftCardItem.id}`;
+      const isCampValid = isCampaignActive(sasGiftCardItem.isCampaign, sasGiftCardItem.campaignValidUntil);
 
       results.push({
         id: `${store.id}-sas-giftcard`,
         storeId: store.id,
         storeName: store.name,
-        storeLogoUrl: store.logoUrl,
+        storeLogoUrl: store.logoUrl || sasGiftCardItem.imageUrl || undefined,
         routeType: 'gift_card',
         routeTitle: `SAS EuroBonus Shop – ${sasGiftCardItem.name} presentkort`,
         routeSummary:
@@ -562,8 +583,9 @@ export function generateCandidateRoutes(options: RouteGenerationOptions): RouteC
         baseTierPoints,
         cardOutcomes,
         isEligible: true,
-        isExplicitCampaign: isCampaignActive(sasGiftCardItem.isCampaign, sasGiftCardItem.campaignValidUntil),
-        campaignValidUntil: isCampaignActive(sasGiftCardItem.isCampaign, sasGiftCardItem.campaignValidUntil) ? (sasGiftCardItem.campaignValidUntil || undefined) : undefined,
+        isExplicitCampaign: isCampValid,
+        campaignValidUntil: isCampValid ? (sasGiftCardItem.campaignValidUntil || undefined) : undefined,
+        regularBonusPer100Kr: sasGiftCardItem.regularBonusPer100Kr ?? undefined,
         lastCheckedAt: sasGiftCardItem.updatedAt || sasGiftCardItem.syncedAt || options.lastCheckedAt || new Date().toISOString(),
         uncertainties,
         startUrl: sasGiftCardUrl,

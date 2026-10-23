@@ -167,7 +167,7 @@ export default function AdminPage() {
   // SAS Presentkort tab
   const [syncingSasGc, setSyncingSasGc] = useState<boolean>(false);
   const [sasGcSearch, setSasGcSearch] = useState('');
-  const [sasGcFilter, setSasGcFilter] = useState<'all' | 'active' | 'unconfigured' | 'missing' | 'hidden'>('all');
+  const [sasGcFilter, setSasGcFilter] = useState<'all' | 'active' | 'campaign' | 'no_points' | 'unconfigured' | 'missing' | 'hidden'>('all');
   // Per-row edit state (keyed by store id): holds draft values
   const [sasGcEdits, setSasGcEdits] = useState<Record<string, {
     bonusPer100Kr: string;
@@ -971,8 +971,12 @@ export default function AdminPage() {
       // Filter by configuration / active state
       if (sasGcFilter === 'active') {
         if (item.isHidden || (item.bonusPer100Kr ?? 0) <= 0 || item.isMissingFromSource) return false;
+      } else if (sasGcFilter === 'campaign') {
+        if (item.isHidden || !item.isCampaign || item.isMissingFromSource) return false;
+      } else if (sasGcFilter === 'no_points') {
+        if (item.isHidden || item.isMissingFromSource || !(item.hasNoPoints || item.bonusPer100Kr === 0)) return false;
       } else if (sasGcFilter === 'unconfigured') {
-        if (item.isHidden || (item.bonusPer100Kr !== null && item.bonusPer100Kr > 0) || item.isMissingFromSource) return false;
+        if (item.isHidden || item.bonusPer100Kr !== null || item.hasNoPoints || item.isMissingFromSource) return false;
       } else if (sasGcFilter === 'missing') {
         if (!item.isMissingFromSource) return false;
       } else if (sasGcFilter === 'hidden') {
@@ -2091,6 +2095,11 @@ export default function AdminPage() {
                                         Egen logga
                                       </span>
                                     )}
+                                    {!item.customLogoUrl && item.sasGiftCardImageUrl && item.logoUrl === item.sasGiftCardImageUrl && (
+                                      <span className="px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 font-bold text-[10px] border border-indigo-200" title="Använder produktbild från SAS EuroBonus Shop som fallback-logga">
+                                        SAS Produktbild
+                                      </span>
+                                    )}
                                     {item.comment && (
                                       <span className="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 font-bold text-[10px]" title="Har aktiv kommentar/notering">
                                         💬 Notering
@@ -2817,7 +2826,7 @@ export default function AdminPage() {
                   </div>
                   <h2 className="text-xl font-black text-slate-900">SAS Presentkort</h2>
                   <p className="text-xs sm:text-sm text-slate-500 mt-1 max-w-2xl">
-                    Butiker på SAS EuroBonus Shop som säljer presentkort. Fyll i poäng per 100 kr för att aktivera en butik. En butik är inaktiv tills du angett ett värde.
+                    Presentkort på SAS EuroBonus Shop. Vid synk hämtas poäng per 100 kr (<code className="text-[11px] bg-slate-100 px-1 py-0.5 rounded">accrual / valör × 100</code>), lägsta köpbelopp, tillgängliga valörer, kampanjstatus (<code className="text-[11px] bg-slate-100 px-1 py-0.5 rounded">/deals-of-the-month</code> eller förhöjd nivå) och produktbild helt automatiskt.
                     {dbData?.lastSasGiftCardSync && (
                       <span className="ml-2 font-mono text-[11px] text-slate-400">
                         (Senast synkad: {new Date(dbData.lastSasGiftCardSync).toLocaleString('sv-SE')})
@@ -2934,17 +2943,6 @@ export default function AdminPage() {
                   </button>
                   <button
                     type="button"
-                    onClick={() => setSasGcFilter('unconfigured')}
-                    className={`px-3 py-1.5 rounded-lg font-bold transition-colors ${
-                      sasGcFilter === 'unconfigured'
-                        ? 'bg-amber-600 text-white'
-                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                    }`}
-                  >
-                    Ej konfigurerade ({dbData?.sasGiftCards?.filter((s) => !s.isExcluded && !s.isHidden && !s.isMissingFromSource && (s.bonusPer100Kr === null || s.bonusPer100Kr === 0)).length || 0})
-                  </button>
-                  <button
-                    type="button"
                     onClick={() => setSasGcFilter('active')}
                     className={`px-3 py-1.5 rounded-lg font-bold transition-colors ${
                       sasGcFilter === 'active'
@@ -2954,6 +2952,42 @@ export default function AdminPage() {
                   >
                     Aktiva ({dbData?.sasGiftCards?.filter((s) => !s.isExcluded && !s.isHidden && !s.isMissingFromSource && (s.bonusPer100Kr ?? 0) > 0).length || 0})
                   </button>
+                  <button
+                    type="button"
+                    onClick={() => setSasGcFilter('campaign')}
+                    className={`px-3 py-1.5 rounded-lg font-bold transition-colors ${
+                      sasGcFilter === 'campaign'
+                        ? 'bg-purple-700 text-white'
+                        : 'bg-purple-50 text-purple-800 hover:bg-purple-100 border border-purple-200'
+                    }`}
+                  >
+                    Kampanjer ({dbData?.sasGiftCards?.filter((s) => !s.isExcluded && !s.isHidden && !s.isMissingFromSource && s.isCampaign).length || 0})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSasGcFilter('no_points')}
+                    className={`px-3 py-1.5 rounded-lg font-bold transition-colors ${
+                      sasGcFilter === 'no_points'
+                        ? 'bg-amber-600 text-white'
+                        : 'bg-amber-50 text-amber-800 hover:bg-amber-100 border border-amber-200'
+                    }`}
+                    title="Presentkort som har accrual: null / 0 på SAS Shop och därför inte ger några EuroBonus-poäng vid kortköp"
+                  >
+                    Ger 0 poäng [accrual: null] ({dbData?.sasGiftCards?.filter((s) => !s.isExcluded && !s.isHidden && !s.isMissingFromSource && (s.hasNoPoints || s.bonusPer100Kr === 0)).length || 0})
+                  </button>
+                  {(dbData?.sasGiftCards?.filter((s) => !s.isExcluded && !s.isHidden && !s.isMissingFromSource && s.bonusPer100Kr === null && !s.hasNoPoints).length || 0) > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setSasGcFilter('unconfigured')}
+                      className={`px-3 py-1.5 rounded-lg font-bold transition-colors ${
+                        sasGcFilter === 'unconfigured'
+                          ? 'bg-orange-600 text-white'
+                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                      }`}
+                    >
+                      Ej konfigurerade ({dbData?.sasGiftCards?.filter((s) => !s.isExcluded && !s.isHidden && !s.isMissingFromSource && s.bonusPer100Kr === null && !s.hasNoPoints).length || 0})
+                    </button>
+                  )}
                   <button
                     type="button"
                     onClick={() => setSasGcFilter('missing')}
@@ -3029,10 +3063,32 @@ export default function AdminPage() {
                         }`}
                       >
                         <div className="flex flex-col sm:flex-row sm:items-start gap-3">
+                          {/* Thumbnail image from SAS Shop */}
+                          {item.imageUrl && (
+                            <div className="w-11 h-11 rounded-xl border border-slate-200 bg-white p-1 flex items-center justify-center shrink-0 overflow-hidden shadow-2xs">
+                              <img
+                                src={item.imageUrl}
+                                alt={item.name}
+                                className="w-full h-full object-contain"
+                                onError={(e) => {
+                                  (e.target as HTMLElement).style.display = 'none';
+                                }}
+                              />
+                            </div>
+                          )}
+
                           {/* Name + status */}
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
-                              <span className="font-bold text-sm text-slate-900">{item.name}</span>
+                              <a
+                                href={`https://www.saseurobonusshop.com/se/${item.slug || item.id}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="font-bold text-sm text-slate-900 hover:text-blue-600 inline-flex items-center gap-1"
+                              >
+                                <span>{item.name}</span>
+                                <ExternalLink className="w-3 h-3 text-slate-400" />
+                              </a>
                               <span className="font-mono text-[10px] text-slate-400">{item.slug}</span>
                               {item.isMissingFromSource && (
                                 <span
@@ -3045,15 +3101,18 @@ export default function AdminPage() {
                               )}
                               {isActive && (
                                 <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-bold uppercase tracking-wider">
-                                  Aktiv
+                                  Aktiv ({item.bonusPer100Kr} p/100 kr)
                                 </span>
                               )}
-                              {!isActive && !item.isMissingFromSource && (item.bonusPer100Kr ?? 0) === 0 && item.bonusPer100Kr !== null && (
-                                <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[10px] font-bold uppercase tracking-wider">
-                                  Inaktiv (0 poäng)
+                              {!isActive && !item.isMissingFromSource && (item.hasNoPoints || item.bonusPer100Kr === 0) && (
+                                <span
+                                  className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[10px] font-bold border border-amber-300"
+                                  title="Presentkortet har accrual: null på SAS EuroBonus Shop och ger därför 0 EuroBonus-poäng vid kortköp"
+                                >
+                                  0 poäng vid kortköp (accrual: null)
                                 </span>
                               )}
-                              {item.bonusPer100Kr === null && !item.isMissingFromSource && (
+                              {item.bonusPer100Kr === null && !item.hasNoPoints && !item.isMissingFromSource && (
                                 <span className="px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 text-[10px] font-bold uppercase tracking-wider">
                                   Ej konfigurerad
                                 </span>
@@ -3070,7 +3129,7 @@ export default function AdminPage() {
                               )}
                               {item.isCampaign && (
                                 <span className="px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 text-[10px] font-bold uppercase tracking-wider">
-                                  Kampanj
+                                  Kampanj{item.inDealsOfTheMonth ? ' (Månadens Deals)' : item.regularBonusPer100Kr ? ` (ord. ${item.regularBonusPer100Kr} p)` : ''}
                                 </span>
                               )}
                               {item.matchedStoreId && (
@@ -3079,9 +3138,17 @@ export default function AdminPage() {
                                 </span>
                               )}
                             </div>
-                            {item.bonusPer100Kr === null && (
+                            {item.denominationsKr && item.denominationsKr.length > 0 && (
+                              <div className="text-[11px] text-slate-500 mt-1 flex items-center gap-1.5 flex-wrap">
+                                <span className="font-semibold text-slate-600">Valörer:</span>
+                                <span>
+                                  {item.denominationsKr.map((d) => d.toLocaleString('sv-SE')).join(', ')} kr
+                                </span>
+                              </div>
+                            )}
+                            {item.bonusPer100Kr === null && !item.hasNoPoints && (
                               <p className="text-[11px] text-orange-600 font-semibold mt-1">
-                                ⚠ Ej aktiv – fyll i poäng per 100 kr
+                                ⚠ Ej aktiv – fyll i poäng per 100 kr eller kör synk mot SAS Shop
                               </p>
                             )}
                           </div>

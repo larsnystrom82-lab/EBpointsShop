@@ -726,5 +726,39 @@ describe('EuroBonus Beräkningsmotor – Acceptanstester A03–A16', () => {
     expect(step2?.externalUrl).toBe('https://zupergift.com/se/mcdonald-s');
     expect(step2?.title).toBe("Växla till McDonald's-presentkort");
   });
+
+  it('hanterar synkade SAS presentkort med automatiska valörer, minimiköp, kampanj och undviker dubblett mot legacy giftCardRule', () => {
+    const routes = generateCandidateRoutes({
+      store: elgiganten,
+      purchaseAmountKr: 500,
+      sasGiftCardItem: {
+        id: 'presentkort-elgiganten',
+        name: 'Elgiganten',
+        slug: 'presentkort-elgiganten',
+        matchedStoreId: 'elgiganten',
+        bonusPer100Kr: 20,
+        regularBonusPer100Kr: 10,
+        minPurchaseAmount: 50,
+        denominationsKr: [50, 100, 250, 500, 1000, 5000],
+        isCampaign: true,
+        campaignValidUntil: null,
+        isHidden: false,
+        isExcluded: false,
+        note: '',
+        syncedAt: '2026-10-23',
+        updatedAt: null,
+      },
+    });
+
+    const giftCardRoutes = routes.filter((r) => r.routeType === 'gift_card');
+    expect(giftCardRoutes).toHaveLength(1);
+    expect(giftCardRoutes[0].id).toBe('elgiganten-sas-giftcard');
+    expect(giftCardRoutes[0].baseBonusPoints).toBe(100); // 500 kr * 20 p / 100 kr
+    expect(giftCardRoutes[0].isExplicitCampaign).toBe(true);
+    expect(giftCardRoutes[0].regularBonusPer100Kr).toBe(10);
+    expect(giftCardRoutes[0].steps[0].description.replace(/\s+/g, ' ')).toContain(
+      'valörer: 50, 100, 250, 500, 1 000, 5 000 kr'
+    );
+  });
 });
 

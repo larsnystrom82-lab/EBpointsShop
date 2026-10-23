@@ -51,6 +51,9 @@ export interface Store {
   hasPartnerLink?: boolean;
   hasSasGiftCard?: boolean;
   sasGiftCardBonusPer100Kr?: number | null;
+  sasGiftCardMinPurchaseKr?: number | null;
+  sasGiftCardDenominationsKr?: number[];
+  sasGiftCardImageUrl?: string | null;
   isExcluded?: boolean;
   isHidden?: boolean;
   isMissingFromSource?: boolean;

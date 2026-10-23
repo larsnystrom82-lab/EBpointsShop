@@ -123,8 +123,13 @@ export interface SasGiftCardStoreItem {
   id: string;           // slug e.g. "ikea", "mediamarkt"
   name: string;         // Display name e.g. "IKEA", "MediaMarkt"
   slug: string;         // URL slug from SAS shop
-  bonusPer100Kr: number | null;  // null = not yet set by admin = INACTIVE
+  bonusPer100Kr: number | null;  // null = not yet set, 0 = gives no points (hasNoPoints)
+  regularBonusPer100Kr?: number | null; // Ordinarie poäng/100 kr (för att detektera förhöjd kampanjnivå)
   minPurchaseAmount?: number | null; // t.ex. 250 kr (null = inget minimiköp)
+  denominationsKr?: number[]; // Tillgängliga valörer i kr, t.ex. [100, 250, 500, 1000]
+  hasNoPoints?: boolean; // True när SAS Shop har accrual: null / 0 (ger inga EuroBonus-poäng vid kortköp)
+  inDealsOfTheMonth?: boolean; // True när produkten ligger under /deals-of-the-month på SAS Shop
+  imageUrl?: string | null; // Produktbild från SAS EuroBonus Shop (fallback om butiken saknar egen logga)
   isCampaign: boolean;
   campaignValidUntil: string | null;
   isHidden: boolean;    // Hidden by admin

@@ -154,10 +154,95 @@ export function cleanStoreName(raw: string): string {
   return BRAND_OVERRIDES[lower] || name;
 }
 
+interface DiscoveredSasGiftCard {
+  slug: string;
+  name: string;
+  bonusPer100Kr?: number | null;
+  minPurchaseAmount?: number | null;
+  denominationsKr?: number[];
+  hasNoPoints?: boolean;
+  inDealsOfTheMonth?: boolean;
+  imageUrl?: string | null;
+}
+
+interface GraphQLOptionItem {
+  pointsPrices?: { currency?: { max?: { incVat?: number | null } } }[];
+  product?: {
+    name?: string | null;
+    sku?: string | null;
+    attributes?: { accrual?: number | null };
+  };
+}
+
+interface GraphQLProductItem {
+  name?: string;
+  sku?: string;
+  url?: string;
+  type?: string;
+  price?: { incVat?: number | null };
+  originalPrice?: { incVat?: number | null };
+  categories?: { name?: string; url?: string }[];
+  attributes?: {
+    manufacturer?: string | null;
+    accrual?: number | null;
+    image?: { src?: string | null };
+  };
+  options?: {
+    items?: GraphQLOptionItem[];
+  };
+}
+
+/**
+ * Extracts nominal SEK denomination from a product/option title like
+ * "Presentkort Åhléns, 600 kr" -> 600 or "Presentkort Leo´s Lekland 100 SEK" -> 100
+ */
+export function extractValorFromProductName(name?: string | null): number | null {
+  if (!name) return null;
+  const match = name.match(/(?:^|[\s,])(\d[\d\s]*)\s*(?:kr|SEK)\b/i);
+  if (!match) return null;
+  const parsed = parseInt(match[1].replace(/\s+/g, ''), 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+}
+
+/**
+ * Normalizes a currency price (incVat) to a clean SEK denomination
+ * e.g. 49.91 -> 50, 99.82 -> 100, 249.55 -> 250, 1699.73 -> 1700
+ */
+export function normalizeValor(incVat?: number | null): number {
+  if (!incVat || incVat <= 0) return 0;
+  const near10 = Math.round(incVat / 10) * 10;
+  if (Math.abs(incVat - near10) <= 1.5) return near10;
+  const near5 = Math.round(incVat / 5) * 5;
+  if (Math.abs(incVat - near5) <= 0.8) return near5;
+  return Math.round(incVat);
+}
+
+/**
+ * Computes the dominant (mode) rate from an array of calculated rates per 100 kr
+ */
+function pickDominantRate(rates: number[]): number | null {
+  if (rates.length === 0) return null;
+  const counts = new Map<number, number>();
+  let bestRate = rates[0];
+  let bestCount = 0;
+  for (const r of rates) {
+    const c = (counts.get(r) || 0) + 1;
+    counts.set(r, c);
+    if (c > bestCount) {
+      bestCount = c;
+      bestRate = r;
+    }
+  }
+  return bestRate;
+}
+
 /**
  * Scrapes actual store gift cards from https://www.saseurobonusshop.com/se/gift-cards-vouchers.
- * Fetches all paginated product lists across main and category pages to discover all products.
- * Extracts actual store brand names from the product card image alt / titles.
+ * Uses the SAS EuroBonus Shop GraphQL API to automatically read:
+ * - bonusPer100Kr via Math.round((accrual / valör) * 100) and hasNoPoints when accrual is null/0
+ * - minPurchaseAmount and denominationsKr
+ * - isCampaign when in /deals-of-the-month or when bonusPer100Kr > regularBonusPer100Kr
+ * - imageUrl as fallback logo when store lacks its own logo
  */
 export async function syncSasGiftCardStores(): Promise<{
   success: boolean;
@@ -168,62 +253,219 @@ export async function syncSasGiftCardStores(): Promise<{
   message: string;
 }> {
   const db = getDatabase();
-  const discoveredMap = new Map<string, { slug: string; name: string }>();
+  const discoveredMap = new Map<string, DiscoveredSasGiftCard>();
+
+  const graphqlHeaders = {
+    'Content-Type': 'application/json',
+    'User-Agent':
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+    Accept: 'application/json',
+    'Accept-Language': 'sv-SE,sv;q=0.9,en-US;q=0.8,en;q=0.7',
+  };
 
   // 1. Primary method: Fast GraphQL query against https://www.saseurobonusshop.com/se/graphql
-  // Returns all 146+ gift card products in ~0.5s instead of 2+ minutes of HTML pagination scraping.
-  const graphqlQuery = {
-    query:
-      '{ route(path: "gift-cards-vouchers") { ... on RouteCategory { category { name url products(pageSize: 1000) { totalCount items { name sku url categories { name url } } } } } } }',
+  // Step 1a: Fast base query (~0.5s) for all products, prices, categories, images, and virtual product accruals.
+  const baseGraphqlQuery = {
+    query: `{
+      route(path: "gift-cards-vouchers") {
+        ... on RouteCategory {
+          category {
+            name
+            url
+            products(pageSize: 1000) {
+              totalCount
+              items {
+                name
+                sku
+                url
+                type
+                price { incVat }
+                originalPrice { incVat }
+                categories { name url }
+                attributes {
+                  manufacturer
+                  accrual
+                  image { src }
+                }
+              }
+            }
+          }
+        }
+      }
+    }`,
   };
+
+  let baseItems: GraphQLProductItem[] = [];
 
   for (let attempt = 1; attempt <= 3; attempt++) {
     try {
       const response = await fetch('https://www.saseurobonusshop.com/se/graphql', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'User-Agent':
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
-          Accept: 'application/json',
-          'Accept-Language': 'sv-SE,sv;q=0.9,en-US;q=0.8,en;q=0.7',
-        },
-        body: JSON.stringify(graphqlQuery),
+        headers: graphqlHeaders,
+        body: JSON.stringify(baseGraphqlQuery),
         next: { revalidate: 0 },
       });
 
       if (response.ok) {
         const json = await response.json();
-        const items: { name?: string; url?: string }[] =
+        const items: GraphQLProductItem[] =
           json?.data?.route?.category?.products?.items || [];
-
-        for (const prod of items) {
-          if (!prod.url || !prod.name) continue;
-          const slug = prod.url.replace(/^\/?(?:se\/)?/, '').replace(/\/$/, '').toLowerCase();
-          if (!slug || NON_STORE_SLUGS.has(slug)) continue;
-
-          const cleanName = cleanStoreName(prod.name);
-          if (
-            cleanName.length >= 2 &&
-            !NON_STORE_NAMES.has(cleanName.toLowerCase()) &&
-            cleanName.toLowerCase() !== 'presentkort'
-          ) {
-            if (!discoveredMap.has(slug)) {
-              discoveredMap.set(slug, { slug, name: cleanName });
-            }
-          }
-        }
-
-        if (discoveredMap.size > 0) {
+        if (items.length > 0) {
+          baseItems = items;
           break;
         }
       }
     } catch (err) {
-      console.warn(`SAS GiftCard GraphQL attempt ${attempt} failed:`, err);
+      console.warn(`SAS GiftCard base GraphQL attempt ${attempt} failed:`, err);
     }
 
     if (attempt < 3) {
       await new Promise((resolve) => setTimeout(resolve, 1500));
+    }
+  }
+
+  // Step 1b: Fetch configurable child options (denominations + accrual per denomination) in parallel pages
+  // (Querying 16 products per page in parallel finishes in ~4 seconds instead of ~28 seconds sequentially)
+  if (baseItems.length > 0) {
+    const pageSize = 16;
+    const totalPages = Math.ceil(baseItems.length / pageSize);
+    const pageNumbers = Array.from({ length: totalPages }, (_, i) => i + 1);
+
+    const optionsByUrl = new Map<string, GraphQLOptionItem[]>();
+
+    await Promise.all(
+      pageNumbers.map(async (page) => {
+        const pageQuery = {
+          query: `{
+            route(path: "gift-cards-vouchers") {
+              ... on RouteCategory {
+                category {
+                  products(pageSize: ${pageSize}, page: ${page}) {
+                    items {
+                      url
+                      ... on ListProductConfigurable {
+                        options: configOptions {
+                          items {
+                            pointsPrices { currency { max { incVat } } }
+                            product { name sku attributes { accrual } }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }`,
+        };
+
+        for (let attempt = 1; attempt <= 2; attempt++) {
+          try {
+            const res = await fetch('https://www.saseurobonusshop.com/se/graphql', {
+              method: 'POST',
+              headers: graphqlHeaders,
+              body: JSON.stringify(pageQuery),
+              next: { revalidate: 0 },
+            });
+            if (res.ok) {
+              const j = await res.json();
+              const pageItems: GraphQLProductItem[] =
+                j?.data?.route?.category?.products?.items || [];
+              for (const p of pageItems) {
+                if (p.url && p.options?.items) {
+                  optionsByUrl.set(p.url, p.options.items);
+                }
+              }
+              break;
+            }
+          } catch (err) {
+            console.warn(`SAS GiftCard options page ${page} attempt ${attempt} failed:`, err);
+          }
+        }
+      })
+    );
+
+    for (const prod of baseItems) {
+      if (!prod.url || !prod.name) continue;
+      const slug = prod.url.replace(/^\/?(?:se\/)?/, '').replace(/\/$/, '').toLowerCase();
+      if (!slug || NON_STORE_SLUGS.has(slug)) continue;
+
+      const cleanName = cleanStoreName(prod.name);
+      if (
+        cleanName.length < 2 ||
+        NON_STORE_NAMES.has(cleanName.toLowerCase()) ||
+        cleanName.toLowerCase() === 'presentkort'
+      ) {
+        continue;
+      }
+
+      const opts = optionsByUrl.get(prod.url) || prod.options?.items || [];
+      const denominationsKr: number[] = [];
+      const optionRates: number[] = [];
+
+      if (opts.length > 0) {
+        for (const opt of opts) {
+          const optName = opt.product?.name;
+          const optIncVat = opt.pointsPrices?.[0]?.currency?.max?.incVat;
+          const valor = extractValorFromProductName(optName) || normalizeValor(optIncVat);
+          if (valor > 0 && !denominationsKr.includes(valor)) {
+            denominationsKr.push(valor);
+          }
+          const accrual = opt.product?.attributes?.accrual;
+          if (accrual !== null && accrual !== undefined && accrual > 0 && valor > 0) {
+            optionRates.push(Math.round((accrual / valor) * 100));
+          }
+        }
+      }
+
+      if (denominationsKr.length === 0) {
+        const valor = extractValorFromProductName(prod.name) || normalizeValor(prod.price?.incVat);
+        if (valor > 0) {
+          denominationsKr.push(valor);
+        }
+      }
+
+      if (optionRates.length === 0) {
+        const parentAccrual = prod.attributes?.accrual;
+        const parentValor =
+          denominationsKr[0] ||
+          extractValorFromProductName(prod.name) ||
+          normalizeValor(prod.price?.incVat);
+        if (parentAccrual !== null && parentAccrual !== undefined && parentAccrual > 0 && parentValor > 0) {
+          optionRates.push(Math.round((parentAccrual / parentValor) * 100));
+        }
+      }
+
+      denominationsKr.sort((a, b) => a - b);
+      const minPurchaseAmount = denominationsKr.length > 0 ? denominationsKr[0] : null;
+
+      const dominantRate = pickDominantRate(optionRates);
+      const hasNoPoints = dominantRate === null || dominantRate <= 0;
+      const bonusPer100Kr = hasNoPoints ? 0 : dominantRate;
+
+      const inDealsOfTheMonth = (prod.categories || []).some(
+        (c) =>
+          (c.url || '').toLowerCase().includes('deals-of-the-month') ||
+          (c.name || '').toLowerCase().includes('månadens deals')
+      );
+
+      let imageUrl = prod.attributes?.image?.src?.trim() || null;
+      if (imageUrl && imageUrl.startsWith('/')) {
+        imageUrl = `https://www.saseurobonusshop.com${imageUrl}`;
+      }
+
+      if (!discoveredMap.has(slug)) {
+        discoveredMap.set(slug, {
+          slug,
+          name: cleanName,
+          bonusPer100Kr,
+          minPurchaseAmount,
+          denominationsKr,
+          hasNoPoints,
+          inDealsOfTheMonth,
+          imageUrl,
+        });
+      }
     }
   }
 
@@ -461,17 +703,76 @@ export async function syncSasGiftCardStores(): Promise<{
       if (!existing.matchedStoreId) {
         existing.matchedStoreId = findMatchedStoreId(slug, item.name);
       }
+
+      // 1. Update imageUrl if discovered from GraphQL
+      if (item.imageUrl) {
+        existing.imageUrl = item.imageUrl;
+      }
+
+      // 2. Update denominationsKr and minPurchaseAmount if discovered from GraphQL
+      if (item.denominationsKr && item.denominationsKr.length > 0) {
+        existing.denominationsKr = item.denominationsKr;
+      }
+      if (item.minPurchaseAmount !== undefined && item.minPurchaseAmount !== null) {
+        existing.minPurchaseAmount = item.minPurchaseAmount;
+      }
+
+      // 3. Update bonusPer100Kr, hasNoPoints, regularBonusPer100Kr, and isCampaign
+      if (item.bonusPer100Kr !== undefined) {
+        const prevRegular =
+          existing.regularBonusPer100Kr && existing.regularBonusPer100Kr > 0
+            ? existing.regularBonusPer100Kr
+            : existing.bonusPer100Kr && existing.bonusPer100Kr > 0 && !existing.isCampaign && !item.inDealsOfTheMonth
+            ? existing.bonusPer100Kr
+            : null;
+
+        existing.bonusPer100Kr = item.bonusPer100Kr;
+        existing.hasNoPoints = Boolean(item.hasNoPoints);
+        existing.inDealsOfTheMonth = Boolean(item.inDealsOfTheMonth);
+
+        const isElevatedRate =
+          prevRegular !== null &&
+          item.bonusPer100Kr !== null &&
+          item.bonusPer100Kr > prevRegular;
+
+        const hasActiveManualCampaignDate = Boolean(
+          existing.isCampaign &&
+            existing.campaignValidUntil &&
+            new Date(existing.campaignValidUntil).getTime() >= Date.now()
+        );
+
+        const isCampaign = Boolean(
+          item.inDealsOfTheMonth || isElevatedRate || hasActiveManualCampaignDate
+        );
+
+        existing.isCampaign = isCampaign;
+
+        if (!isCampaign && item.bonusPer100Kr !== null && item.bonusPer100Kr > 0) {
+          existing.regularBonusPer100Kr = item.bonusPer100Kr;
+        } else if (prevRegular !== null) {
+          existing.regularBonusPer100Kr = prevRegular;
+        }
+      }
     } else {
       newStoresAdded++;
       const matchedStoreId = findMatchedStoreId(slug, item.name);
+      const isCampaign = Boolean(item.inDealsOfTheMonth);
+      const bonusPer100Kr = item.bonusPer100Kr !== undefined ? item.bonusPer100Kr : null;
+      const regularBonusPer100Kr =
+        !isCampaign && bonusPer100Kr !== null && bonusPer100Kr > 0 ? bonusPer100Kr : null;
 
       const newItem: SasGiftCardStoreItem = {
         id: slug,
         name: item.name,
         slug,
-        bonusPer100Kr: null, // Admin must fill in to activate
-        minPurchaseAmount: null,
-        isCampaign: false,
+        bonusPer100Kr,
+        regularBonusPer100Kr,
+        minPurchaseAmount: item.minPurchaseAmount ?? null,
+        denominationsKr: item.denominationsKr || [],
+        hasNoPoints: Boolean(item.hasNoPoints),
+        inDealsOfTheMonth: Boolean(item.inDealsOfTheMonth),
+        imageUrl: item.imageUrl || null,
+        isCampaign,
         campaignValidUntil: null,
         isHidden: false,
         isExcluded: false,
@@ -485,6 +786,12 @@ export async function syncSasGiftCardStores(): Promise<{
 
       db.sasGiftCards.push(newItem);
 
+      const bonusSummary = item.hasNoPoints
+        ? '0 p / 100 kr (accrual: null – ger inga EuroBonus-poäng)'
+        : bonusPer100Kr !== null && bonusPer100Kr > 0
+        ? `${bonusPer100Kr} p / 100 kr${item.minPurchaseAmount ? ` (min. ${item.minPurchaseAmount} kr)` : ''}${isCampaign ? ' – Kampanj' : ''}`
+        : 'Ej konfigurerad – ange poäng/100 kr under SAS Presentkort';
+
       addedStores.push({
         id: `sas-gc-${slug}-${Date.now()}-${newStoresAdded}`,
         storeId: matchedStoreId || slug,
@@ -493,7 +800,7 @@ export async function syncSasGiftCardStores(): Promise<{
         source: 'sas_giftcard',
         syncedAt: now,
         matchedStoreId,
-        bonusSummary: 'Ej konfigurerad – ange poäng/100 kr under SAS Presentkort',
+        bonusSummary,
         isReviewed: false,
         reviewedAt: null,
       });
@@ -521,9 +828,15 @@ export async function syncSasGiftCardStores(): Promise<{
   db.sasGiftCards.sort((a, b) => a.name.localeCompare(b.name, 'sv'));
 
   const matchedStores: string[] = [];
+  let noPointsCount = 0;
+  let campaignCount = 0;
   for (const item of db.sasGiftCards) {
-    if (item.matchedStoreId && !item.isHidden && !item.isExcluded && !item.isMissingFromSource && (item.bonusPer100Kr ?? 0) > 0) {
+    if (item.isHidden || item.isExcluded || item.isMissingFromSource) continue;
+    if ((item.bonusPer100Kr ?? 0) > 0) {
       matchedStores.push(item.name);
+      if (item.isCampaign) campaignCount++;
+    } else if (item.hasNoPoints || item.bonusPer100Kr === 0) {
+      noPointsCount++;
     }
   }
 
@@ -545,7 +858,7 @@ export async function syncSasGiftCardStores(): Promise<{
     id: `audit-${Date.now()}`,
     timestamp: now,
     action: 'SYNC_SAS_GIFTCARDS',
-    details: `Synkronisering mot SAS EuroBonus Shop presentkort slutförd. Totalt ${discoveredMap.size} butiker identifierade live (${newStoresAdded} nya, ${missingSasCount} saknas på SAS Shop).${newNamesSummary}`,
+    details: `Synkronisering mot SAS EuroBonus Shop presentkort slutförd. Totalt ${discoveredMap.size} presentkort identifierade live (${matchedStores.length} ger poäng, ${noPointsCount} ger 0 poäng, ${campaignCount} på kampanj, ${newStoresAdded} nya, ${missingSasCount} saknas på SAS Shop).${newNamesSummary}`,
     user: 'Admin',
     newStores: addedStores.length > 0 ? addedStores : undefined,
   });
@@ -558,6 +871,6 @@ export async function syncSasGiftCardStores(): Promise<{
     newStoresAdded,
     matchedStores,
     newStores: addedStores,
-    message: `Synk lyckades: ${discoveredMap.size} presentkortsbutiker identifierade på SAS EuroBonus Shop (${newStoresAdded} nya, ${missingSasCount} saknas hos SAS). ${matchedStores.length} butiker är aktiva (har konfigurerade poäng).${newNamesSummary}`,
+    message: `Synk lyckades: ${discoveredMap.size} presentkort på SAS EuroBonus Shop (${matchedStores.length} aktiva med poäng, ${noPointsCount} utan poäng [accrual: null], ${campaignCount} kampanjer, ${newStoresAdded} nya, ${missingSasCount} saknas hos SAS).${newNamesSummary}`,
   };
 }

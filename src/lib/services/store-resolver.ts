@@ -2,6 +2,43 @@ import { DatabaseSchema, SasGiftCardStoreItem } from '@/lib/db';
 import { Store } from '@/types/domain';
 import { isCampaignActive } from '../utils/campaign';
 
+const KNOWN_LOCAL_LOGOS = new Set([
+  'ahlens',
+  'apotek-hjartat',
+  'bagaren-och-kocken',
+  'boozt',
+  'cervera',
+  'elgiganten',
+  'ikea',
+  'kitchentime',
+  'netonnet',
+  'neutral-store',
+  'stadium',
+  'zalando',
+]);
+
+function isStoreMissingOwnLogo(store: {
+  customLogoUrl?: string | null;
+  logoUrl?: string | null;
+  id?: string;
+  slug?: string;
+}): boolean {
+  if (store.customLogoUrl && store.customLogoUrl.trim()) return false;
+  if (!store.logoUrl || !store.logoUrl.trim()) return true;
+  if (store.logoUrl.startsWith('http://') || store.logoUrl.startsWith('https://')) return false;
+  if (store.logoUrl.startsWith('/logos/')) {
+    const rawName = store.logoUrl
+      .replace('/logos/', '')
+      .replace(/\.(svg|png|jpg|webp)$/i, '')
+      .toLowerCase();
+    if (KNOWN_LOCAL_LOGOS.has(rawName)) return false;
+    if (store.id && KNOWN_LOCAL_LOGOS.has(store.id.toLowerCase())) return false;
+    if (store.slug && KNOWN_LOCAL_LOGOS.has(store.slug.toLowerCase())) return false;
+    return true;
+  }
+  return true;
+}
+
 export function cleanStoreSlug(slug: string): string {
   return (slug || '')
     .toLowerCase()
@@ -280,7 +317,7 @@ export function buildAllStores(db: DatabaseSchema, options?: { includeExcluded?:
         ...((meta?.aliases && meta.aliases.length > 0) ? meta.aliases : [gc.slug, `${gc.id}.se`]),
         ...(alias ? [alias] : []),
       ])),
-      logoUrl: customLogoUrl || `/logos/${gc.id}.svg`,
+      logoUrl: customLogoUrl || gc.imageUrl || `/logos/${gc.id}.svg`,
       customLogoUrl,
       comment,
       categories: (meta?.categories && meta.categories.length > 0) ? meta.categories : ['department'],
@@ -328,7 +365,11 @@ export function buildAllStores(db: DatabaseSchema, options?: { includeExcluded?:
     if (gc.isHidden || gc.isExcluded) continue;
     const matchedId = findExistingStoreId(gc);
     if (matchedId) {
-      sasMap.set(matchedId, gc);
+      const prev = sasMap.get(matchedId);
+      // Do not overwrite an active gift card (>0 points) with a 0-point or missing entry
+      if (!prev || ((gc.bonusPer100Kr ?? 0) > 0 && ((prev.bonusPer100Kr ?? 0) <= 0 || prev.isMissingFromSource))) {
+        sasMap.set(matchedId, gc);
+      }
     }
     sasMap.set(gc.id, gc);
     sasMap.set(gc.slug, gc);
@@ -351,8 +392,15 @@ export function buildAllStores(db: DatabaseSchema, options?: { includeExcluded?:
   for (const s of allStores) {
     const gc = sasMap.get(s.id) || sasMap.get(s.slug);
     if (gc) {
-      s.hasSasGiftCard = true;
+      const hasActivePoints = !gc.isMissingFromSource && (gc.bonusPer100Kr ?? 0) > 0;
+      s.hasSasGiftCard = options?.includeExcluded ? true : hasActivePoints;
       s.sasGiftCardBonusPer100Kr = gc.bonusPer100Kr;
+      s.sasGiftCardMinPurchaseKr = gc.minPurchaseAmount ?? null;
+      s.sasGiftCardDenominationsKr = gc.denominationsKr || [];
+      s.sasGiftCardImageUrl = gc.imageUrl || null;
+      if (isStoreMissingOwnLogo(s) && gc.imageUrl) {
+        s.logoUrl = gc.imageUrl;
+      }
     } else {
       s.hasSasGiftCard = false;
       s.sasGiftCardBonusPer100Kr = null;

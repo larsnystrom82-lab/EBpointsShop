@@ -408,19 +408,27 @@ export default function Home() {
     const candidateRoutes: RouteCalculationResult[] = [];
 
     for (const store of matchingStores) {
-      // Find matching SAS gift card for this store (active ones only)
-      const sasGiftCardItem = sasGiftCards.find(
+      // Find matching SAS gift card for this store (prefer active ones with >0 points)
+      const matchingSasGiftCards = sasGiftCards.filter(
         (gc) =>
-          gc.matchedStoreId === store.id ||
-          gc.matchedStoreId === store.slug ||
-          gc.id === store.id ||
-          gc.slug === store.slug ||
-          gc.id === store.slug ||
-          cleanSlug(gc.id) === cleanSlug(store.id) ||
-          cleanSlug(gc.slug) === cleanSlug(store.slug) ||
-          cleanSlug(gc.id) === cleanSlug(store.slug) ||
-          gc.name.trim().toLowerCase() === store.name.trim().toLowerCase()
-      ) ?? null;
+          !gc.isHidden &&
+          !gc.isExcluded &&
+          !gc.isMissingFromSource &&
+          (gc.id === store.id ||
+            gc.slug === store.slug ||
+            gc.id === store.slug ||
+            gc.matchedStoreId === store.id ||
+            gc.matchedStoreId === store.slug ||
+            cleanSlug(gc.id) === cleanSlug(store.id) ||
+            cleanSlug(gc.slug) === cleanSlug(store.slug) ||
+            cleanSlug(gc.id) === cleanSlug(store.slug) ||
+            gc.name.trim().toLowerCase() === store.name.trim().toLowerCase())
+      );
+      const sasGiftCardItem =
+        matchingSasGiftCards.find((gc) => (gc.bonusPer100Kr ?? 0) > 0 && (gc.id === store.id || gc.slug === store.slug)) ||
+        matchingSasGiftCards.find((gc) => (gc.bonusPer100Kr ?? 0) > 0) ||
+        matchingSasGiftCards[0] ||
+        null;
 
       const routes = generateCandidateRoutes({
         store,

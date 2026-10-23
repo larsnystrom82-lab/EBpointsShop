@@ -58,8 +58,10 @@ export const AlternativeCard: React.FC<AlternativeCardProps> = ({
   const baseTierPoints = route.baseTierPoints;
 
   const currentBonusRate =
-    route.routeType === 'direct_partner' && !route.isOneTimeOffer && route.purchaseAmountOre > 0
-      ? Math.round((route.baseBonusPoints / (route.purchaseAmountOre / 10000)) * 10) / 10
+    (route.routeType === 'direct_partner' || route.routeType === 'gift_card') &&
+    !route.isOneTimeOffer &&
+    route.purchaseAmountOre > 0
+      ? Math.round((route.baseBonusPoints / ((route.giftCardValueOre || route.purchaseAmountOre) / 10000)) * 10) / 10
       : undefined;
   const currentTierRate =
     route.routeType === 'direct_partner' && !route.isOneTimeOffer && route.purchaseAmountOre > 0

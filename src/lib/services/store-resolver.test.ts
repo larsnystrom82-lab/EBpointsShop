@@ -481,4 +481,125 @@ describe('Store Resolver - Alias and Grouping', () => {
     expect(fixedStore?.partnerRule.fixedBonusPoints).toBe(500);
     expect(fixedStore?.partnerRule.fixedTierPoints).toBe(100);
   });
+
+  it('uses SAS gift card product imageUrl as fallback logo when store lacks its own logo, and hides 0-point-only gift cards on public site', () => {
+    const mockDb: DatabaseSchema = {
+      stores: [
+        {
+          id: 'ikea',
+          name: 'IKEA',
+          slug: 'ikea',
+          aliases: [],
+          logoUrl: '/logos/ikea.svg', // Known existing local logo
+          categories: ['home'],
+          isActive: true,
+          partnerRule: {
+            hasPartnerLink: false,
+            bonusPer100Kr: 0,
+            tierPer100Kr: 0,
+            isCampaign: false,
+            campaignValidUntil: null,
+            startUrl: '',
+          },
+          giftCardRule: {
+            hasDirectGiftCard: false,
+            bonusPer100Kr: 0,
+            denominationsKr: [],
+            feeKr: 0,
+            isCampaign: false,
+            startUrl: '',
+          },
+          zupergiftSupported: false,
+        },
+      ],
+      zupergiftStores: [],
+      sasGiftCards: [
+        {
+          id: 'ikea-se',
+          name: 'IKEA',
+          slug: 'ikea-se',
+          matchedStoreId: 'ikea',
+          bonusPer100Kr: 20,
+          minPurchaseAmount: 100,
+          denominationsKr: [100, 500, 1000],
+          imageUrl: 'https://www.saseurobonusshop.com/media/ikea-card.jpg',
+          isCampaign: true,
+          inDealsOfTheMonth: true,
+          campaignValidUntil: null,
+          isHidden: false,
+          isExcluded: false,
+          note: '',
+          syncedAt: '2026-10-23',
+          updatedAt: null,
+        },
+        {
+          id: 'presentkort-dormy',
+          name: 'Dormy',
+          slug: 'presentkort-dormy',
+          bonusPer100Kr: 50,
+          minPurchaseAmount: 100,
+          denominationsKr: [100, 250, 500],
+          imageUrl: 'https://www.saseurobonusshop.com/media/dormy-card.jpg',
+          isCampaign: false,
+          campaignValidUntil: null,
+          isHidden: false,
+          isExcluded: false,
+          note: '',
+          syncedAt: '2026-10-23',
+          updatedAt: null,
+        },
+        {
+          id: 'presentkort-leo-s-lekland',
+          name: "Leo's Lekland",
+          slug: 'presentkort-leo-s-lekland',
+          bonusPer100Kr: 0,
+          hasNoPoints: true,
+          minPurchaseAmount: 100,
+          denominationsKr: [100, 250, 500, 1000],
+          imageUrl: 'https://www.saseurobonusshop.com/media/leos-card.jpg',
+          isCampaign: false,
+          campaignValidUntil: null,
+          isHidden: false,
+          isExcluded: false,
+          note: '',
+          syncedAt: '2026-10-23',
+          updatedAt: null,
+        },
+      ],
+      zupergiftConfig: {
+        ratePer100Kr: 30,
+        isCampaign: false,
+        campaignValidUntil: null,
+        note: '',
+      },
+      storeCustomMetadata: {},
+      errorReports: [],
+      auditEvents: [],
+      lastZupergiftSync: null,
+      lastSasGiftCardSync: '2026-10-23',
+    };
+
+    const publicStores = buildAllStores(mockDb);
+    // IKEA has its own local /logos/ikea.svg so it keeps /logos/ikea.svg
+    const ikea = publicStores.find((s) => s.id === 'ikea');
+    expect(ikea).toBeDefined();
+    expect(ikea?.logoUrl).toBe('/logos/ikea.svg');
+    expect(ikea?.hasSasGiftCard).toBe(true);
+    expect(ikea?.sasGiftCardDenominationsKr).toEqual([100, 500, 1000]);
+
+    // Dormy lacks its own local logo so it uses SAS Shop product imageUrl as fallback
+    const dormy = publicStores.find((s) => s.id === 'presentkort-dormy');
+    expect(dormy).toBeDefined();
+    expect(dormy?.logoUrl).toBe('https://www.saseurobonusshop.com/media/dormy-card.jpg');
+
+    // Leo's Lekland has bonusPer100Kr: 0 (accrual: null) and no partner/Zupergift, so it is filtered out on public site
+    const leosPublic = publicStores.find((s) => s.id === 'presentkort-leo-s-lekland');
+    expect(leosPublic).toBeUndefined();
+
+    // In Admin (includeExcluded: true), Leo's Lekland is included
+    const adminStores = buildAllStores(mockDb, { includeExcluded: true });
+    const leosAdmin = adminStores.find((s) => s.id === 'presentkort-leo-s-lekland');
+    expect(leosAdmin).toBeDefined();
+    expect(leosAdmin?.logoUrl).toBe('https://www.saseurobonusshop.com/media/leos-card.jpg');
+  });
 });
