@@ -601,5 +601,49 @@ describe('Store Resolver - Alias and Grouping', () => {
     const leosAdmin = adminStores.find((s) => s.id === 'presentkort-leo-s-lekland');
     expect(leosAdmin).toBeDefined();
     expect(leosAdmin?.logoUrl).toBe('https://www.saseurobonusshop.com/media/leos-card.jpg');
+
+    // Partner stores default to acceptsAmex: false unless verified, while pure gift card / Zupergift stores default to true
+    mockDb.stores.push({
+      id: 'cervera',
+      name: 'Cervera',
+      slug: 'cervera',
+      aliases: [],
+      logoUrl: '/logos/cervera.svg',
+      categories: ['home'],
+      isActive: true,
+      partnerRule: {
+        hasPartnerLink: true,
+        bonusPer100Kr: 25,
+        tierPer100Kr: 0,
+        isCampaign: false,
+        campaignValidUntil: null,
+        startUrl: 'https://cervera.se',
+      },
+      giftCardRule: {
+        hasDirectGiftCard: false,
+        bonusPer100Kr: 0,
+        denominationsKr: [],
+        feeKr: 0,
+        isCampaign: false,
+        startUrl: '',
+      },
+      zupergiftSupported: true,
+    });
+    const storesWithPartner = buildAllStores(mockDb);
+    expect(storesWithPartner.find((s) => s.id === 'cervera')?.acceptsAmex).toBe(false);
+    expect(storesWithPartner.find((s) => s.id === 'ikea')?.acceptsAmex).toBe(true);
+    expect(storesWithPartner.find((s) => s.id === 'presentkort-dormy')?.acceptsAmex).toBe(true);
+
+    // When admin marks a partner store as acceptsAmex: true in storeCustomMetadata, it resolves to true
+    mockDb.storeCustomMetadata = {
+      cervera: {
+        customLogoUrl: null,
+        comment: null,
+        acceptsAmex: true,
+        updatedAt: '2026-10-24',
+      },
+    };
+    const updatedStores = buildAllStores(mockDb);
+    expect(updatedStores.find((s) => s.id === 'cervera')?.acceptsAmex).toBe(true);
   });
 });

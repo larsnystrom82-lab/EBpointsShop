@@ -104,11 +104,15 @@ export function generateCandidateRoutes(options: RouteGenerationOptions): RouteC
     baseBonus: number,
     baseTier: number,
     cardSpendOre: number,
-    totalOutlayOre: number
+    totalOutlayOre: number,
+    routeAcceptsAmex: boolean = true
   ) => {
     const cardOutcomes: Record<string, CardCalculationOutcome> = {};
     for (const card of availableCards) {
-      const { bonusPoints, tierPoints } = calculateCardPoints(cardSpendOre, card);
+      const cardAllowed = routeAcceptsAmex || card.network !== 'amex';
+      const { bonusPoints, tierPoints } = cardAllowed
+        ? calculateCardPoints(cardSpendOre, card)
+        : { bonusPoints: 0, tierPoints: 0 };
       const totalBonus = baseBonus + bonusPoints;
       const totalTier = baseTier + tierPoints;
       const pointsPerKronor = totalOutlayOre > 0 ? totalBonus / (totalOutlayOre / 100) : 0;
@@ -229,7 +233,20 @@ export function generateCandidateRoutes(options: RouteGenerationOptions): RouteC
       },
     ];
 
-    const cardOutcomes = computeCardOutcomes(baseBonusPoints, baseTierPoints, purchaseAmountOre, totalOutlayOre);
+    // Partner store routes only accept Amex if verified (store.acceptsAmex === true).
+    // Note: buildAllStores() explicitly resolves store.acceptsAmex = false for all unverified partner stores.
+    const partnerAcceptsAmex =
+      store.acceptsAmex !== undefined
+        ? Boolean(store.acceptsAmex)
+        : true;
+
+    const cardOutcomes = computeCardOutcomes(
+      baseBonusPoints,
+      baseTierPoints,
+      purchaseAmountOre,
+      totalOutlayOre,
+      partnerAcceptsAmex
+    );
 
     const directUrl =
       store.partnerRule?.startUrl && store.partnerRule.startUrl.includes('/butiker/')
@@ -290,6 +307,7 @@ export function generateCandidateRoutes(options: RouteGenerationOptions): RouteC
       startUrl: directUrl,
       customLogoUrl: store.customLogoUrl || null,
       comment: store.comment || null,
+      acceptsAmex: partnerAcceptsAmex,
       isDemoFixture: !store.partnerRule?.hasPartnerLink,
       demoLabel: !store.partnerRule?.hasPartnerLink
         ? ((store.id === 'bagaren-och-kocken' || store.id === 'kitchentime')
@@ -384,6 +402,7 @@ export function generateCandidateRoutes(options: RouteGenerationOptions): RouteC
       startUrl: directGiftCardUrl,
       customLogoUrl: store.customLogoUrl || null,
       comment: store.comment || null,
+      acceptsAmex: true,
       isDemoFixture: store.giftCardRule === undefined,
       demoLabel: store.giftCardRule === undefined
         ? (store.id === 'elgiganten'
@@ -481,6 +500,7 @@ export function generateCandidateRoutes(options: RouteGenerationOptions): RouteC
       startUrl: 'https://www.saseurobonusshop.com/se/zupergift-presentkort',
       customLogoUrl: store.customLogoUrl || null,
       comment: store.comment || null,
+      acceptsAmex: true,
       isDemoFixture: store.zupergiftSupported === undefined,
       demoLabel: store.zupergiftSupported === undefined
         ? 'Demonstrationsdata (syntetiska testregler)'
@@ -591,6 +611,7 @@ export function generateCandidateRoutes(options: RouteGenerationOptions): RouteC
         startUrl: sasGiftCardUrl,
         customLogoUrl: store.customLogoUrl || null,
         comment: store.comment || null,
+        acceptsAmex: true,
         isDemoFixture: false,
       });
     }

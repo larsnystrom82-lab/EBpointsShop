@@ -139,6 +139,9 @@ export const AlternativeCard: React.FC<AlternativeCardProps> = ({
 
   // Channel pill
   const channelLabel = route.routeType === 'direct_partner' ? 'Partnerbutik' : 'Presentkort';
+  const hasAmexSelected = selectedCards.some((c) => c.network === 'amex');
+  const onlyAmexSelected = selectedCards.length > 0 && selectedCards.every((c) => c.network === 'amex');
+  const routeAcceptsAmex = route.acceptsAmex ?? (route.routeType !== 'direct_partner');
 
   return (
     <article
@@ -211,6 +214,22 @@ export const AlternativeCard: React.FC<AlternativeCardProps> = ({
               >
                 {difficultyText}
               </span>
+              {route.routeType === 'direct_partner' && routeAcceptsAmex && (
+                <span
+                  className="text-[11px] font-bold text-sky-800 bg-sky-50 border border-sky-200/80 px-2 py-0.5 rounded-md"
+                  title="Verifierad att ta emot American Express"
+                >
+                  Tar Amex
+                </span>
+              )}
+              {route.routeType === 'direct_partner' && !routeAcceptsAmex && hasAmexSelected && (
+                <span
+                  className="text-[11px] font-semibold text-slate-600 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-md"
+                  title="Partnerbutiken är ej verifierad för American Express (0 kortpoäng med Amex)"
+                >
+                  Ej Amex
+                </span>
+              )}
               {route.comment && (
                 <span
                   className="text-[11px] font-semibold text-amber-800 bg-amber-50 border border-amber-200/80 px-2 py-0.5 rounded-md flex items-center gap-1 cursor-help"
@@ -275,7 +294,11 @@ export const AlternativeCard: React.FC<AlternativeCardProps> = ({
               {cardBonusPoints > 0 ? `+${cardBonusPoints.toLocaleString('sv-SE')}` : '+0'}
             </span>
             <span className="text-[11px] text-slate-400 block">
-              Från dina kort
+              {!routeAcceptsAmex && onlyAmexSelected
+                ? 'Tar ej Amex'
+                : !routeAcceptsAmex && hasAmexSelected && cardBonusPoints > 0
+                ? 'Via Mastercard'
+                : 'Från dina kort'}
             </span>
           </div>
 
@@ -394,7 +417,9 @@ export const AlternativeCard: React.FC<AlternativeCardProps> = ({
               <span className="text-base font-extrabold text-blue-600 block leading-tight">
                 {cardBonusPoints > 0 ? `+${cardBonusPoints.toLocaleString('sv-SE')}` : '+0'}
               </span>
-              <span className="text-[10px] text-slate-400">Kortpoäng</span>
+              <span className="text-[10px] text-slate-400">
+                {!routeAcceptsAmex && onlyAmexSelected ? 'Tar ej Amex' : 'Kortpoäng'}
+              </span>
             </div>
           </div>
 

@@ -760,5 +760,63 @@ describe('EuroBonus Beräkningsmotor – Acceptanstester A03–A16', () => {
       'valörer: 50, 100, 250, 500, 1 000, 5 000 kr'
     );
   });
+
+  it('hanterar Amex-acceptans: partnerbutik utan Tar Amex ger 0 Amex-kortpoäng medan presentkort/Zupergift alltid ger fulla Amex-poäng', () => {
+    const partnerStoreNotVerified: Store = {
+      id: 'partner-no-amex',
+      name: 'Partner Ej Amex',
+      slug: 'partner-no-amex',
+      categories: ['electronics'],
+      isActive: true,
+      acceptsAmex: false,
+      partnerRule: {
+        hasPartnerLink: true,
+        bonusPer100Kr: 20,
+        tierPer100Kr: 0,
+        isCampaign: false,
+        campaignValidUntil: null,
+        startUrl: 'https://onlineshopping.flysas.com/sv-SE/partner-no-amex',
+      },
+      zupergiftSupported: true,
+    };
+
+    const routes = generateCandidateRoutes({
+      store: partnerStoreNotVerified,
+      purchaseAmountKr: 1000,
+    });
+
+    const partnerRoute = routes.find((r) => r.routeType === 'direct_partner')!;
+    const zuperRoute = routes.find((r) => r.routeType === 'zupergift_chain')!;
+
+    expect(partnerRoute.acceptsAmex).toBe(false);
+    // På partnerbutik som ej tar Amex ska Amex ge 0 kortpoäng, medan Mastercard ger vanliga kortpoäng
+    expect(partnerRoute.cardOutcomes['amex_elite'].cardBonusPoints).toBe(0);
+    expect(partnerRoute.cardOutcomes['amex_elite'].totalBonusPoints).toBe(200);
+    expect(partnerRoute.cardOutcomes['mc_premium'].cardBonusPoints).toBe(150);
+    expect(partnerRoute.cardOutcomes['mc_premium'].totalBonusPoints).toBe(350);
+
+    // Om användaren har valt både Amex Elite och MC Premium väljs MC Premium automatiskt på partnervägen
+    const ranked = processAndRankRoutes([partnerRoute], {
+      ...defaultFilter,
+      selectedCardIds: ['amex_elite', 'mc_premium'],
+    });
+    expect(ranked[0].selectedCardOutcome?.cardName).toBe('SAS EuroBonus Mastercard Premium');
+    expect(ranked[0].selectedCardOutcome?.cardBonusPoints).toBe(150);
+
+    // Zupergift-vägen tar alltid Amex och ger fulla Amex-poäng (20 p / 100 kr med Amex Elite = 200 kortpoäng)
+    expect(zuperRoute.acceptsAmex).toBe(true);
+    expect(zuperRoute.cardOutcomes['amex_elite'].cardBonusPoints).toBe(200);
+
+    // När partnerbutiken verifierats och markerats med acceptsAmex: true ger även partnerbutiken fulla Amex-poäng
+    const verifiedPartnerRoutes = generateCandidateRoutes({
+      store: { ...partnerStoreNotVerified, acceptsAmex: true },
+      purchaseAmountKr: 1000,
+    });
+    const verifiedPartnerRoute = verifiedPartnerRoutes.find((r) => r.routeType === 'direct_partner')!;
+    expect(verifiedPartnerRoute.acceptsAmex).toBe(true);
+    expect(verifiedPartnerRoute.cardOutcomes['amex_elite'].cardBonusPoints).toBe(200);
+    expect(verifiedPartnerRoute.cardOutcomes['amex_elite'].totalBonusPoints).toBe(400);
+  });
 });
+
 

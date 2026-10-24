@@ -72,6 +72,7 @@ export interface DbStore {
   isHidden?: boolean;
   isMissingFromPartner?: boolean; // True om partnerbutiken inte längre finns hos SAS Online Shopping
   partnerMissingSince?: string | null; // Tidsstämpel när butiken togs bort från SAS Online Shopping
+  acceptsAmex?: boolean; // True om partnerbutiken verifierats ta emot American Express (default false för partnerbutiker)
 }
 
 export interface DbErrorReport {
@@ -147,6 +148,7 @@ export interface StoreMetadataItem {
   comment?: string | null;
   isExcluded?: boolean | null;
   isHidden?: boolean | null;
+  acceptsAmex?: boolean | null;
   categories?: string[] | null;
   alias?: string | null;
   aliases?: string[] | null;

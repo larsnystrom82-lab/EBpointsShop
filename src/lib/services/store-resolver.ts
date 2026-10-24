@@ -95,6 +95,12 @@ export function buildAllStores(db: DatabaseSchema, options?: { includeExcluded?:
       const alias = meta?.alias !== undefined ? (meta.alias?.trim() || null) : (s.alias?.trim() || null);
       const isExcluded = isStoreExcluded(s.id, s.slug, s);
       const isHidden = isStoreHidden(s.id, s.slug, s);
+      const acceptsAmex =
+        meta?.acceptsAmex !== undefined && meta?.acceptsAmex !== null
+          ? Boolean(meta.acceptsAmex)
+          : s.acceptsAmex !== undefined
+          ? Boolean(s.acceptsAmex)
+          : !s.partnerRule?.hasPartnerLink;
 
       let resolvedPartnerRule = s.partnerRule;
       if (s.partnerRule) {
@@ -152,6 +158,7 @@ export function buildAllStores(db: DatabaseSchema, options?: { includeExcluded?:
         isActive: isExcluded || isHidden ? false : (s.isActive ?? true),
         isExcluded,
         isHidden,
+        acceptsAmex,
         partnerRule: resolvedPartnerRule,
         giftCardRule: s.giftCardRule,
         zupergiftSupported: Boolean(s.zupergiftSupported),
@@ -214,6 +221,7 @@ export function buildAllStores(db: DatabaseSchema, options?: { includeExcluded?:
         isActive: isExcluded || isHidden ? false : true,
         isExcluded,
         isHidden,
+        acceptsAmex: meta?.acceptsAmex !== undefined && meta?.acceptsAmex !== null ? Boolean(meta.acceptsAmex) : true,
         partnerRule: {
           hasPartnerLink: false,
           bonusPer100Kr: 0,
@@ -343,6 +351,7 @@ export function buildAllStores(db: DatabaseSchema, options?: { includeExcluded?:
       zupergiftSupported: false,
       isZupergiftOnly: false,
       hasPartnerLink: false,
+      acceptsAmex: meta?.acceptsAmex !== undefined && meta?.acceptsAmex !== null ? Boolean(meta.acceptsAmex) : true,
       isMissingFromSource: Boolean(gc.isMissingFromSource),
       missingSince: gc.missingSince || null,
       syncedAt: gc.syncedAt || undefined,

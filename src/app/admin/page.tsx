@@ -123,7 +123,7 @@ export default function AdminPage() {
 
   // States for "Alla butiker" tab
   const [allStoresSearch, setAllStoresSearch] = useState('');
-  const [allStoresFilter, setAllStoresFilter] = useState<'all' | 'partner' | 'zupergift' | 'sas' | 'has_logo' | 'custom_logo' | 'missing_logo' | 'has_comment' | 'hidden' | 'excluded' | 'missing_source' | 'new_synced'>('all');
+  const [allStoresFilter, setAllStoresFilter] = useState<'all' | 'partner' | 'zupergift' | 'sas' | 'amex_yes' | 'amex_no' | 'has_logo' | 'custom_logo' | 'missing_logo' | 'has_comment' | 'hidden' | 'excluded' | 'missing_source' | 'new_synced'>('all');
   const [allStoresCategoryFilter, setAllStoresCategoryFilter] = useState<string>('all');
 
   // States for Sync New Stores Log & Audit Log
@@ -136,6 +136,7 @@ export default function AdminPage() {
     customLogoUrl: string;
     comment: string;
     isHidden: boolean;
+    acceptsAmex: boolean;
     categories: string[];
     alias: string;
     aliasesText: string;
@@ -182,7 +183,7 @@ export default function AdminPage() {
   // SAS Partner stores live sync & filter
   const [syncingPartner, setSyncingPartner] = useState<boolean>(false);
   const [storeSearch, setStoreSearch] = useState('');
-  const [storeFilter, setStoreFilter] = useState<'all' | 'partner' | 'campaign' | 'zupergift' | 'fixed' | 'missing_partner'>('all');
+  const [storeFilter, setStoreFilter] = useState<'all' | 'partner' | 'campaign' | 'zupergift' | 'amex_yes' | 'amex_no' | 'fixed' | 'missing_partner'>('all');
   const [storeCategoryFilter, setStoreCategoryFilter] = useState<string>('all');
 
   // Load admin data
@@ -388,6 +389,7 @@ export default function AdminPage() {
       const customLogoUrl = edit?.customLogoUrl !== undefined ? edit.customLogoUrl : (store.customLogoUrl || '');
       const comment = edit?.comment !== undefined ? edit.comment : (store.comment || '');
       const isHidden = edit?.isHidden !== undefined ? edit.isHidden : Boolean(store.isHidden);
+      const acceptsAmex = edit?.acceptsAmex !== undefined ? edit.acceptsAmex : Boolean(store.acceptsAmex);
       const categories = edit?.categories !== undefined ? edit.categories : (store.categories || ['department']);
       const alias = edit?.alias !== undefined ? edit.alias : (store.alias || '');
       const aliasesText = edit?.aliasesText !== undefined ? edit.aliasesText : (store.aliases || []).join(', ');
@@ -401,6 +403,7 @@ export default function AdminPage() {
           customLogoUrl: customLogoUrl.trim() || null,
           comment: comment.trim() || null,
           isHidden,
+          acceptsAmex,
           categories,
           alias: alias.trim() || null,
           aliases,
@@ -446,6 +449,7 @@ export default function AdminPage() {
       'Presentkort',
       'Zupergift',
       'Partnerbutik',
+      'Tar Amex (partner)',
       'Status',
       'Partner poäng/100 kr',
       'Presentkort poäng/100 kr',
@@ -462,6 +466,7 @@ export default function AdminPage() {
       const customLogo = (edit?.customLogoUrl !== undefined ? edit.customLogoUrl : store.customLogoUrl) || '';
       const comment = (edit?.comment !== undefined ? edit.comment : store.comment) || '';
       const isHidden = edit?.isHidden !== undefined ? edit.isHidden : Boolean(store.isHidden);
+      const acceptsAmex = edit?.acceptsAmex !== undefined ? edit.acceptsAmex : Boolean(store.acceptsAmex);
       const categories = (edit?.categories !== undefined ? edit.categories : store.categories) || [];
       const alias = (edit?.alias !== undefined ? edit.alias : (store.alias || '')) || '';
 
@@ -469,6 +474,7 @@ export default function AdminPage() {
       const isPresentkort = store.hasSasGiftCard ? 'Ja' : 'Nej';
       const isZupergift = store.zupergiftSupported ? 'Ja' : 'Nej';
       const isPartner = store.hasPartnerLink ? 'Ja' : 'Nej';
+      const isAmex = acceptsAmex ? 'Ja' : 'Nej';
       const partnerBonus = store.partnerRule?.bonusPer100Kr ?? '';
       const sasBonus = store.sasGiftCardBonusPer100Kr ?? '';
 
@@ -483,6 +489,7 @@ export default function AdminPage() {
         escapeCsv(isPresentkort),
         escapeCsv(isZupergift),
         escapeCsv(isPartner),
+        escapeCsv(isAmex),
         escapeCsv(status),
         escapeCsv(partnerBonus),
         escapeCsv(sasBonus),
@@ -810,6 +817,7 @@ export default function AdminPage() {
           oneTimeTerms: store.partnerRule?.oneTimeTerms || undefined,
           isCampaign: store.partnerRule?.isCampaign ?? false,
           zupergiftSupported: store.zupergiftSupported,
+          acceptsAmex: Boolean(store.acceptsAmex),
         }),
       });
       const data = await res.json();
@@ -930,6 +938,8 @@ export default function AdminPage() {
       if (storeFilter === 'partner' && !store.partnerRule?.hasPartnerLink) return false;
       if (storeFilter === 'campaign' && !isCampaignActive(store.partnerRule?.isCampaign, store.partnerRule?.campaignValidUntil)) return false;
       if (storeFilter === 'zupergift' && !store.zupergiftSupported) return false;
+      if (storeFilter === 'amex_yes' && !store.acceptsAmex) return false;
+      if (storeFilter === 'amex_no' && store.acceptsAmex) return false;
       if (storeFilter === 'missing_partner' && !store.isMissingFromPartner) return false;
       if (storeFilter === 'fixed') {
         const isFixed =
@@ -1019,6 +1029,8 @@ export default function AdminPage() {
       partner: active.filter((s) => s.hasPartnerLink).length,
       zupergift: active.filter((s) => s.zupergiftSupported).length,
       sas: active.filter((s) => s.hasSasGiftCard).length,
+      amexYes: active.filter((s) => Boolean(s.acceptsAmex)).length,
+      amexNo: active.filter((s) => !s.acceptsAmex).length,
       missingSource: active.filter((s) => s.isMissingFromSource || s.isMissingFromPartner).length,
       newSynced: nonExcluded.filter(
         (s) =>
@@ -1090,6 +1102,8 @@ export default function AdminPage() {
       if (allStoresFilter === 'partner' && !item.hasPartnerLink) return false;
       if (allStoresFilter === 'zupergift' && !item.zupergiftSupported) return false;
       if (allStoresFilter === 'sas' && !item.hasSasGiftCard) return false;
+      if (allStoresFilter === 'amex_yes' && !item.acceptsAmex) return false;
+      if (allStoresFilter === 'amex_no' && item.acceptsAmex) return false;
       if (allStoresFilter === 'missing_source' && !item.isMissingFromSource && !item.isMissingFromPartner) return false;
       if (
         allStoresFilter === 'new_synced' &&
@@ -1933,6 +1947,28 @@ export default function AdminPage() {
                   </button>
                   <button
                     type="button"
+                    onClick={() => setAllStoresFilter('amex_yes')}
+                    className={`px-3 py-1.5 rounded-lg font-bold transition-colors ${
+                      allStoresFilter === 'amex_yes'
+                        ? 'bg-sky-700 text-white'
+                        : 'bg-sky-50 text-sky-800 hover:bg-sky-100 border border-sky-200'
+                    }`}
+                  >
+                    💳 Tar Amex ({storeCounts.amexYes})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAllStoresFilter('amex_no')}
+                    className={`px-3 py-1.5 rounded-lg font-bold transition-colors ${
+                      allStoresFilter === 'amex_no'
+                        ? 'bg-slate-700 text-white'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    Ej Amex ({storeCounts.amexNo})
+                  </button>
+                  <button
+                    type="button"
                     onClick={() => setAllStoresFilter('has_comment')}
                     className={`px-3 py-1.5 rounded-lg font-bold transition-colors ${
                       allStoresFilter === 'has_comment'
@@ -1982,6 +2018,7 @@ export default function AdminPage() {
                     const customLogoVal = edit?.customLogoUrl !== undefined ? edit.customLogoUrl : (item.customLogoUrl || '');
                     const commentVal = edit?.comment !== undefined ? edit.comment : (item.comment || '');
                     const isHiddenVal = edit?.isHidden !== undefined ? edit.isHidden : Boolean(item.isHidden);
+                    const acceptsAmexVal = edit?.acceptsAmex !== undefined ? edit.acceptsAmex : Boolean(item.acceptsAmex);
                     const categoriesVal = edit?.categories !== undefined ? edit.categories : (item.categories || ['department']);
                     const aliasVal = edit?.alias !== undefined ? edit.alias : (item.alias || '');
                     const aliasesTextVal = edit?.aliasesText !== undefined ? edit.aliasesText : (item.aliases || []).join(', ');
@@ -1989,13 +2026,14 @@ export default function AdminPage() {
                     const isSaving = Boolean(storeMetadataSaving[item.id]);
                     const previewLogoUrl = customLogoVal.trim() || item.logoUrl;
 
-                    const updateMetadataEdit = (patch: Partial<{ customLogoUrl: string; comment: string; isHidden: boolean; categories: string[]; alias: string; aliasesText: string }>) => {
+                    const updateMetadataEdit = (patch: Partial<{ customLogoUrl: string; comment: string; isHidden: boolean; acceptsAmex: boolean; categories: string[]; alias: string; aliasesText: string }>) => {
                       setStoreMetadataEdits((prev) => ({
                         ...prev,
                         [item.id]: {
                           customLogoUrl: edit?.customLogoUrl !== undefined ? edit.customLogoUrl : (item.customLogoUrl || ''),
                           comment: edit?.comment !== undefined ? edit.comment : (item.comment || ''),
                           isHidden: edit?.isHidden !== undefined ? edit.isHidden : Boolean(item.isHidden),
+                          acceptsAmex: edit?.acceptsAmex !== undefined ? edit.acceptsAmex : Boolean(item.acceptsAmex),
                           categories: edit?.categories !== undefined ? edit.categories : (item.categories || ['department']),
                           alias: edit?.alias !== undefined ? edit.alias : (item.alias || ''),
                           aliasesText: edit?.aliasesText !== undefined ? edit.aliasesText : (item.aliases || []).join(', '),
@@ -2135,6 +2173,15 @@ export default function AdminPage() {
                                 {item.hasSasGiftCard && (
                                   <span className="px-2 py-0.5 rounded-md bg-indigo-100 text-indigo-800 font-semibold text-[10px]">
                                     SAS Presentkort {item.sasGiftCardBonusPer100Kr ? `(${item.sasGiftCardBonusPer100Kr} p/100 kr)` : ''}
+                                  </span>
+                                )}
+                                {acceptsAmexVal ? (
+                                  <span className="px-2 py-0.5 rounded-md bg-sky-100 text-sky-900 font-bold text-[10px] border border-sky-200">
+                                    💳 Tar Amex
+                                  </span>
+                                ) : (
+                                  <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 font-semibold text-[10px]">
+                                    Ej Amex (partner)
                                   </span>
                                 )}
                               </div>
@@ -2283,23 +2330,40 @@ export default function AdminPage() {
                               </p>
                             </div>
 
-                            {/* Dölj butiken i Poängpiloten */}
-                            <div className="md:col-span-2 pt-2 border-t border-slate-100 flex items-center justify-between">
-                              <label className={`inline-flex items-center gap-2 cursor-pointer select-none text-xs ${item.isExcluded ? 'opacity-50 cursor-not-allowed' : ''}`}>
-                                <input
-                                  type="checkbox"
-                                  disabled={item.isExcluded}
-                                  checked={isHiddenVal}
-                                  onChange={(e) => updateMetadataEdit({ isHidden: e.target.checked })}
-                                  className="w-4 h-4 rounded border-slate-300 text-amber-600 focus:ring-amber-500 cursor-pointer disabled:cursor-not-allowed"
-                                />
-                                <span className="font-semibold text-slate-700 flex items-center gap-1.5">
-                                  <EyeOff className="w-3.5 h-3.5 text-amber-600" />
-                                  Dölj butiken i Poängpiloten
-                                </span>
-                              </label>
+                            {/* Amex-stöd & Dölj butiken i Poängpiloten */}
+                            <div className="md:col-span-2 pt-2 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3">
+                              <div className="flex flex-wrap items-center gap-5">
+                                <label className={`inline-flex items-center gap-2 cursor-pointer select-none text-xs ${item.isExcluded ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                                  <input
+                                    type="checkbox"
+                                    disabled={item.isExcluded}
+                                    checked={acceptsAmexVal}
+                                    onChange={(e) => updateMetadataEdit({ acceptsAmex: e.target.checked })}
+                                    className="w-4 h-4 rounded border-slate-300 text-sky-600 focus:ring-sky-500 cursor-pointer disabled:cursor-not-allowed"
+                                  />
+                                  <span className="font-semibold text-slate-700 flex items-center gap-1.5">
+                                    <span>💳 Tar Amex (direkt hos butiken)</span>
+                                  </span>
+                                </label>
+
+                                <label className={`inline-flex items-center gap-2 cursor-pointer select-none text-xs ${item.isExcluded ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                                  <input
+                                    type="checkbox"
+                                    disabled={item.isExcluded}
+                                    checked={isHiddenVal}
+                                    onChange={(e) => updateMetadataEdit({ isHidden: e.target.checked })}
+                                    className="w-4 h-4 rounded border-slate-300 text-amber-600 focus:ring-amber-500 cursor-pointer disabled:cursor-not-allowed"
+                                  />
+                                  <span className="font-semibold text-slate-700 flex items-center gap-1.5">
+                                    <EyeOff className="w-3.5 h-3.5 text-amber-600" />
+                                    Dölj butiken i Poängpiloten
+                                  </span>
+                                </label>
+                              </div>
                               <span className="text-[11px] text-slate-400 hidden sm:inline">
-                                {isHiddenVal ? 'Butiken visas inte för vanliga besökare' : 'Butiken är synlig på webbplatsen'}
+                                {acceptsAmexVal
+                                  ? 'Partnerköp ger Amex-kortpoäng (presentkort & Zupergift tar alltid Amex)'
+                                  : 'Partnerköp ger 0 p på Amex (presentkort & Zupergift tar alltid Amex)'}
                               </span>
                             </div>
                           </div>
@@ -3475,6 +3539,28 @@ export default function AdminPage() {
                 </button>
                 <button
                   type="button"
+                  onClick={() => setStoreFilter('amex_yes')}
+                  className={`px-3 py-1.5 rounded-lg font-bold transition-colors ${
+                    storeFilter === 'amex_yes'
+                      ? 'bg-sky-700 text-white'
+                      : 'bg-sky-50 text-sky-800 hover:bg-sky-100 border border-sky-200'
+                  }`}
+                >
+                  💳 Tar Amex ({dbData?.stores.filter((s) => !s.isExcluded && s.acceptsAmex).length || 0})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setStoreFilter('amex_no')}
+                  className={`px-3 py-1.5 rounded-lg font-bold transition-colors ${
+                    storeFilter === 'amex_no'
+                      ? 'bg-slate-700 text-white'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+                >
+                  Ej Amex ({dbData?.stores.filter((s) => !s.isExcluded && !s.acceptsAmex).length || 0})
+                </button>
+                <button
+                  type="button"
                   onClick={() => setStoreFilter('missing_partner')}
                   className={`px-3 py-1.5 rounded-lg font-bold transition-colors flex items-center gap-1 ${
                     storeFilter === 'missing_partner'
@@ -3552,6 +3638,15 @@ export default function AdminPage() {
                             SAS Partner
                           </span>
                         )}
+                        {store.acceptsAmex ? (
+                          <span className="px-2 py-0.5 rounded-md bg-sky-100 text-sky-900 font-bold text-[10px] border border-sky-200">
+                            💳 Tar Amex
+                          </span>
+                        ) : (
+                          <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-500 font-semibold text-[10px]">
+                            Ej Amex
+                          </span>
+                        )}
                         {(store.partnerRule?.rewardType === 'fixed' || store.partnerRule?.isOneTimeOffer || (store.partnerRule?.fixedBonusPoints ?? 0) > 0) ? (
                           <span className="px-2 py-0.5 rounded-md bg-purple-100 text-purple-800 font-bold text-[10px] flex items-center gap-1">
                             <span>⚡ Engångsbonus</span>
@@ -3578,7 +3673,19 @@ export default function AdminPage() {
                           title="Alternativa söknamn (kommaseparerat)"
                         />
                       </div>
-                      <div className="flex items-center gap-2 pt-1">
+                      <div className="flex items-center gap-3 pt-1 flex-wrap">
+                        <label className="text-xs flex items-center gap-1 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={Boolean(store.acceptsAmex)}
+                            onChange={(e) => {
+                              store.acceptsAmex = e.target.checked;
+                              setDbData((prev) => (prev ? { ...prev } : null));
+                            }}
+                            className="w-4 h-4 rounded text-sky-600"
+                          />
+                          <span className="font-medium text-slate-700">💳 Tar Amex</span>
+                        </label>
                         <label className="text-xs flex items-center gap-1 cursor-pointer">
                           <input
                             type="checkbox"

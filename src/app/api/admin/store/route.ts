@@ -16,6 +16,7 @@ export async function POST(request: Request) {
       partnerTierPer100Kr,
       isCampaign,
       zupergiftSupported,
+      acceptsAmex,
       categories,
       category,
       alias,
@@ -76,6 +77,18 @@ export async function POST(request: Request) {
     if (typeof zupergiftSupported === 'boolean') {
       store.zupergiftSupported = zupergiftSupported;
     }
+    if (typeof acceptsAmex === 'boolean') {
+      store.acceptsAmex = acceptsAmex;
+      if (!db.storeCustomMetadata) {
+        db.storeCustomMetadata = {};
+      }
+      db.storeCustomMetadata[store.id] = {
+        ...(db.storeCustomMetadata[store.id] || {}),
+        acceptsAmex,
+        updatedAt: new Date().toISOString(),
+        updatedBy: 'Admin',
+      };
+    }
 
     // Sync category with Zupergift store if matched
     const zgMatch = (db.zupergiftStores || []).find(
@@ -89,7 +102,7 @@ export async function POST(request: Request) {
       id: `audit-${Date.now()}`,
       timestamp: new Date().toISOString(),
       action: 'UPDATE_STORE_RULE',
-      details: `Uppdaterade regler för ${store.name}: Kategori [${store.categories.join(', ')}], ${store.partnerRule.bonusPer100Kr}p/100 kr, ${store.partnerRule.tierPer100Kr} nivå/100 kr, Zupergift: ${store.zupergiftSupported ? 'Ja' : 'Nej'}.`,
+      details: `Uppdaterade regler för ${store.name}: Kategori [${store.categories.join(', ')}], ${store.partnerRule.bonusPer100Kr}p/100 kr, ${store.partnerRule.tierPer100Kr} nivå/100 kr, Zupergift: ${store.zupergiftSupported ? 'Ja' : 'Nej'}, Amex: ${store.acceptsAmex ? 'Ja' : 'Nej'}.`,
       user: 'Admin',
     });
 
