@@ -2214,8 +2214,8 @@ export default function AdminPage() {
                                   </span>
                                 )}
                                 {excludesVatVal && (
-                                  <span className="px-2 py-0.5 rounded-md bg-amber-100 text-amber-900 font-bold text-[10px] border border-amber-200" title="Butiken ger ej poäng på moms – partnerpoäng beräknas på 80 % av köpbeloppet">
-                                    Exkl. moms (80%)
+                                  <span className="px-2 py-0.5 rounded-md bg-amber-100 text-amber-900 font-bold text-[10px] border border-amber-200" title="Butiken ger ej poäng på moms – partnerpoäng beräknas exklusive moms">
+                                    Exkl. moms
                                   </span>
                                 )}
                               </div>
@@ -3716,8 +3716,8 @@ export default function AdminPage() {
                           </span>
                         )}
                         {store.excludesVat && (
-                          <span className="px-2 py-0.5 rounded-md bg-amber-100 text-amber-900 font-bold text-[10px] border border-amber-200" title="Butiken ger ej poäng på moms – partnerpoäng beräknas på 80 % av köpbeloppet">
-                            Exkl. moms (80%)
+                          <span className="px-2 py-0.5 rounded-md bg-amber-100 text-amber-900 font-bold text-[10px] border border-amber-200" title="Butiken ger ej poäng på moms – partnerpoäng beräknas exklusive moms">
+                            Exkl. moms
                           </span>
                         )}
                         {(store.partnerRule?.rewardType === 'fixed' || store.partnerRule?.isOneTimeOffer || (store.partnerRule?.fixedBonusPoints ?? 0) > 0) ? (

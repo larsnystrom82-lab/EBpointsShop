@@ -234,9 +234,9 @@ export const AlternativeCard: React.FC<AlternativeCardProps> = ({
               {route.routeType === 'direct_partner' && route.excludesVat && (
                 <span
                   className="text-[11px] font-semibold text-amber-800 bg-amber-50 border border-amber-200/80 px-2 py-0.5 rounded-md"
-                  title={`Butiken ger ej poäng på moms – partnerpoäng beräknas på 80 % av köpbeloppet (${formatKr(route.qualifyingAmountOre || Math.round(route.purchaseAmountOre * 0.8))} kr)`}
+                  title={`Butiken ger ej poäng på moms – partnerpoäng beräknas exklusive moms (${formatKr(route.qualifyingAmountOre || Math.round(route.purchaseAmountOre * 0.8))} kr)`}
                 >
-                  Exkl. moms (80%)
+                  Exkl. moms
                 </span>
               )}
               {route.comment && (
