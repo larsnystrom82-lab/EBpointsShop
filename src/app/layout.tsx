@@ -51,6 +51,12 @@ export default function RootLayout({
     <html lang="sv">
       <body className="min-h-screen flex flex-col bg-slate-50 text-slate-900 antialiased selection:bg-blue-100 selection:text-blue-900">
         <ClientProviders>{children}</ClientProviders>
+        {/* Cloudflare Web Analytics */}
+        <script
+          type="module"
+          src="https://static.cloudflareinsights.com/beacon.min.js"
+          data-cf-beacon='{"token": "5eec97bcb13b49a5bca363edc6d078bd"}'
+        />
       </body>
     </html>
   );
