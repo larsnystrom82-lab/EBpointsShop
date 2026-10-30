@@ -817,6 +817,177 @@ describe('EuroBonus Beräkningsmotor – Acceptanstester A03–A16', () => {
     expect(verifiedPartnerRoute.cardOutcomes['amex_elite'].cardBonusPoints).toBe(200);
     expect(verifiedPartnerRoute.cardOutcomes['amex_elite'].totalBonusPoints).toBe(400);
   });
+
+  it('Matcha köpsumma: utesluter presentkort vars minsta pris överstiger köpbeloppet (t.ex. 295 kr mot 300 kr eller 100 kr mot 4495 kr)', () => {
+    const electroluxStore: Store = {
+      id: 'presentkort-electrolux-home',
+      name: 'Electrolux Home',
+      slug: 'presentkort-electrolux-home',
+      categories: ['kitchen'],
+      isActive: true,
+    };
+
+    const sasItem300 = {
+      id: 'presentkort-electrolux-home',
+      name: 'Electrolux Home',
+      slug: 'presentkort-electrolux-home',
+      bonusPer100Kr: 20,
+      minPurchaseAmount: 300,
+      denominationsKr: [300, 400, 500, 1000],
+      isCampaign: false,
+      campaignValidUntil: null,
+      isHidden: false,
+      isExcluded: false,
+      note: '',
+      syncedAt: '2026-10-30',
+      updatedAt: null,
+    };
+
+    // Vid 295 kr och matchPurchaseAmount: true ska presentkortet (min 300 kr) uteslutas
+    const routes295Match = generateCandidateRoutes({
+      store: electroluxStore,
+      purchaseAmountKr: 295,
+      matchPurchaseAmount: true,
+      sasGiftCardItem: sasItem300,
+    });
+    const ranked295Match = processAndRankRoutes(routes295Match, {
+      ...defaultFilter,
+      purchaseAmountKr: 295,
+      matchPurchaseAmount: true,
+    });
+    expect(ranked295Match).toHaveLength(0);
+
+    // Om matchPurchaseAmount är false visas presentkortet och beräknas på minsta valör (300 kr)
+    const routes295Unmatched = generateCandidateRoutes({
+      store: electroluxStore,
+      purchaseAmountKr: 295,
+      matchPurchaseAmount: false,
+      sasGiftCardItem: sasItem300,
+    });
+    const ranked295Unmatched = processAndRankRoutes(routes295Unmatched, {
+      ...defaultFilter,
+      purchaseAmountKr: 295,
+      matchPurchaseAmount: false,
+    });
+    expect(ranked295Unmatched).toHaveLength(1);
+    expect(ranked295Unmatched[0].exceedsPurchaseAmount).toBe(true);
+    expect(ranked295Unmatched[0].giftCardValueOre).toBe(30000); // 300 kr
+    expect(ranked295Unmatched[0].extraOutlayOre).toBe(500); // 5 kr extra utlägg
+    expect(ranked295Unmatched[0].baseBonusPoints).toBe(60); // 300 kr * 20 p / 100 kr
+
+    // Vid 300 kr och matchPurchaseAmount: true ska presentkortet (min 300 kr) visas
+    const routes300Match = generateCandidateRoutes({
+      store: electroluxStore,
+      purchaseAmountKr: 300,
+      matchPurchaseAmount: true,
+      sasGiftCardItem: sasItem300,
+    });
+    const ranked300Match = processAndRankRoutes(routes300Match, {
+      ...defaultFilter,
+      purchaseAmountKr: 300,
+      matchPurchaseAmount: true,
+    });
+    expect(ranked300Match).toHaveLength(1);
+    expect(ranked300Match[0].giftCardValueOre).toBe(30000);
+    expect(ranked300Match[0].baseBonusPoints).toBe(60);
+  });
+
+  it('Matcha köpsumma: kombinerar valörer upp till köpbeloppet utan att betala för mycket (t.ex. 900 kr med [250, 500, 1000] -> 750 kr presentkort + 150 kr i butik)', () => {
+    const store900: Store = {
+      id: 'sembo-hotell',
+      name: 'Sembo',
+      slug: 'sembo-hotell',
+      categories: ['travel'],
+      isActive: true,
+      acceptsAmex: true,
+    };
+
+    const sasItemDenoms = {
+      id: 'sembo-hotell',
+      name: 'Sembo',
+      slug: 'sembo-hotell',
+      bonusPer100Kr: 20,
+      minPurchaseAmount: 250,
+      denominationsKr: [250, 500, 1000],
+      isCampaign: false,
+      campaignValidUntil: null,
+      isHidden: false,
+      isExcluded: false,
+      note: '',
+      syncedAt: '2026-10-30',
+      updatedAt: null,
+    };
+
+    const routes = generateCandidateRoutes({
+      store: store900,
+      purchaseAmountKr: 900,
+      matchPurchaseAmount: true,
+      sasGiftCardItem: sasItemDenoms,
+    });
+
+    expect(routes).toHaveLength(1);
+    const gcRoute = routes[0];
+    // Max kombination <= 900 kr med [250, 500, 1000] är 750 kr (500 + 250)
+    expect(gcRoute.giftCardValueOre).toBe(75000); // 750 kr
+    expect(gcRoute.directStorePayOre).toBe(15000); // 150 kr i butik
+    expect(gcRoute.extraOutlayOre).toBe(0);
+    // Presentkortspoäng beräknas på 750 kr (750 * 20 / 100 = 150 p)
+    expect(gcRoute.baseBonusPoints).toBe(150);
+    // Kortpoäng beräknas på hela 900 kr när butiken tar kortet (900 * 20 / 100 = 180 p med Amex Elite)
+    expect(gcRoute.cardOutcomes['amex_elite'].cardBonusPoints).toBe(180);
+    expect(gcRoute.cardOutcomes['amex_elite'].totalBonusPoints).toBe(330);
+
+    // Om butiken EJ tar Amex i kassan (acceptsAmex: false) får man Amex-kortpoäng på presentkortsdelen (750 kr = 150 p)
+    // och Mastercard-kortpoäng på hela köpet (900 kr * 15 / 100 = 135 p)
+    const routesNoStoreAmex = generateCandidateRoutes({
+      store: { ...store900, acceptsAmex: false },
+      purchaseAmountKr: 900,
+      matchPurchaseAmount: true,
+      sasGiftCardItem: sasItemDenoms,
+    });
+    expect(routesNoStoreAmex[0].cardOutcomes['amex_elite'].cardBonusPoints).toBe(150); // 750 kr på SAS Shop
+    expect(routesNoStoreAmex[0].cardOutcomes['mc_premium'].cardBonusPoints).toBe(135); // 900 kr totalt
+  });
+
+  it('Matcha köpsumma gäller även Zupergift (minsta valör 50 kr och steg om 50 kr)', () => {
+    const zgStore: Store = {
+      id: 'cervera',
+      name: 'Cervera',
+      slug: 'cervera',
+      categories: ['kitchen'],
+      isActive: true,
+      zupergiftSupported: true,
+      acceptsAmex: true,
+    };
+
+    // Vid 30 kr (< 50 kr) utesluts Zupergift när matchPurchaseAmount är true
+    const routes30 = generateCandidateRoutes({
+      store: zgStore,
+      purchaseAmountKr: 30,
+      matchPurchaseAmount: true,
+      zupergiftRatePer100Kr: 30,
+    });
+    const ranked30 = processAndRankRoutes(routes30, {
+      ...defaultFilter,
+      purchaseAmountKr: 30,
+      matchPurchaseAmount: true,
+    });
+    expect(ranked30).toHaveLength(0);
+
+    // Vid 295 kr täcks 250 kr av Zupergift (50 kr-steg) och 45 kr betalas i butik
+    const routes295 = generateCandidateRoutes({
+      store: zgStore,
+      purchaseAmountKr: 295,
+      matchPurchaseAmount: true,
+      zupergiftRatePer100Kr: 30,
+    });
+    const zgRoute295 = routes295.find((r) => r.routeType === 'zupergift_chain')!;
+    expect(zgRoute295.giftCardValueOre).toBe(25000); // 250 kr
+    expect(zgRoute295.directStorePayOre).toBe(4500); // 45 kr
+    expect(zgRoute295.baseBonusPoints).toBe(75); // 250 kr * 30 / 100 = 75 p
+    expect(zgRoute295.cardOutcomes['amex_elite'].cardBonusPoints).toBe(59); // floor(295 * 20 / 100) = 59 p
+  });
 });
+
 
 

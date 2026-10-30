@@ -168,8 +168,11 @@ export interface RouteCalculationResult {
   purchaseAmountOre: number;
   totalOutlayOre: number;
   giftCardValueOre: number;
+  directStorePayOre?: number;
   extraOutlayOre: number;
   remainingBalanceOre: number;
+  exceedsPurchaseAmount?: boolean;
+  minPurchaseAmountKr?: number;
 
   breakdown: RouteBreakdownItem[];
   baseBonusPoints: number;
@@ -217,6 +220,7 @@ export interface FilterState {
   allowPartnerStores?: boolean;
   allowGiftCards: boolean;
   allowZupergift: boolean;
+  matchPurchaseAmount?: boolean;
   tierPointsImportant: boolean;
   onlyCampaigns?: boolean;
   oneTimeBonusFilter?: OneTimeBonusFilter;

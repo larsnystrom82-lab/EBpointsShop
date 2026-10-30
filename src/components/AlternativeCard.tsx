@@ -238,6 +238,22 @@ export const AlternativeCard: React.FC<AlternativeCardProps> = ({
                   <span>💬 Notering</span>
                 </span>
               )}
+              {route.exceedsPurchaseAmount && route.giftCardValueOre > route.purchaseAmountOre && (
+                <span
+                  className="text-[11px] font-bold text-amber-800 bg-amber-50 border border-amber-200/80 px-2 py-0.5 rounded-md"
+                  title={`Presentkortet har ett lägsta pris på ${formatKr(route.giftCardValueOre)} kr (+${formatKr(route.extraOutlayOre)} kr över ditt köpbelopp)`}
+                >
+                  Minsta köp {formatKr(route.giftCardValueOre)} kr
+                </span>
+              )}
+              {!route.exceedsPurchaseAmount && route.giftCardValueOre > 0 && route.giftCardValueOre < route.purchaseAmountOre && (
+                <span
+                  className="text-[11px] font-semibold text-blue-800 bg-blue-50 border border-blue-200/80 px-2 py-0.5 rounded-md"
+                  title={`Presentkort för ${formatKr(route.giftCardValueOre)} kr kan kombineras utan att överstiga din köpsumma. Resterande ${formatKr(route.directStorePayOre || 0)} kr betalas direkt i butiken.`}
+                >
+                  Presentkort {formatKr(route.giftCardValueOre)} kr + {formatKr(route.directStorePayOre || 0)} kr i butik
+                </span>
+              )}
             </div>
 
             {/* Breadcrumb */}
@@ -262,6 +278,10 @@ export const AlternativeCard: React.FC<AlternativeCardProps> = ({
                 ? 'Fast engångsbonus'
                 : route.routeType === 'direct_partner'
                 ? 'Från partnerbutik'
+                : route.exceedsPurchaseAmount && route.giftCardValueOre > route.purchaseAmountOre
+                ? `Min. köp ${formatKr(route.giftCardValueOre)} kr`
+                : route.giftCardValueOre > 0 && route.giftCardValueOre < route.purchaseAmountOre
+                ? `På ${formatKr(route.giftCardValueOre)} kr presentkort`
                 : 'Från presentkort'}
             </span>
           </div>
@@ -541,8 +561,14 @@ export const AlternativeCard: React.FC<AlternativeCardProps> = ({
               </span>
             </div>
             <div>
-              <span className="text-slate-400 block">Extra utlägg:</span>
-              <span className="font-semibold text-slate-800">{(route.extraOutlayOre / 100).toLocaleString('sv-SE')} kr</span>
+              <span className="text-slate-400 block">
+                {(route.directStorePayOre || 0) > 0 ? 'Betalas i butik:' : 'Extra utlägg:'}
+              </span>
+              <span className="font-semibold text-slate-800">
+                {(route.directStorePayOre || 0) > 0
+                  ? `${(route.directStorePayOre! / 100).toLocaleString('sv-SE')} kr`
+                  : `${(route.extraOutlayOre / 100).toLocaleString('sv-SE')} kr`}
+              </span>
             </div>
             <div>
               <span className="text-slate-400 block">Kvarvarande saldo:</span>

@@ -47,6 +47,7 @@ export default function Home() {
   const [allowPartnerStores, setAllowPartnerStores] = useState<boolean>(true);
   const [allowGiftCards, setAllowGiftCards] = useState<boolean>(true);
   const [allowZupergift, setAllowZupergift] = useState<boolean>(true);
+  const [matchPurchaseAmount, setMatchPurchaseAmount] = useState<boolean>(true);
   const [excludeComplex, setExcludeComplex] = useState<boolean>(false);
   const [tierPointsImportant, setTierPointsImportant] = useState<boolean>(false);
   const [onlyCampaigns, setOnlyCampaigns] = useState<boolean>(false);
@@ -67,6 +68,7 @@ export default function Home() {
         if (typeof parsed.allowPartnerStores === 'boolean') setAllowPartnerStores(parsed.allowPartnerStores);
         if (typeof parsed.allowGiftCards === 'boolean') setAllowGiftCards(parsed.allowGiftCards);
         if (typeof parsed.allowZupergift === 'boolean') setAllowZupergift(parsed.allowZupergift);
+        if (typeof parsed.matchPurchaseAmount === 'boolean') setMatchPurchaseAmount(parsed.matchPurchaseAmount);
         if (typeof parsed.tierPointsImportant === 'boolean') setTierPointsImportant(parsed.tierPointsImportant);
         if (typeof parsed.onlyCampaigns === 'boolean') setOnlyCampaigns(parsed.onlyCampaigns);
         if (parsed.oneTimeBonusFilter && ['all', 'only', 'exclude'].includes(parsed.oneTimeBonusFilter)) {
@@ -157,6 +159,7 @@ export default function Home() {
         allowPartnerStores,
         allowGiftCards,
         allowZupergift,
+        matchPurchaseAmount,
         excludeComplex,
         tierPointsImportant,
         onlyCampaigns,
@@ -299,6 +302,7 @@ export default function Home() {
     setAllowPartnerStores(true);
     setAllowGiftCards(true);
     setAllowZupergift(true);
+    setMatchPurchaseAmount(true);
     setTierPointsImportant(false);
     setOnlyCampaigns(false);
     setOneTimeBonusFilter('all');
@@ -314,6 +318,7 @@ export default function Home() {
       allowPartnerStores: true,
       allowGiftCards: true,
       allowZupergift: true,
+      matchPurchaseAmount: true,
       tierPointsImportant: false,
       onlyCampaigns: false,
       oneTimeBonusFilter: 'all',
@@ -333,6 +338,7 @@ export default function Home() {
       !allowPartnerStores ||
       !allowGiftCards ||
       !allowZupergift ||
+      !matchPurchaseAmount ||
       tierPointsImportant ||
       onlyCampaigns ||
       oneTimeBonusFilter !== 'all' ||
@@ -348,6 +354,7 @@ export default function Home() {
     allowPartnerStores,
     allowGiftCards,
     allowZupergift,
+    matchPurchaseAmount,
     tierPointsImportant,
     onlyCampaigns,
     oneTimeBonusFilter,
@@ -438,6 +445,7 @@ export default function Home() {
         allowPartnerStores,
         allowGiftCards,
         allowZupergift,
+        matchPurchaseAmount,
         zupergiftRatePer100Kr: zupergiftRate,
         zupergiftIsCampaign: zupergiftIsCampaign,
         sasGiftCardItem,
@@ -453,6 +461,7 @@ export default function Home() {
       allowPartnerStores,
       allowGiftCards,
       allowZupergift,
+      matchPurchaseAmount,
       tierPointsImportant,
       onlyCampaigns,
       oneTimeBonusFilter,
@@ -469,6 +478,7 @@ export default function Home() {
     allowPartnerStores,
     allowGiftCards,
     allowZupergift,
+    matchPurchaseAmount,
     excludeComplex,
     tierPointsImportant,
     onlyCampaigns,
@@ -562,6 +572,11 @@ export default function Home() {
           onToggleZupergift={(val) => {
             setAllowZupergift(val);
             savePreferences({ allowZupergift: val });
+          }}
+          matchPurchaseAmount={matchPurchaseAmount}
+          onToggleMatchPurchaseAmount={(val) => {
+            setMatchPurchaseAmount(val);
+            savePreferences({ matchPurchaseAmount: val });
           }}
           tierPointsImportant={tierPointsImportant}
           onToggleTierPoints={(val) => {

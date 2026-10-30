@@ -59,6 +59,165 @@ export function calculateCardPoints(
   return { bonusPoints: bonus, tierPoints: tier };
 }
 
+export const ZUPERGIFT_DENOMINATIONS_KR = [
+  50, 100, 150, 200, 250, 300, 350, 400, 450, 500, 600, 700, 800, 900, 1000, 5000, 10000,
+];
+export const ZUPERGIFT_MIN_PURCHASE_KR = 50;
+
+function gcdTwo(a: number, b: number): number {
+  let x = Math.abs(Math.round(a));
+  let y = Math.abs(Math.round(b));
+  while (y !== 0) {
+    const t = y;
+    y = x % y;
+    x = t;
+  }
+  return x || 1;
+}
+
+export interface GiftCardCoverageResult {
+  /** True if at least one valid gift card combination <= purchaseAmountKr and >= effectiveMinKr exists */
+  canMatchAmount: boolean;
+  /** Effective minimum purchase required for this gift card in SEK */
+  effectiveMinKr: number;
+  /** Maximum gift card value in SEK that does not exceed purchaseAmountKr (0 if canMatchAmount is false) */
+  matchedValueKr: number;
+  /** Value in SEK to use when matchPurchaseAmount is false and canMatchAmount is false (equals effectiveMinKr) */
+  fallbackMinValueKr: number;
+  /** Breakdown of denominations used for matchedValueKr (sorted largest first) */
+  combo: { denomKr: number; count: number }[];
+}
+
+/**
+ * Computes the largest sum of available gift card denominations that is <= purchaseAmountKr,
+ * using the fewest number of cards for that sum.
+ */
+export function computeGiftCardCoverage(
+  purchaseAmountKr: number,
+  denominationsKr?: number[] | null,
+  minPurchaseKr?: number | null
+): GiftCardCoverageResult {
+  const cleanDenoms = Array.from(
+    new Set((denominationsKr || []).map((d) => Math.round(d)).filter((d) => d > 0))
+  ).sort((a, b) => a - b);
+
+  const minDenom = cleanDenoms.length > 0 ? cleanDenoms[0] : 0;
+  const rawMin = minPurchaseKr && minPurchaseKr > 0 ? Math.round(minPurchaseKr) : 0;
+  const effectiveMinKr = Math.max(rawMin, minDenom);
+
+  if (cleanDenoms.length === 0) {
+    if (effectiveMinKr > 0 && purchaseAmountKr < effectiveMinKr) {
+      return {
+        canMatchAmount: false,
+        effectiveMinKr,
+        matchedValueKr: 0,
+        fallbackMinValueKr: effectiveMinKr,
+        combo: [],
+      };
+    }
+    return {
+      canMatchAmount: true,
+      effectiveMinKr,
+      matchedValueKr: purchaseAmountKr,
+      fallbackMinValueKr: purchaseAmountKr,
+      combo: [],
+    };
+  }
+
+  if (purchaseAmountKr < effectiveMinKr) {
+    return {
+      canMatchAmount: false,
+      effectiveMinKr,
+      matchedValueKr: 0,
+      fallbackMinValueKr: effectiveMinKr,
+      combo: [{ denomKr: minDenom || effectiveMinKr, count: 1 }],
+    };
+  }
+
+  const maxTargetKr = Math.floor(purchaseAmountKr);
+  const g = cleanDenoms.reduce((acc, d) => gcdTwo(acc, d), cleanDenoms[0]);
+  const scaledDenoms = cleanDenoms.map((d) => d / g);
+  const scaledTarget = Math.floor(maxTargetKr / g);
+
+  if (scaledTarget <= 0) {
+    return {
+      canMatchAmount: false,
+      effectiveMinKr,
+      matchedValueKr: 0,
+      fallbackMinValueKr: effectiveMinKr,
+      combo: [{ denomKr: minDenom, count: 1 }],
+    };
+  }
+
+  const largestDenom = cleanDenoms[cleanDenoms.length - 1];
+  const largestScaled = scaledDenoms[scaledDenoms.length - 1];
+  const bulkCount =
+    scaledTarget > 20000
+      ? Math.max(0, Math.floor((scaledTarget - 10000) / largestScaled))
+      : 0;
+  const dpTarget = scaledTarget - bulkCount * largestScaled;
+
+  const minCards = new Int32Array(dpTarget + 1).fill(-1);
+  const chosenDenom = new Int32Array(dpTarget + 1).fill(0);
+  minCards[0] = 0;
+
+  for (let v = 1; v <= dpTarget; v++) {
+    for (let i = scaledDenoms.length - 1; i >= 0; i--) {
+      const sd = scaledDenoms[i];
+      if (v >= sd && minCards[v - sd] !== -1) {
+        const candidate = minCards[v - sd] + 1;
+        if (minCards[v] === -1 || candidate < minCards[v]) {
+          minCards[v] = candidate;
+          chosenDenom[v] = cleanDenoms[i];
+        }
+      }
+    }
+  }
+
+  let bestV = 0;
+  for (let v = dpTarget; v >= 1; v--) {
+    if (minCards[v] !== -1) {
+      bestV = v;
+      break;
+    }
+  }
+
+  const matchedValueKr = (bestV + bulkCount * largestScaled) * g;
+  if (matchedValueKr <= 0 || matchedValueKr < effectiveMinKr) {
+    return {
+      canMatchAmount: false,
+      effectiveMinKr,
+      matchedValueKr: 0,
+      fallbackMinValueKr: effectiveMinKr,
+      combo: [{ denomKr: minDenom, count: 1 }],
+    };
+  }
+
+  const counts = new Map<number, number>();
+  if (bulkCount > 0) {
+    counts.set(largestDenom, bulkCount);
+  }
+  let curr = bestV;
+  while (curr > 0) {
+    const d = chosenDenom[curr];
+    if (!d) break;
+    counts.set(d, (counts.get(d) || 0) + 1);
+    curr -= d / g;
+  }
+
+  const combo = Array.from(counts.entries())
+    .map(([denomKr, count]) => ({ denomKr, count }))
+    .sort((a, b) => b.denomKr - a.denomKr);
+
+  return {
+    canMatchAmount: true,
+    effectiveMinKr,
+    matchedValueKr,
+    fallbackMinValueKr: matchedValueKr,
+    combo,
+  };
+}
+
 export interface RouteGenerationOptions {
   store: Store;
   purchaseAmountKr: number;
@@ -67,6 +226,7 @@ export interface RouteGenerationOptions {
   allowPartnerStores?: boolean;
   allowGiftCards?: boolean;
   allowZupergift?: boolean;
+  matchPurchaseAmount?: boolean;
   zupergiftRatePer100Kr?: number; // Configured by admin!
   zupergiftIsCampaign?: boolean;
   storePartnerBonusPer100Kr?: number;
@@ -88,6 +248,7 @@ export function generateCandidateRoutes(options: RouteGenerationOptions): RouteC
     allowPartnerStores = true,
     allowGiftCards = true,
     allowZupergift = true,
+    matchPurchaseAmount,
     zupergiftRatePer100Kr,
     zupergiftIsCampaign,
     storePartnerBonusPer100Kr,
@@ -105,14 +266,23 @@ export function generateCandidateRoutes(options: RouteGenerationOptions): RouteC
     baseTier: number,
     cardSpendOre: number,
     totalOutlayOre: number,
-    routeAcceptsAmex: boolean = true
+    routeAcceptsAmex: boolean = true,
+    amexSpendOreOverride?: number
   ) => {
     const cardOutcomes: Record<string, CardCalculationOutcome> = {};
     for (const card of availableCards) {
-      const cardAllowed = routeAcceptsAmex || card.network !== 'amex';
-      const { bonusPoints, tierPoints } = cardAllowed
-        ? calculateCardPoints(cardSpendOre, card)
-        : { bonusPoints: 0, tierPoints: 0 };
+      const effectiveSpendOre =
+        card.network === 'amex'
+          ? amexSpendOreOverride !== undefined
+            ? amexSpendOreOverride
+            : routeAcceptsAmex
+            ? cardSpendOre
+            : 0
+          : cardSpendOre;
+      const { bonusPoints, tierPoints } =
+        effectiveSpendOre > 0
+          ? calculateCardPoints(effectiveSpendOre, card)
+          : { bonusPoints: 0, tierPoints: 0 };
       const totalBonus = baseBonus + bonusPoints;
       const totalTier = baseTier + tierPoints;
       const pointsPerKronor = totalOutlayOre > 0 ? totalBonus / (totalOutlayOre / 100) : 0;
@@ -422,81 +592,118 @@ export function generateCandidateRoutes(options: RouteGenerationOptions): RouteC
   if (allowGiftCards && allowZupergift && isZuperSupported) {
     // Admin configured rate per 100 kr, fallback to standard 30p / 100 kr
     const ratePer100Kr = zupergiftRatePer100Kr ?? 30;
-    const baseBonusPoints = Math.floor((purchaseAmountOre * ratePer100Kr) / 10000);
+    const zgCoverage = computeGiftCardCoverage(
+      purchaseAmountKr,
+      ZUPERGIFT_DENOMINATIONS_KR,
+      ZUPERGIFT_MIN_PURCHASE_KR
+    );
+    const exceedsPurchaseAmount = !zgCoverage.canMatchAmount;
+    const zgCardValueKr = exceedsPurchaseAmount
+      ? zgCoverage.fallbackMinValueKr
+      : zgCoverage.matchedValueKr;
+    const giftCardValueOre = Math.round(zgCardValueKr * 100);
+    const directStorePayOre = exceedsPurchaseAmount
+      ? 0
+      : Math.max(0, purchaseAmountOre - giftCardValueOre);
 
+    const baseBonusPoints = Math.floor((giftCardValueOre * ratePer100Kr) / 10000);
     const baseTierPoints = 0;
-    const totalOutlayOre = purchaseAmountOre;
-    const extraOutlayOre = 0;
-    const remainingBalanceOre = 0;
+    const totalOutlayOre = exceedsPurchaseAmount ? giftCardValueOre : purchaseAmountOre;
+    const extraOutlayOre = Math.max(0, totalOutlayOre - purchaseAmountOre);
+    const remainingBalanceOre = Math.max(0, giftCardValueOre - purchaseAmountOre);
+
+    const storeAcceptsAmex = store.acceptsAmex !== undefined ? Boolean(store.acceptsAmex) : true;
+    const amexSpendOre = giftCardValueOre + (storeAcceptsAmex ? directStorePayOre : 0);
 
     const breakdown: RouteBreakdownItem[] = [
       {
         sourceName: 'SAS EuroBonus Shop (Zupergift)',
-        description: `Köp av Zupergift ger ${ratePer100Kr} Extrapoäng per 100 kr (administreras i portalen)`,
+        description: `Köp av Zupergift (${zgCardValueKr.toLocaleString('sv-SE')} kr) ger ${ratePer100Kr} Extrapoäng per 100 kr (administreras i portalen)`,
         bonusPoints: baseBonusPoints,
         tierPoints: 0,
-        qualifyingAmountOre: purchaseAmountOre,
+        qualifyingAmountOre: giftCardValueOre,
       },
       {
         sourceName: 'Zupergift → Butikskort',
         description: 'Växling från Zupergift till butikspresentkort (ger inga extra poäng)',
         bonusPoints: 0,
         tierPoints: 0,
-        qualifyingAmountOre: purchaseAmountOre,
+        qualifyingAmountOre: giftCardValueOre,
         note: 'Ingen ytterligare bonus vid inlösen enligt regel A14',
       },
     ];
 
-    const cardOutcomes = computeCardOutcomes(baseBonusPoints, baseTierPoints, totalOutlayOre, totalOutlayOre);
+    const cardOutcomes = computeCardOutcomes(
+      baseBonusPoints,
+      baseTierPoints,
+      totalOutlayOre,
+      totalOutlayOre,
+      true,
+      amexSpendOre
+    );
 
-      const zupergiftSlug = store.zupergiftSlug || store.slug || store.id;
-      const zupergiftItemUrl =
-        store.zupergiftUrl ||
-        (zupergiftSlug ? `https://zupergift.com/se/${zupergiftSlug}` : 'https://zupergift.com/se/alla-presentkort');
+    const zupergiftSlug = store.zupergiftSlug || store.slug || store.id;
+    const zupergiftItemUrl =
+      store.zupergiftUrl ||
+      (zupergiftSlug ? `https://zupergift.com/se/${zupergiftSlug}` : 'https://zupergift.com/se/alla-presentkort');
 
-      results.push({
-        id: `${store.id}-zupergift-chain`,
-        storeId: store.id,
-        storeName: store.name,
-        storeLogoUrl: store.logoUrl,
-        routeType: 'zupergift_chain',
-        routeTitle: 'Zupergift-kedja (SAS → Zupergift → Butik)',
-        routeSummary: `Köp Zupergift för ${purchaseAmountKr.toLocaleString('sv-SE')} kr och växla till ${store.name}-presentkort.`,
-        primaryCategory: store.categories?.[0] || 'department',
-        categories: store.categories || ['department'],
-        steps: [
-          {
-            stepNumber: 1,
-            title: 'Köp Zupergift med SAS EuroBonus',
-            description: `Köp Zupergift-presentkort för ${purchaseAmountKr.toLocaleString('sv-SE')} kr på SAS EuroBonus Shop (${ratePer100Kr}p / 100 kr).`,
-            externalUrl: 'https://www.saseurobonusshop.com/se/zupergift-presentkort',
-          },
-          {
-            stepNumber: 2,
-            title: `Växla till ${store.name}-presentkort`,
-            description: `Gå till Zupergift och växla koden till ett ${store.name}-presentkort.`,
-            externalUrl: zupergiftItemUrl,
-          },
-          {
-            stepNumber: 3,
-            title: `Genomför köpet hos ${store.name}`,
-            description: 'Lös in presentkortet i kassan.',
-          },
-        ],
+    const step3Desc =
+      directStorePayOre > 0
+        ? `Lös in presentkortet (${zgCardValueKr.toLocaleString('sv-SE')} kr) i kassan och betala resterande ${(directStorePayOre / 100).toLocaleString('sv-SE')} kr med ditt betalkort.`
+        : 'Lös in presentkortet i kassan.';
+
+    results.push({
+      id: `${store.id}-zupergift-chain`,
+      storeId: store.id,
+      storeName: store.name,
+      storeLogoUrl: store.logoUrl,
+      routeType: 'zupergift_chain',
+      routeTitle: 'Zupergift-kedja (SAS → Zupergift → Butik)',
+      routeSummary: `Köp Zupergift för ${zgCardValueKr.toLocaleString('sv-SE')} kr och växla till ${store.name}-presentkort.`,
+      primaryCategory: store.categories?.[0] || 'department',
+      categories: store.categories || ['department'],
+      steps: [
+        {
+          stepNumber: 1,
+          title: 'Köp Zupergift med SAS EuroBonus',
+          description: `Köp Zupergift-presentkort för ${zgCardValueKr.toLocaleString('sv-SE')} kr på SAS EuroBonus Shop (${ratePer100Kr}p / 100 kr).`,
+          externalUrl: 'https://www.saseurobonusshop.com/se/zupergift-presentkort',
+        },
+        {
+          stepNumber: 2,
+          title: `Växla till ${store.name}-presentkort`,
+          description: `Gå till Zupergift och växla koden till ett ${store.name}-presentkort.`,
+          externalUrl: zupergiftItemUrl,
+        },
+        {
+          stepNumber: 3,
+          title: `Genomför köpet hos ${store.name}`,
+          description: step3Desc,
+        },
+      ],
       totalSteps: 3,
       purchaseAmountOre,
       totalOutlayOre,
-      giftCardValueOre: purchaseAmountOre,
+      giftCardValueOre,
+      directStorePayOre,
       extraOutlayOre,
       remainingBalanceOre,
+      exceedsPurchaseAmount,
+      minPurchaseAmountKr: ZUPERGIFT_MIN_PURCHASE_KR,
       breakdown,
       baseBonusPoints,
       baseTierPoints,
       cardOutcomes,
-      isEligible: true,
+      isEligible: matchPurchaseAmount === true ? !exceedsPurchaseAmount : true,
+      eligibilityReason:
+        matchPurchaseAmount === true && exceedsPurchaseAmount
+          ? `Minsta köp för Zupergift är ${ZUPERGIFT_MIN_PURCHASE_KR} kr`
+          : undefined,
       isExplicitCampaign: Boolean(zupergiftIsCampaign),
       lastCheckedAt: store.syncedAt || options.lastCheckedAt || '2026-10-02T11:10:41.783Z',
-      uncertainties: [],
+      uncertainties: exceedsPurchaseAmount
+        ? [`Zupergift har ett minimiköp på ${ZUPERGIFT_MIN_PURCHASE_KR} kr. ${(remainingBalanceOre / 100).toLocaleString('sv-SE')} kr sparas på presentkortet.`]
+        : [],
       startUrl: 'https://www.saseurobonusshop.com/se/zupergift-presentkort',
       customLogoUrl: store.customLogoUrl || null,
       comment: store.comment || null,
@@ -520,26 +727,38 @@ export function generateCandidateRoutes(options: RouteGenerationOptions): RouteC
     const rate = sasGiftCardItem.bonusPer100Kr;
     if (rate !== null && rate > 0) {
       const minPurchaseKr = sasGiftCardItem.minPurchaseAmount ?? 0;
-      const minPurchaseOre = minPurchaseKr * 100;
-      const giftCardValueOre = Math.max(purchaseAmountOre, minPurchaseOre);
-      const totalOutlayOre = giftCardValueOre;
+      const denoms = sasGiftCardItem.denominationsKr || [];
+      const coverage = computeGiftCardCoverage(purchaseAmountKr, denoms, minPurchaseKr);
+      const exceedsPurchaseAmount = !coverage.canMatchAmount;
+
+      const cardValueKr = exceedsPurchaseAmount
+        ? coverage.fallbackMinValueKr
+        : coverage.matchedValueKr;
+      const giftCardValueOre = Math.round(cardValueKr * 100);
+      const directStorePayOre = exceedsPurchaseAmount
+        ? 0
+        : Math.max(0, purchaseAmountOre - giftCardValueOre);
+      const totalOutlayOre = exceedsPurchaseAmount ? giftCardValueOre : purchaseAmountOre;
       const extraOutlayOre = Math.max(0, totalOutlayOre - purchaseAmountOre);
       const remainingBalanceOre = Math.max(0, giftCardValueOre - purchaseAmountOre);
 
       const baseBonusPoints = Math.floor((giftCardValueOre * rate) / 10000);
       const baseTierPoints = 0;
 
-      const cardValueKr = giftCardValueOre / 100;
-      const denoms = sasGiftCardItem.denominationsKr || [];
       const denomsText =
         denoms.length > 0
           ? ` (valörer: ${denoms.slice(0, 6).map((d) => d.toLocaleString('sv-SE')).join(', ')}${denoms.length > 6 ? ' …' : ''} kr)`
           : '';
+      const comboText =
+        !exceedsPurchaseAmount && coverage.combo.length > 0 && (coverage.combo.length > 1 || coverage.combo[0].count > 1)
+          ? ` (${coverage.combo.map((c) => `${c.count} × ${c.denomKr.toLocaleString('sv-SE')} kr`).join(' + ')})`
+          : '';
 
-      const breakdownText =
-        minPurchaseKr > 0 && purchaseAmountKr < minPurchaseKr
-          ? `Köp av ${sasGiftCardItem.name}-presentkort (${cardValueKr.toLocaleString('sv-SE')} kr, minimiköp ${minPurchaseKr} kr) ger ${rate} Extrapoäng per 100 kr`
-          : `Köp av ${sasGiftCardItem.name}-presentkort ger ${rate} Extrapoäng per 100 kr${denomsText}`;
+      const breakdownText = exceedsPurchaseAmount
+        ? `Köp av ${sasGiftCardItem.name}-presentkort (${cardValueKr.toLocaleString('sv-SE')} kr, minimiköp ${coverage.effectiveMinKr} kr) ger ${rate} Extrapoäng per 100 kr`
+        : directStorePayOre > 0
+        ? `Köp av ${sasGiftCardItem.name}-presentkort för ${cardValueKr.toLocaleString('sv-SE')} kr${comboText} ger ${rate} Extrapoäng per 100 kr${denomsText}`
+        : `Köp av ${sasGiftCardItem.name}-presentkort ger ${rate} Extrapoäng per 100 kr${denomsText}`;
 
       const breakdown: RouteBreakdownItem[] = [
         {
@@ -551,17 +770,29 @@ export function generateCandidateRoutes(options: RouteGenerationOptions): RouteC
         },
       ];
 
-      const cardOutcomes = computeCardOutcomes(baseBonusPoints, baseTierPoints, totalOutlayOre, totalOutlayOre);
+      const storeAcceptsAmex = store.acceptsAmex !== undefined ? Boolean(store.acceptsAmex) : true;
+      const amexSpendOre = giftCardValueOre + (storeAcceptsAmex ? directStorePayOre : 0);
+      const cardOutcomes = computeCardOutcomes(
+        baseBonusPoints,
+        baseTierPoints,
+        totalOutlayOre,
+        totalOutlayOre,
+        true,
+        amexSpendOre
+      );
 
-      const step1Desc =
-        minPurchaseKr > 0 && purchaseAmountKr < minPurchaseKr
-          ? `Besök SAS EuroBonus Shop och köp ett presentkort från ${sasGiftCardItem.name} för ${cardValueKr.toLocaleString('sv-SE')} kr (minimiköp ${minPurchaseKr} kr, kvarvarande saldo ${(remainingBalanceOre / 100).toLocaleString('sv-SE')} kr sparas till senare köp). Du får ${rate} Extrapoäng per 100 kr.`
-          : `Besök SAS EuroBonus Shop och köp ett presentkort från ${sasGiftCardItem.name} för ${purchaseAmountKr.toLocaleString('sv-SE')} kr${denomsText}. Du får ${rate} Extrapoäng per 100 kr.`;
+      const step1Desc = exceedsPurchaseAmount
+        ? `Besök SAS EuroBonus Shop och köp ett presentkort från ${sasGiftCardItem.name} för ${cardValueKr.toLocaleString('sv-SE')} kr (minimiköp ${coverage.effectiveMinKr} kr, kvarvarande saldo ${(remainingBalanceOre / 100).toLocaleString('sv-SE')} kr sparas till senare köp). Du får ${rate} Extrapoäng per 100 kr.`
+        : `Besök SAS EuroBonus Shop och köp presentkort från ${sasGiftCardItem.name} för ${cardValueKr.toLocaleString('sv-SE')} kr${comboText}${denomsText}. Du får ${rate} Extrapoäng per 100 kr.`;
 
-      const uncertainties =
-        minPurchaseKr > 0 && purchaseAmountKr < minPurchaseKr
-          ? [`Presentkortet har ett minimiköp på ${minPurchaseKr} kr. ${(remainingBalanceOre / 100).toLocaleString('sv-SE')} kr sparas på presentkortet för framtida inköp.`]
-          : [];
+      const step2Desc =
+        directStorePayOre > 0
+          ? `Använd presentkortet (${cardValueKr.toLocaleString('sv-SE')} kr) i ${store.name}s kassa och betala resterande ${(directStorePayOre / 100).toLocaleString('sv-SE')} kr med ditt betalkort.`
+          : `Använd presentkortskoden i ${store.name}s kassa.`;
+
+      const uncertainties = exceedsPurchaseAmount
+        ? [`Presentkortet har ett minimiköp på ${coverage.effectiveMinKr} kr. ${(remainingBalanceOre / 100).toLocaleString('sv-SE')} kr sparas på presentkortet för framtida inköp.`]
+        : [];
 
       const sasGiftCardUrl = `https://www.saseurobonusshop.com/se/${sasGiftCardItem.slug || sasGiftCardItem.id}`;
       const isCampValid = isCampaignActive(sasGiftCardItem.isCampaign, sasGiftCardItem.campaignValidUntil);
@@ -573,10 +804,9 @@ export function generateCandidateRoutes(options: RouteGenerationOptions): RouteC
         storeLogoUrl: store.logoUrl || sasGiftCardItem.imageUrl || undefined,
         routeType: 'gift_card',
         routeTitle: `SAS EuroBonus Shop – ${sasGiftCardItem.name} presentkort`,
-        routeSummary:
-          minPurchaseKr > 0 && purchaseAmountKr < minPurchaseKr
-            ? `Köp ${sasGiftCardItem.name}-presentkort på SAS EuroBonus Shop (min. ${minPurchaseKr} kr) och lös in i kassan.`
-            : `Köp ${sasGiftCardItem.name}-presentkort på SAS EuroBonus Shop och lös in i kassan.`,
+        routeSummary: exceedsPurchaseAmount
+          ? `Köp ${sasGiftCardItem.name}-presentkort på SAS EuroBonus Shop (min. ${coverage.effectiveMinKr} kr) och lös in i kassan.`
+          : `Köp ${sasGiftCardItem.name}-presentkort på SAS EuroBonus Shop och lös in i kassan.`,
         primaryCategory: store.categories?.[0] || 'department',
         categories: store.categories || ['department'],
         steps: [
@@ -589,20 +819,27 @@ export function generateCandidateRoutes(options: RouteGenerationOptions): RouteC
           {
             stepNumber: 2,
             title: `Lös in presentkortet hos ${store.name}`,
-            description: `Använd presentkortskoden i ${store.name}s kassa.`,
+            description: step2Desc,
           },
         ],
         totalSteps: 2,
         purchaseAmountOre,
         totalOutlayOre,
         giftCardValueOre,
+        directStorePayOre,
         extraOutlayOre,
         remainingBalanceOre,
+        exceedsPurchaseAmount,
+        minPurchaseAmountKr: coverage.effectiveMinKr > 0 ? coverage.effectiveMinKr : undefined,
         breakdown,
         baseBonusPoints,
         baseTierPoints,
         cardOutcomes,
-        isEligible: true,
+        isEligible: matchPurchaseAmount === true ? !exceedsPurchaseAmount : true,
+        eligibilityReason:
+          matchPurchaseAmount === true && exceedsPurchaseAmount
+            ? `Presentkortets lägsta pris (${coverage.effectiveMinKr} kr) överstiger köpbeloppet`
+            : undefined,
         isExplicitCampaign: isCampValid,
         campaignValidUntil: isCampValid ? (sasGiftCardItem.campaignValidUntil || undefined) : undefined,
         regularBonusPer100Kr: sasGiftCardItem.regularBonusPer100Kr ?? undefined,
@@ -637,6 +874,14 @@ export function processAndRankRoutes(
     filtered = filtered.filter((r) => r.routeType !== 'gift_card' && r.routeType !== 'zupergift_chain');
   } else if (!filter.allowZupergift) {
     filtered = filtered.filter((r) => r.routeType !== 'zupergift_chain');
+  }
+
+  if (filter.matchPurchaseAmount === true) {
+    filtered = filtered.filter(
+      (r) =>
+        r.routeType === 'direct_partner' ||
+        (!r.exceedsPurchaseAmount && r.giftCardValueOre <= r.purchaseAmountOre)
+    );
   }
 
   const activeCardIds = filter.selectedCardIds.length > 0 ? filter.selectedCardIds : [];

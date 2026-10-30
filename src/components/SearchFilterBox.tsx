@@ -29,6 +29,8 @@ interface SearchFilterBoxProps {
   onToggleGiftCards: (val: boolean) => void;
   allowZupergift: boolean;
   onToggleZupergift: (val: boolean) => void;
+  matchPurchaseAmount: boolean;
+  onToggleMatchPurchaseAmount: (val: boolean) => void;
   tierPointsImportant: boolean;
   onToggleTierPoints: (val: boolean) => void;
   onlyCampaigns: boolean;
@@ -65,6 +67,8 @@ export const SearchFilterBox: React.FC<SearchFilterBoxProps> = ({
   onToggleGiftCards,
   allowZupergift,
   onToggleZupergift,
+  matchPurchaseAmount,
+  onToggleMatchPurchaseAmount,
   tierPointsImportant,
   onToggleTierPoints,
   onlyCampaigns,
@@ -328,6 +332,36 @@ export const SearchFilterBox: React.FC<SearchFilterBoxProps> = ({
           </button>
           <span className="text-xs sm:text-sm font-semibold text-slate-700">
             Visa Zupergift
+          </span>
+        </label>
+
+        {/* Matcha köpsumma */}
+        <label
+          className="flex items-center gap-2.5 cursor-pointer select-none"
+          title="Utesluter presentkort vars lägsta köpbelopp är högre än din köpsumma och begränsar presentkortsdelen så att du inte betalar för mycket."
+        >
+          <button
+            type="button"
+            role="switch"
+            aria-checked={allowGiftCards && matchPurchaseAmount}
+            disabled={!allowGiftCards}
+            onClick={() => onToggleMatchPurchaseAmount(!matchPurchaseAmount)}
+            className={`w-11 h-6 flex items-center rounded-full p-1 transition-colors ${
+              allowGiftCards && matchPurchaseAmount
+                ? 'bg-blue-600'
+                : !allowGiftCards
+                ? 'bg-slate-300 opacity-60 cursor-not-allowed'
+                : 'bg-slate-300'
+            }`}
+          >
+            <div
+              className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform ${
+                allowGiftCards && matchPurchaseAmount ? 'translate-x-5' : 'translate-x-0'
+              }`}
+            />
+          </button>
+          <span className="text-xs sm:text-sm font-semibold text-slate-700">
+            Matcha köpsumma
           </span>
         </label>
 
