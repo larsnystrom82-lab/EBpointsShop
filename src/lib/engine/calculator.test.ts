@@ -1024,6 +1024,36 @@ describe('EuroBonus Beräkningsmotor – Acceptanstester A03–A16', () => {
     // Kortpoäng beräknas på hela 100 kr (20 p med Amex Elite)
     expect(partnerRoute.cardOutcomes['amex_elite'].cardBonusPoints).toBe(20);
     expect(partnerRoute.cardOutcomes['amex_elite'].totalBonusPoints).toBe(60);
+
+    // Fast engångsbonus (t.ex. Tibber) påverkas aldrig av excludesVat (bonusen är ej knuten till köpbelopp)
+    const tibberStore: Store = {
+      id: 'tibber',
+      name: 'Tibber',
+      slug: 'tibber',
+      categories: ['services'],
+      isActive: true,
+      excludesVat: true,
+      partnerRule: {
+        hasPartnerLink: true,
+        bonusPer100Kr: 0,
+        tierPer100Kr: 0,
+        rewardType: 'fixed',
+        fixedBonusPoints: 2500,
+        fixedTierPoints: 500,
+        isOneTimeOffer: true,
+        isCampaign: false,
+        campaignValidUntil: null,
+        startUrl: 'https://onlineshopping.flysas.com/sv-SE/butiker/tibber',
+      },
+    };
+
+    const tibberRoutes = generateCandidateRoutes({
+      store: tibberStore,
+      purchaseAmountKr: 100,
+    });
+    expect(tibberRoutes[0].excludesVat).toBe(false);
+    expect(tibberRoutes[0].baseBonusPoints).toBe(2500);
+    expect(tibberRoutes[0].baseTierPoints).toBe(500);
   });
 });
 

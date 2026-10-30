@@ -301,9 +301,11 @@ export async function syncSasPartnerStores(): Promise<{
         const metaExcludesVat =
           db.storeCustomMetadata?.[existing.id]?.excludesVat ??
           db.storeCustomMetadata?.[shopSlug]?.excludesVat;
-        if (metaExcludesVat !== undefined && metaExcludesVat !== null) {
+        if (isOneTimeOrFixed) {
+          existing.excludesVat = false;
+        } else if (metaExcludesVat !== undefined && metaExcludesVat !== null) {
           existing.excludesVat = Boolean(metaExcludesVat);
-        } else if (apiExcludesVat) {
+        } else if (existing.excludesVat === undefined || apiExcludesVat) {
           existing.excludesVat = true;
         }
         if (shop.logo && (!existing.logoUrl || existing.logoUrl.includes('neutral'))) {
@@ -325,7 +327,7 @@ export async function syncSasPartnerStores(): Promise<{
           logoUrl: shop.logo || `/logos/${shop.slug}.svg`,
           categories: mapCategories(shop.categoryId),
           isActive: true,
-          excludesVat: apiExcludesVat || undefined,
+          excludesVat: !isOneTimeOrFixed,
           partnerRule,
           giftCardRule: {
             hasDirectGiftCard: false,

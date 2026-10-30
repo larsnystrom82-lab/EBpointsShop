@@ -14,8 +14,12 @@ export async function GET() {
   const stores = (db.stores || []).map((s) => {
     const metaAmex = db.storeCustomMetadata?.[s.id]?.acceptsAmex ?? db.storeCustomMetadata?.[s.slug]?.acceptsAmex;
     const defaultAcceptsAmex = !s.partnerRule?.hasPartnerLink;
+    const isFixedPartner =
+      s.partnerRule?.rewardType === 'fixed' ||
+      Boolean(s.partnerRule?.isOneTimeOffer) ||
+      ((s.partnerRule?.fixedBonusPoints ?? 0) > 0);
     const metaExcludesVat = db.storeCustomMetadata?.[s.id]?.excludesVat ?? db.storeCustomMetadata?.[s.slug]?.excludesVat;
-    const defaultExcludesVat = Boolean(s.id === 'amazon' || s.slug === 'amazon');
+    const defaultExcludesVat = Boolean(s.partnerRule?.hasPartnerLink && !isFixedPartner);
     return {
       ...s,
       acceptsAmex: metaAmex !== undefined && metaAmex !== null
@@ -23,11 +27,13 @@ export async function GET() {
         : s.acceptsAmex !== undefined
           ? Boolean(s.acceptsAmex)
           : defaultAcceptsAmex,
-      excludesVat: metaExcludesVat !== undefined && metaExcludesVat !== null
-        ? Boolean(metaExcludesVat)
-        : s.excludesVat !== undefined
-          ? Boolean(s.excludesVat)
-          : defaultExcludesVat,
+      excludesVat: isFixedPartner
+        ? false
+        : metaExcludesVat !== undefined && metaExcludesVat !== null
+          ? Boolean(metaExcludesVat)
+          : s.excludesVat !== undefined
+            ? Boolean(s.excludesVat)
+            : defaultExcludesVat,
     };
   });
   return NextResponse.json({

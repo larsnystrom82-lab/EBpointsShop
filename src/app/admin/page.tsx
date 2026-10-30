@@ -2038,7 +2038,15 @@ export default function AdminPage() {
                     const commentVal = edit?.comment !== undefined ? edit.comment : (item.comment || '');
                     const isHiddenVal = edit?.isHidden !== undefined ? edit.isHidden : Boolean(item.isHidden);
                     const acceptsAmexVal = edit?.acceptsAmex !== undefined ? edit.acceptsAmex : Boolean(item.acceptsAmex);
-                    const excludesVatVal = edit?.excludesVat !== undefined ? edit.excludesVat : Boolean(item.excludesVat);
+                    const isFixedPartnerItem =
+                      item.partnerRule?.rewardType === 'fixed' ||
+                      Boolean(item.partnerRule?.isOneTimeOffer) ||
+                      ((item.partnerRule?.fixedBonusPoints ?? 0) > 0);
+                    const excludesVatVal = isFixedPartnerItem
+                      ? false
+                      : edit?.excludesVat !== undefined
+                      ? edit.excludesVat
+                      : Boolean(item.excludesVat);
                     const categoriesVal = edit?.categories !== undefined ? edit.categories : (item.categories || ['department']);
                     const aliasVal = edit?.alias !== undefined ? edit.alias : (item.alias || '');
                     const aliasesTextVal = edit?.aliasesText !== undefined ? edit.aliasesText : (item.aliases || []).join(', ');
@@ -2373,12 +2381,16 @@ export default function AdminPage() {
                                 </label>
 
                                 <label
-                                  className={`inline-flex items-center gap-2 cursor-pointer select-none text-xs ${item.isExcluded ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                  title="När markerad beräknas partnerpoäng på 80 % av köpbeloppet (exkl. 25 % moms), t.ex. 80 kr vid ett köp på 100 kr"
+                                  className={`inline-flex items-center gap-2 cursor-pointer select-none text-xs ${item.isExcluded || isFixedPartnerItem ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                  title={
+                                    isFixedPartnerItem
+                                      ? 'Fast engångsbonus (t.ex. Tibber) påverkas inte av moms då bonusen inte är knuten till köpbeloppet'
+                                      : 'Standard för partnerbutiker med bonustyp "Per 100 kr": partnerpoäng beräknas på 80 % av köpbeloppet (exkl. 25 % moms)'
+                                  }
                                 >
                                   <input
                                     type="checkbox"
-                                    disabled={item.isExcluded}
+                                    disabled={item.isExcluded || isFixedPartnerItem}
                                     checked={excludesVatVal}
                                     onChange={(e) => updateMetadataEdit({ excludesVat: e.target.checked })}
                                     className="w-4 h-4 rounded border-slate-300 text-amber-600 focus:ring-amber-500 cursor-pointer disabled:cursor-not-allowed"
@@ -3748,17 +3760,36 @@ export default function AdminPage() {
                           <span className="font-medium text-slate-700">💳 Tar Amex</span>
                         </label>
                         <label
-                          className="text-xs flex items-center gap-1 cursor-pointer"
-                          title="När markerad beräknas partnerpoäng på 80 % av köpbeloppet (exkl. 25 % moms)"
+                          className={`text-xs flex items-center gap-1 ${
+                            store.partnerRule?.rewardType === 'fixed' || store.partnerRule?.isOneTimeOffer || ((store.partnerRule?.fixedBonusPoints ?? 0) > 0)
+                              ? 'opacity-50 cursor-not-allowed'
+                              : 'cursor-pointer'
+                          }`}
+                          title={
+                            store.partnerRule?.rewardType === 'fixed' || store.partnerRule?.isOneTimeOffer || ((store.partnerRule?.fixedBonusPoints ?? 0) > 0)
+                              ? 'Fast engångsbonus påverkas inte då bonusen inte är knuten till köpbeloppet'
+                              : 'Standard för partnerbutiker med bonustyp "Per 100 kr": partnerpoäng beräknas på 80 % av köpbeloppet (exkl. 25 % moms)'
+                          }
                         >
                           <input
                             type="checkbox"
-                            checked={Boolean(store.excludesVat)}
+                            disabled={
+                              store.partnerRule?.rewardType === 'fixed' ||
+                              Boolean(store.partnerRule?.isOneTimeOffer) ||
+                              ((store.partnerRule?.fixedBonusPoints ?? 0) > 0)
+                            }
+                            checked={
+                              store.partnerRule?.rewardType === 'fixed' ||
+                              Boolean(store.partnerRule?.isOneTimeOffer) ||
+                              ((store.partnerRule?.fixedBonusPoints ?? 0) > 0)
+                                ? false
+                                : Boolean(store.excludesVat)
+                            }
                             onChange={(e) => {
                               store.excludesVat = e.target.checked;
                               setDbData((prev) => (prev ? { ...prev } : null));
                             }}
-                            className="w-4 h-4 rounded text-amber-600"
+                            className="w-4 h-4 rounded text-amber-600 disabled:cursor-not-allowed"
                           />
                           <span className="font-medium text-slate-700">Ej poäng på moms (80%)</span>
                         </label>
@@ -3864,6 +3895,7 @@ export default function AdminPage() {
                             store.partnerRule.rewardType = newType;
                             store.partnerRule.isOneTimeOffer = newType === 'fixed';
                             if (newType === 'fixed') {
+                              store.excludesVat = false;
                               if (!store.partnerRule.fixedBonusPoints && store.partnerRule.bonusPer100Kr > 0) {
                                 store.partnerRule.fixedBonusPoints = store.partnerRule.bonusPer100Kr;
                                 store.partnerRule.bonusPer100Kr = 0;
@@ -3876,6 +3908,7 @@ export default function AdminPage() {
                                 store.partnerRule.oneTimeTerms = 'Engångsbonus – gäller vanligtvis ny kund vid första köpet';
                               }
                             } else {
+                              store.excludesVat = true;
                               if (store.partnerRule.fixedBonusPoints && store.partnerRule.bonusPer100Kr === 0) {
                                 store.partnerRule.bonusPer100Kr = store.partnerRule.fixedBonusPoints;
                                 store.partnerRule.fixedBonusPoints = 0;

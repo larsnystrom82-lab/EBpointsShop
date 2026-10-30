@@ -101,12 +101,17 @@ export function buildAllStores(db: DatabaseSchema, options?: { includeExcluded?:
           : s.acceptsAmex !== undefined
           ? Boolean(s.acceptsAmex)
           : !s.partnerRule?.hasPartnerLink;
-      const excludesVat =
-        meta?.excludesVat !== undefined && meta?.excludesVat !== null
-          ? Boolean(meta.excludesVat)
-          : s.excludesVat !== undefined
-          ? Boolean(s.excludesVat)
-          : Boolean(s.id === 'amazon' || s.slug === 'amazon');
+      const isFixedPartner =
+        s.partnerRule?.rewardType === 'fixed' ||
+        Boolean(s.partnerRule?.isOneTimeOffer) ||
+        ((s.partnerRule?.fixedBonusPoints ?? 0) > 0);
+      const excludesVat = isFixedPartner
+        ? false
+        : meta?.excludesVat !== undefined && meta?.excludesVat !== null
+        ? Boolean(meta.excludesVat)
+        : s.excludesVat !== undefined
+        ? Boolean(s.excludesVat)
+        : Boolean(s.partnerRule?.hasPartnerLink);
 
       let resolvedPartnerRule = s.partnerRule;
       if (s.partnerRule) {

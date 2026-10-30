@@ -102,7 +102,8 @@
       },
       "zupergiftSupported": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "kitchentime",
@@ -144,7 +145,8 @@
       },
       "zupergiftSupported": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "elgiganten",
@@ -257,7 +259,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "aarke",
@@ -301,7 +304,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "about-you",
@@ -345,7 +349,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "acer",
@@ -389,7 +394,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "actionking.se",
@@ -433,7 +439,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "adidas",
@@ -477,7 +484,8 @@
       "zupergiftSupported": true,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "adlibris",
@@ -521,7 +529,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "aeg",
@@ -565,7 +574,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "ag1",
@@ -609,7 +619,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "agoda",
@@ -653,7 +664,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "agood-company",
@@ -697,7 +709,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "akademibokhandeln",
@@ -741,7 +754,8 @@
       "zupergiftSupported": true,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "albert",
@@ -786,7 +800,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": false
     },
     {
       "id": "albrekts-guld",
@@ -830,7 +845,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "viasat",
@@ -875,7 +891,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": false
     },
     {
       "id": "amazon",
@@ -964,7 +981,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "apohem",
@@ -1008,7 +1026,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "apoteket",
@@ -1052,7 +1071,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "astrosweden",
@@ -1096,7 +1116,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "asus",
@@ -1140,7 +1161,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "atletbutiken-1",
@@ -1184,7 +1206,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "australian-bodycare",
@@ -1228,7 +1251,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "autodoc--webgains",
@@ -1272,7 +1296,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "autodude",
@@ -1316,7 +1341,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "axkid",
@@ -1360,7 +1386,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "baby-v",
@@ -1404,7 +1431,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "babymarkt",
@@ -1448,7 +1476,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "babysam",
@@ -1492,7 +1521,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "babyshop",
@@ -1536,7 +1566,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "bad-stil",
@@ -1580,7 +1611,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "badmintonshoppen",
@@ -1624,7 +1656,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "baron-collection",
@@ -1668,7 +1701,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "batteries-online.se",
@@ -1712,7 +1746,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "batteriexperten",
@@ -1756,7 +1791,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "bazta",
@@ -1800,7 +1836,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "beautycos",
@@ -1844,7 +1881,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "becksondergaard",
@@ -1888,7 +1926,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "beijer-byggmaterial",
@@ -1932,7 +1971,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "beredd",
@@ -1976,7 +2016,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "bestcanvas",
@@ -2020,7 +2061,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "betterfeast",
@@ -2065,7 +2107,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": false
     },
     {
       "id": "bik-bok",
@@ -2109,7 +2152,8 @@
       "zupergiftSupported": true,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "bildelar-online--sas",
@@ -2153,7 +2197,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "bildelaronline24se",
@@ -2197,7 +2242,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "billiga-tester.se",
@@ -2241,7 +2287,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "billigteknik",
@@ -2285,7 +2332,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "bixia",
@@ -2330,7 +2378,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": false
     },
     {
       "id": "bjorn-axen",
@@ -2374,7 +2423,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "bjorn-borg",
@@ -2418,7 +2468,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "blue-tomato",
@@ -2462,7 +2513,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "bobo",
@@ -2506,7 +2558,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "bodystore.com",
@@ -2550,7 +2603,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "bokus",
@@ -2594,7 +2648,8 @@
       "zupergiftSupported": true,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "bokus-play",
@@ -2639,7 +2694,8 @@
       "zupergiftSupported": true,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": false
     },
     {
       "id": "bonprix",
@@ -2683,7 +2739,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "bonti-1",
@@ -2727,7 +2784,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "boohoo",
@@ -2771,7 +2829,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "book-outlet",
@@ -2815,7 +2874,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "bookbeat",
@@ -2860,7 +2920,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": false
     },
     {
       "id": "bookhero",
@@ -2904,7 +2965,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "bookie",
@@ -2949,7 +3011,8 @@
       "zupergiftSupported": true,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": false
     },
     {
       "id": "bosch-home",
@@ -2993,7 +3056,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "bottle-hero",
@@ -3037,7 +3101,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "boxer",
@@ -3082,7 +3147,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": false
     },
     {
       "id": "boxningsshopen",
@@ -3126,7 +3192,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "bozetto",
@@ -3170,7 +3237,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "bright-1-2-3",
@@ -3214,7 +3282,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "bubbleroom",
@@ -3258,7 +3327,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "budo-fitness",
@@ -3302,7 +3372,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "byborn",
@@ -3346,7 +3417,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "bythjul",
@@ -3390,7 +3462,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "care-of-beds",
@@ -3434,7 +3507,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "casall-2",
@@ -3478,7 +3552,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "cdon.com",
@@ -3523,7 +3598,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": false
     },
     {
       "id": "clarins",
@@ -3567,7 +3643,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "cocopanda",
@@ -3611,7 +3688,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "coffee-friend",
@@ -3655,7 +3733,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "conrad",
@@ -3699,7 +3778,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "cos",
@@ -3743,7 +3823,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "craft-sportswear",
@@ -3787,7 +3868,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "cruisedirect",
@@ -3831,7 +3913,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "computersalg",
@@ -3875,7 +3958,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "cyberghost-vpn",
@@ -3919,7 +4003,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "dackskiftarna",
@@ -3964,7 +4049,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": false
     },
     {
       "id": "dagens-industri",
@@ -4009,7 +4095,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": false
     },
     {
       "id": "dalakraft",
@@ -4054,7 +4141,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": false
     },
     {
       "id": "daniel-wellington",
@@ -4098,7 +4186,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "dashl-beauty",
@@ -4142,7 +4231,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "db-journey",
@@ -4186,7 +4276,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "delitea",
@@ -4230,7 +4321,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "dentaworks",
@@ -4274,7 +4366,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "designerklockor",
@@ -4318,7 +4411,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "designtorget",
@@ -4362,7 +4456,8 @@
       "zupergiftSupported": true,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "desigual",
@@ -4406,7 +4501,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "didriksons",
@@ -4450,7 +4546,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "dina-forsakringar",
@@ -4495,7 +4592,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": false
     },
     {
       "id": "direct-ferries",
@@ -4539,7 +4637,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "disney+-1",
@@ -4584,7 +4683,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": false
     },
     {
       "id": "doz-apotek",
@@ -4628,7 +4728,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "drakenberg-sjolin",
@@ -4672,7 +4773,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "dressmann",
@@ -4716,7 +4818,8 @@
       "zupergiftSupported": true,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "dustin-1",
@@ -4760,7 +4863,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "dyson",
@@ -4804,7 +4908,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "e-wheels-2",
@@ -4848,7 +4953,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "eon",
@@ -4893,7 +4999,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": false
     },
     {
       "id": "ebbekids",
@@ -4937,7 +5044,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "ecco",
@@ -4981,7 +5089,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "efva-attling",
@@ -5025,7 +5134,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "electrolux",
@@ -5069,7 +5179,8 @@
       "zupergiftSupported": true,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "electrolux-spares-accessories",
@@ -5113,7 +5224,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "eleven",
@@ -5157,7 +5269,8 @@
       "zupergiftSupported": true,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "ellos-3",
@@ -5201,7 +5314,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "elon-",
@@ -5245,7 +5359,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "elskling.se",
@@ -5290,7 +5405,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": false
     },
     {
       "id": "epic-travelgear",
@@ -5334,7 +5450,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "estore.nu",
@@ -5378,7 +5495,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "estrid",
@@ -5422,7 +5540,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "etanolkamin-shop",
@@ -5466,7 +5585,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "euroflorist",
@@ -5510,7 +5630,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "europeiska-erv",
@@ -5554,7 +5675,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "eurotoys",
@@ -5598,7 +5720,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "evify",
@@ -5643,7 +5766,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": false
     },
     {
       "id": "factor",
@@ -5688,7 +5812,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": false
     },
     {
       "id": "farnell",
@@ -5732,7 +5857,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "filur-namnlappar",
@@ -5776,7 +5902,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "firstvet",
@@ -5820,7 +5947,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "flexovital",
@@ -5864,7 +5992,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "floristerisverige",
@@ -5908,7 +6037,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "flowlife",
@@ -5952,7 +6082,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "flygbussarna",
@@ -5996,7 +6127,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "foderboxen-1",
@@ -6040,7 +6172,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "footshop.eu",
@@ -6084,7 +6217,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "foreo",
@@ -6128,7 +6262,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "fotbutiken",
@@ -6172,7 +6307,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "framsport",
@@ -6216,7 +6352,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "fritid-vildmark",
@@ -6260,7 +6397,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "fyndiq",
@@ -6305,7 +6443,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": false
     },
     {
       "id": "g-star",
@@ -6349,7 +6488,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "gant-3",
@@ -6393,7 +6533,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "gasello",
@@ -6437,7 +6578,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "geggamoja-1",
@@ -6481,7 +6623,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "gents",
@@ -6525,7 +6668,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "gina-tricot-ab",
@@ -6569,7 +6713,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "ginza",
@@ -6613,7 +6758,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "glas-scandinavia",
@@ -6657,7 +6803,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "glas-huset-malmø",
@@ -6701,7 +6848,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "glowid",
@@ -6745,7 +6893,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "golvpoolen",
@@ -6789,7 +6938,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "gorilla-sports",
@@ -6833,7 +6983,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "gosh-copenhagen",
@@ -6877,7 +7028,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "granit",
@@ -6921,7 +7073,8 @@
       "zupergiftSupported": true,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "greatlife.se",
@@ -6965,7 +7118,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "greenely",
@@ -7010,7 +7164,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": false
     },
     {
       "id": "greenfee365",
@@ -7054,7 +7209,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "guldfynd",
@@ -7098,7 +7254,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "gymgrossisten",
@@ -7142,7 +7299,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "gymkompaniet",
@@ -7186,7 +7344,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "hairlust",
@@ -7230,7 +7389,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "hairsale-1",
@@ -7274,7 +7434,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "hallbergsguld",
@@ -7318,7 +7479,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "hamphi",
@@ -7362,7 +7524,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "happy-green",
@@ -7406,7 +7569,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "harman-kardon",
@@ -7450,7 +7614,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "hatstore",
@@ -7494,7 +7659,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "hellofresh",
@@ -7539,7 +7705,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": false
     },
     {
       "id": "helloprint",
@@ -7583,7 +7750,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "helly-hansen",
@@ -7627,7 +7795,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "hemsyd",
@@ -7671,7 +7840,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "herman-miller",
@@ -7715,7 +7885,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "herschel-supply-company",
@@ -7759,7 +7930,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "holdit",
@@ -7803,7 +7975,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "home-tex-1",
@@ -7847,7 +8020,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "homeroom",
@@ -7891,7 +8065,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "hometomato",
@@ -7935,7 +8110,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "hp-sverige",
@@ -7979,7 +8155,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "hudoteket",
@@ -8023,7 +8200,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "hugo-boss",
@@ -8067,7 +8245,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "hulténs",
@@ -8111,7 +8290,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "hunkemoller",
@@ -8155,7 +8335,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "husqvarna",
@@ -8199,7 +8380,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "ideal-of-sweden",
@@ -8243,7 +8425,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "inkclub",
@@ -8287,7 +8470,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "interflora",
@@ -8331,7 +8515,8 @@
       "zupergiftSupported": true,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "interhome",
@@ -8375,7 +8560,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "iphonebutiken",
@@ -8419,7 +8605,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "ishavet",
@@ -8463,7 +8650,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "j-lindeberg",
@@ -8507,7 +8695,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "jbl.com",
@@ -8551,7 +8740,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "jd-sports-dk",
@@ -8595,7 +8785,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "jfr",
@@ -8639,7 +8830,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "jlab",
@@ -8683,7 +8875,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "johnells",
@@ -8727,7 +8920,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "jotex",
@@ -8771,7 +8965,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "journeylife",
@@ -8815,7 +9010,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "junkyard",
@@ -8859,7 +9055,8 @@
       "zupergiftSupported": true,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "kaffepro",
@@ -8903,7 +9100,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "kalaslagret",
@@ -8947,7 +9145,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "kattkompaniet",
@@ -8991,7 +9190,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "kellfri",
@@ -9035,7 +9235,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "kicks",
@@ -9079,7 +9280,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "kid's-concept",
@@ -9123,7 +9325,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "kidsdreamstore",
@@ -9167,7 +9370,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "kitchenaid",
@@ -9211,7 +9415,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "kjell-company",
@@ -9255,7 +9460,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "klippkungen",
@@ -9299,7 +9505,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "kockums-jernverk",
@@ -9343,7 +9550,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "kopbarnvagn",
@@ -9387,7 +9595,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "kungsangen",
@@ -9431,7 +9640,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "kutts",
@@ -9475,7 +9685,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "lamp24.se",
@@ -9519,7 +9730,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "lampan",
@@ -9563,7 +9775,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "lampconcept",
@@ -9607,7 +9820,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "lampemesteren",
@@ -9651,7 +9865,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "lamporochljus",
@@ -9695,7 +9910,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "lanna-mobler",
@@ -9739,7 +9955,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "lappeliten",
@@ -9783,7 +10000,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "lego",
@@ -9827,7 +10045,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "lekmer-1",
@@ -9871,7 +10090,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "lenovo-2",
@@ -9915,7 +10135,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "lenson",
@@ -9959,7 +10180,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "lensway",
@@ -10003,7 +10225,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "lentiamo",
@@ -10047,7 +10270,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "lexington",
@@ -10091,7 +10315,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "lg",
@@ -10135,7 +10360,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "lh-cosmetics",
@@ -10179,7 +10405,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "libresse",
@@ -10223,7 +10450,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "liffner",
@@ -10267,7 +10495,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "lindex",
@@ -10311,7 +10540,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "lindskrog-parkering-arlanda",
@@ -10355,7 +10585,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "live-it",
@@ -10399,7 +10630,8 @@
       "zupergiftSupported": true,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "ljusgrossisten",
@@ -10443,7 +10675,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "lloyd-shoes",
@@ -10487,7 +10720,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "logitech",
@@ -10531,7 +10765,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "loh-electronics",
@@ -10575,7 +10810,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "loparshop",
@@ -10619,7 +10855,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "zalando-lounge",
@@ -10663,7 +10900,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "lusini",
@@ -10707,7 +10945,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "lux-case",
@@ -10751,7 +10990,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "luxplus",
@@ -10795,7 +11035,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "lyko",
@@ -10839,7 +11080,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "lyreco",
@@ -10883,7 +11125,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "lysman",
@@ -10927,7 +11170,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "makeup-mekka",
@@ -10971,7 +11215,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "maria-black",
@@ -11015,7 +11260,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "marineshopen",
@@ -11059,7 +11305,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "markslojd-1",
@@ -11103,7 +11350,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "marshall",
@@ -11147,7 +11395,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "matkomfort",
@@ -11192,7 +11441,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": false
     },
     {
       "id": "maxpuls.se",
@@ -11236,7 +11486,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "maxulin",
@@ -11281,7 +11532,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": false
     },
     {
       "id": "meds.se",
@@ -11325,7 +11577,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "mekonomen",
@@ -11369,7 +11622,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "memira-1",
@@ -11414,7 +11668,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": false
     },
     {
       "id": "meta",
@@ -11458,7 +11713,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "miinto",
@@ -11502,7 +11758,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "mister-spex",
@@ -11546,7 +11803,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "mjuk",
@@ -11590,7 +11848,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "mobeljatten",
@@ -11634,7 +11893,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "molndal-energi",
@@ -11679,7 +11939,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": false
     },
     {
       "id": "mq",
@@ -11723,7 +11984,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "mresell",
@@ -11767,7 +12029,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "mulberry",
@@ -11811,7 +12074,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "muscle-house",
@@ -11855,7 +12119,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "mywowo",
@@ -11900,7 +12165,8 @@
       "zupergiftSupported": true,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": false
     },
     {
       "id": "myoutdoorkitchen",
@@ -11944,7 +12210,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "myprotein",
@@ -11988,7 +12255,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "mytheresa",
@@ -12032,7 +12300,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "mytrendyphone-1",
@@ -12076,7 +12345,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "nelly.com",
@@ -12120,7 +12390,8 @@
       "zupergiftSupported": true,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "nespresso",
@@ -12164,7 +12435,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "new-balance",
@@ -12208,7 +12480,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "newport",
@@ -12252,7 +12525,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "nextory",
@@ -12297,7 +12571,8 @@
       "zupergiftSupported": true,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": false
     },
     {
       "id": "nicebeauty",
@@ -12341,7 +12616,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "nilfisk",
@@ -12385,7 +12661,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "nly-man",
@@ -12429,7 +12706,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "nordic-feel",
@@ -12473,7 +12751,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "nordic-nest",
@@ -12517,7 +12796,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "jewelrybox",
@@ -12561,7 +12841,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "nordicagolf",
@@ -12605,7 +12886,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "nordiska-galleriet",
@@ -12649,7 +12931,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "nordiska-kompaniet",
@@ -12693,7 +12976,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "nordvpn",
@@ -12737,7 +13021,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "north-trampoline",
@@ -12781,7 +13066,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "northmans",
@@ -12825,7 +13111,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "notino",
@@ -12869,7 +13156,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "nupo",
@@ -12913,7 +13201,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "oakley",
@@ -12957,7 +13246,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "officestore",
@@ -13001,7 +13291,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "Onskefoto",
@@ -13045,7 +13336,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "onyx-cookware",
@@ -13089,7 +13381,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "ordochbok",
@@ -13133,7 +13426,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "organic-basics",
@@ -13177,7 +13471,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "outdoorexperten-2",
@@ -13221,7 +13516,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "outl1",
@@ -13265,7 +13561,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "outnorth",
@@ -13309,7 +13606,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "ownit",
@@ -13354,7 +13652,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": false
     },
     {
       "id": "p-lindberg",
@@ -13398,7 +13697,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "padelnuestro",
@@ -13442,7 +13742,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "padelxpert",
@@ -13486,7 +13787,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "partyninja",
@@ -13530,7 +13832,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "patpat",
@@ -13574,7 +13877,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "paul-shark",
@@ -13618,7 +13922,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "peaceofhome",
@@ -13662,7 +13967,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "pergolux",
@@ -13706,7 +14012,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "philips",
@@ -13750,7 +14057,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "philips-hue",
@@ -13794,7 +14102,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "pilgrim",
@@ -13838,7 +14147,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "pn-jakt-ab",
@@ -13882,7 +14192,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "polarnopyret",
@@ -13926,7 +14237,8 @@
       "zupergiftSupported": true,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "prime-beds",
@@ -13970,7 +14282,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "proffsmagasinet",
@@ -14014,7 +14327,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "prydligt",
@@ -14058,7 +14372,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "prylife",
@@ -14102,7 +14417,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "prylstaden",
@@ -14146,7 +14462,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "puma-1",
@@ -14190,7 +14507,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "pyret-snackan",
@@ -14234,7 +14552,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "quicksilver",
@@ -14278,7 +14597,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "racketspecialisten",
@@ -14322,7 +14642,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "rains",
@@ -14366,7 +14687,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "ray-ban",
@@ -14410,7 +14732,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "razer",
@@ -14454,7 +14777,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "readly",
@@ -14499,7 +14823,8 @@
       "zupergiftSupported": true,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": false
     },
     {
       "id": "reebok",
@@ -14543,7 +14868,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "rehabgrossisten",
@@ -14587,7 +14913,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "relode",
@@ -14631,7 +14958,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "renewed",
@@ -14675,7 +15003,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "repeats",
@@ -14719,7 +15048,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "resvaskor",
@@ -14763,7 +15093,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "revolutionrace",
@@ -14807,7 +15138,8 @@
       "zupergiftSupported": true,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "risskov-1",
@@ -14851,7 +15183,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "rito",
@@ -14895,7 +15228,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "roxy",
@@ -14939,7 +15273,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "royal-design",
@@ -14983,7 +15318,8 @@
       "zupergiftSupported": true,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "rugvista",
@@ -15027,7 +15363,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "safira",
@@ -15071,7 +15408,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "sail-racing",
@@ -15115,7 +15453,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "salming",
@@ -15159,7 +15498,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "samsung",
@@ -15203,7 +15543,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "scandinavian-outdoor",
@@ -15247,7 +15588,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "se-mattor",
@@ -15291,7 +15633,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "sejfa",
@@ -15336,7 +15679,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": false
     },
     {
       "id": "senetic",
@@ -15380,7 +15724,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "sensorem",
@@ -15425,7 +15770,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": false
     },
     {
       "id": "sephora",
@@ -15469,7 +15815,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "shark-gaming",
@@ -15513,7 +15860,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "sharkninja",
@@ -15557,7 +15905,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "shirtstore",
@@ -15601,7 +15950,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "shopping4net",
@@ -15645,7 +15995,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "siemens",
@@ -15689,7 +16040,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "sif-jakobs",
@@ -15733,7 +16085,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "silkeland",
@@ -15777,7 +16130,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "singular-society",
@@ -15822,7 +16176,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": false
     },
     {
       "id": "skidresor",
@@ -15866,7 +16221,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "skinome",
@@ -15910,7 +16266,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "skistart",
@@ -15954,7 +16311,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "skruvat",
@@ -15998,7 +16356,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "sky-showtime",
@@ -16043,7 +16402,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": false
     },
     {
       "id": "slipskungen",
@@ -16087,7 +16447,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "sliqhaq.se",
@@ -16131,7 +16492,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "smartbox",
@@ -16175,7 +16537,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "smartbuyglasses",
@@ -16219,7 +16582,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "smartphoto-se",
@@ -16263,7 +16627,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "sminkse",
@@ -16307,7 +16672,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "snowdays",
@@ -16351,7 +16717,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "soderstroms-1",
@@ -16395,7 +16762,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "soffadirekt",
@@ -16439,7 +16807,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "sonos",
@@ -16483,7 +16852,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "sony",
@@ -16527,7 +16897,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "soundboks",
@@ -16571,7 +16942,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "sova",
@@ -16615,7 +16987,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "spartoo",
@@ -16659,7 +17032,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "sportgymbutiken",
@@ -16703,7 +17077,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "sportkost.se",
@@ -16747,7 +17122,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "sportshoppen",
@@ -16791,7 +17167,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "sportsmart",
@@ -16835,7 +17212,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "sportsrehab",
@@ -16879,7 +17257,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "sporttema",
@@ -16923,7 +17302,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "stalhasten",
@@ -16967,7 +17347,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "stay-beautiful",
@@ -17011,7 +17392,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "steamery",
@@ -17055,7 +17437,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "steelseries",
@@ -17099,7 +17482,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "stella-mccartney",
@@ -17143,7 +17527,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "stjarnurmakarna-1",
@@ -17187,7 +17572,8 @@
       "zupergiftSupported": true,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "stockx",
@@ -17231,7 +17617,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "stooks-1",
@@ -17275,7 +17662,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "storytel",
@@ -17320,7 +17708,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": false
     },
     {
       "id": "stradivarius",
@@ -17364,7 +17753,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "stronger",
@@ -17408,7 +17798,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "stutterheim",
@@ -17452,7 +17843,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "stylein",
@@ -17496,7 +17888,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "suitable",
@@ -17540,7 +17933,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "superdry",
@@ -17584,7 +17978,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "supsport",
@@ -17628,7 +18023,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "svenska-gummihuset",
@@ -17673,7 +18069,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": false
     },
     {
       "id": "svenskt-kosttillskott",
@@ -17717,7 +18114,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "svenssons-i-lammhult",
@@ -17761,7 +18159,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "swedoffice",
@@ -17805,7 +18204,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "swemed",
@@ -17849,7 +18249,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "synoptik",
@@ -17893,7 +18294,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "tallink",
@@ -17937,7 +18339,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "teknikdelar",
@@ -17981,7 +18384,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "teknikproffset",
@@ -18025,7 +18429,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "telinet",
@@ -18070,7 +18475,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": false
     },
     {
       "id": "tempur",
@@ -18114,7 +18520,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "tennisshoppen",
@@ -18158,7 +18565,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "tennisxpert",
@@ -18202,7 +18610,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "the-perfume-brand",
@@ -18246,7 +18655,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "themobilestore.se",
@@ -18334,7 +18744,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": false
     },
     {
       "id": "timarco",
@@ -18378,7 +18789,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "tirendo",
@@ -18422,7 +18834,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "tonerlagret",
@@ -18466,7 +18879,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "traningsmaskiner.se",
@@ -18510,7 +18924,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "traningspartner",
@@ -18554,7 +18969,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "trend-carpet",
@@ -18598,7 +19014,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "trippel",
@@ -18643,7 +19060,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": false
     },
     {
       "id": "truestory.se",
@@ -18687,7 +19105,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "tt-line",
@@ -18731,7 +19150,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "tv4-play",
@@ -18776,7 +19196,8 @@
       "isZupergiftOnly": false,
       "alias": "TV4 Play",
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "tyngre",
@@ -18820,7 +19241,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "under-armour",
@@ -18864,7 +19286,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "understatement",
@@ -18908,7 +19331,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "uppercut",
@@ -18952,7 +19376,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "urpenn",
@@ -18996,7 +19421,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "uret.se",
@@ -19040,7 +19466,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "valostore",
@@ -19084,7 +19511,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "vasmua",
@@ -19128,7 +19556,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "velosophy",
@@ -19172,7 +19601,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "vetapoteket",
@@ -19216,7 +19646,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "vetzoo",
@@ -19260,7 +19691,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "viator",
@@ -19304,7 +19736,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "vida-xl-se",
@@ -19348,7 +19781,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "vinkylen-1",
@@ -19392,7 +19826,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "vistaprint",
@@ -19436,7 +19871,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "vitaminer.nu",
@@ -19480,7 +19916,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "voff-sweden",
@@ -19524,7 +19961,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "volt",
@@ -19568,7 +20006,8 @@
       "zupergiftSupported": true,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "vonroc",
@@ -19612,7 +20051,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "vy-bus4you",
@@ -19656,7 +20096,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "watery",
@@ -19700,7 +20141,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "watski",
@@ -19744,7 +20186,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "weekday",
@@ -19788,7 +20231,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "weibulls",
@@ -19832,7 +20276,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "weightworld",
@@ -19876,7 +20321,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "westwing",
@@ -19920,7 +20366,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "widforss",
@@ -19964,7 +20411,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "winparts-1",
@@ -20008,7 +20456,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "wobbi",
@@ -20052,7 +20501,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "workout-brands",
@@ -20096,7 +20546,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "xlash",
@@ -20140,7 +20591,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "xplora",
@@ -20184,7 +20636,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "yogia",
@@ -20228,7 +20681,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "you.se",
@@ -20272,7 +20726,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "yoursurprise",
@@ -20316,7 +20771,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "zmarta-forsakring",
@@ -20361,7 +20817,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": false
     },
     {
       "id": "zoo.se-1",
@@ -20405,7 +20862,8 @@
       "zupergiftSupported": true,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "zooplus",
@@ -20449,7 +20907,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "zwilling-2",
@@ -20493,7 +20952,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "aktivvinterse",
@@ -20537,7 +20997,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "authentic-europe",
@@ -20581,7 +21042,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "authentic-scandinavia",
@@ -20625,7 +21087,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "flixbus",
@@ -20669,7 +21132,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "haglofs",
@@ -20713,7 +21177,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "maria-nila",
@@ -20757,7 +21222,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "otto-suenson",
@@ -20801,7 +21267,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "selected",
@@ -20845,7 +21312,8 @@
       "zupergiftSupported": true,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     }
   ],
   "errorReports": [

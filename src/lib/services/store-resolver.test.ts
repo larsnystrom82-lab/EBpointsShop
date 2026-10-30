@@ -645,5 +645,41 @@ describe('Store Resolver - Alias and Grouping', () => {
     };
     const updatedStores = buildAllStores(mockDb);
     expect(updatedStores.find((s) => s.id === 'cervera')?.acceptsAmex).toBe(true);
+    // Partner stores with "Per 100 kr" default to excludesVat: true
+    expect(updatedStores.find((s) => s.id === 'cervera')?.excludesVat).toBe(true);
+
+    // Partner stores with fixed one-time bonus (e.g. Tibber) always resolve to excludesVat: false
+    mockDb.stores.push({
+      id: 'tibber',
+      name: 'Tibber',
+      slug: 'tibber',
+      aliases: [],
+      logoUrl: '/logos/tibber.svg',
+      categories: ['services'],
+      isActive: true,
+      partnerRule: {
+        hasPartnerLink: true,
+        bonusPer100Kr: 0,
+        tierPer100Kr: 0,
+        rewardType: 'fixed',
+        fixedBonusPoints: 2500,
+        fixedTierPoints: 500,
+        isOneTimeOffer: true,
+        isCampaign: false,
+        campaignValidUntil: null,
+        startUrl: 'https://tibber.com',
+      },
+      giftCardRule: {
+        hasDirectGiftCard: false,
+        bonusPer100Kr: 0,
+        denominationsKr: [],
+        feeKr: 0,
+        isCampaign: false,
+        startUrl: '',
+      },
+      zupergiftSupported: false,
+    });
+    const storesWithTibber = buildAllStores(mockDb);
+    expect(storesWithTibber.find((s) => s.id === 'tibber')?.excludesVat).toBe(false);
   });
 });
