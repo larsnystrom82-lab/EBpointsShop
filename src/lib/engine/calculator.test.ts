@@ -987,6 +987,44 @@ describe('EuroBonus Beräkningsmotor – Acceptanstester A03–A16', () => {
     expect(zgRoute295.baseBonusPoints).toBe(75); // 250 kr * 30 / 100 = 75 p
     expect(zgRoute295.cardOutcomes['amex_elite'].cardBonusPoints).toBe(59); // floor(295 * 20 / 100) = 59 p
   });
+
+  it('excludesVat (t.ex. Amazon): beräknar partnerpoäng på 80 % av köpbeloppet (80 kr vid 100 kr köp) medan kortpoäng beräknas på 100 %', () => {
+    const amazonStore: Store = {
+      id: 'amazon',
+      name: 'Amazon',
+      slug: 'amazon',
+      categories: ['department'],
+      isActive: true,
+      excludesVat: true,
+      acceptsAmex: true,
+      partnerRule: {
+        hasPartnerLink: true,
+        bonusPer100Kr: 50,
+        tierPer100Kr: 10,
+        isCampaign: false,
+        campaignValidUntil: null,
+        startUrl: 'https://onlineshopping.flysas.com/sv-SE/butiker/amazon/018ead91-a62a-71c0-b877-9faf0d120af4',
+      },
+    };
+
+    const routes = generateCandidateRoutes({
+      store: amazonStore,
+      purchaseAmountKr: 100,
+    });
+
+    expect(routes).toHaveLength(1);
+    const partnerRoute = routes[0];
+    expect(partnerRoute.excludesVat).toBe(true);
+    expect(partnerRoute.purchaseAmountOre).toBe(10000); // 100 kr
+    expect(partnerRoute.qualifyingAmountOre).toBe(8000); // 80 kr (exkl. 25 % moms)
+    // 80 kr * 50 p / 100 kr = 40 bonuspoäng (istället för 50 p)
+    expect(partnerRoute.baseBonusPoints).toBe(40);
+    // 80 kr * 10 p / 100 kr = 8 nivåpoäng (istället för 10 p)
+    expect(partnerRoute.baseTierPoints).toBe(8);
+    // Kortpoäng beräknas på hela 100 kr (20 p med Amex Elite)
+    expect(partnerRoute.cardOutcomes['amex_elite'].cardBonusPoints).toBe(20);
+    expect(partnerRoute.cardOutcomes['amex_elite'].totalBonusPoints).toBe(60);
+  });
 });
 
 

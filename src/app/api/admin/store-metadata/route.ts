@@ -10,7 +10,7 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json();
-    const { storeId, customLogoUrl, comment, isHidden, categories, alias, aliases, acceptsAmex } = body;
+    const { storeId, customLogoUrl, comment, isHidden, categories, alias, aliases, acceptsAmex, excludesVat } = body;
 
     if (!storeId || typeof storeId !== 'string') {
       return NextResponse.json({ error: 'Ogiltigt butiks-ID' }, { status: 400 });
@@ -27,6 +27,7 @@ export async function POST(request: Request) {
     const cleanIsHidden = typeof isHidden === 'boolean' ? isHidden : Boolean(existingMeta.isHidden);
     const cleanAlias = typeof alias === 'string' ? (alias.trim() || null) : alias === null ? null : (existingMeta.alias || null);
     const cleanAcceptsAmex = typeof acceptsAmex === 'boolean' ? acceptsAmex : existingMeta.acceptsAmex;
+    const cleanExcludesVat = typeof excludesVat === 'boolean' ? excludesVat : existingMeta.excludesVat;
 
     let cleanCategories: string[] | null | undefined = undefined;
     if (Array.isArray(categories)) {
@@ -47,6 +48,7 @@ export async function POST(request: Request) {
       isHidden: cleanIsHidden,
       alias: cleanAlias,
       ...(cleanAcceptsAmex !== undefined ? { acceptsAmex: cleanAcceptsAmex } : {}),
+      ...(cleanExcludesVat !== undefined ? { excludesVat: cleanExcludesVat } : {}),
       ...(cleanCategories !== undefined ? { categories: cleanCategories } : {}),
       ...(cleanAliases !== undefined ? { aliases: cleanAliases } : {}),
       updatedAt: new Date().toISOString(),
@@ -62,6 +64,9 @@ export async function POST(request: Request) {
       baseStore.alias = cleanAlias;
       if (typeof cleanAcceptsAmex === 'boolean') {
         baseStore.acceptsAmex = cleanAcceptsAmex;
+      }
+      if (typeof cleanExcludesVat === 'boolean') {
+        baseStore.excludesVat = cleanExcludesVat;
       }
       if (cleanCategories && cleanCategories.length > 0) {
         baseStore.categories = cleanCategories;

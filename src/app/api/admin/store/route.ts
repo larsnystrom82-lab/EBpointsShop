@@ -17,6 +17,7 @@ export async function POST(request: Request) {
       isCampaign,
       zupergiftSupported,
       acceptsAmex,
+      excludesVat,
       categories,
       category,
       alias,
@@ -85,6 +86,18 @@ export async function POST(request: Request) {
       db.storeCustomMetadata[store.id] = {
         ...(db.storeCustomMetadata[store.id] || {}),
         acceptsAmex,
+        updatedAt: new Date().toISOString(),
+        updatedBy: 'Admin',
+      };
+    }
+    if (typeof excludesVat === 'boolean') {
+      store.excludesVat = excludesVat;
+      if (!db.storeCustomMetadata) {
+        db.storeCustomMetadata = {};
+      }
+      db.storeCustomMetadata[store.id] = {
+        ...(db.storeCustomMetadata[store.id] || {}),
+        excludesVat,
         updatedAt: new Date().toISOString(),
         updatedBy: 'Admin',
       };

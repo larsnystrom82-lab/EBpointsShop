@@ -919,7 +919,8 @@
       "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
-      "partnerMissingSince": null
+      "partnerMissingSince": null,
+      "excludesVat": true
     },
     {
       "id": "animigo",
@@ -27589,6 +27590,9 @@
       "alias": "TV4 Play",
       "updatedAt": "2026-10-05T07:13:07.580Z",
       "updatedBy": "Admin"
+    },
+    "amazon": {
+      "excludesVat": true
     }
   },
   "excludedStoreIds": [],

@@ -57,15 +57,16 @@ export const AlternativeCard: React.FC<AlternativeCardProps> = ({
   const baseBonusPoints = route.baseBonusPoints;
   const baseTierPoints = route.baseTierPoints;
 
+  const partnerBasisOre = route.qualifyingAmountOre || route.purchaseAmountOre;
   const currentBonusRate =
     (route.routeType === 'direct_partner' || route.routeType === 'gift_card') &&
     !route.isOneTimeOffer &&
     route.purchaseAmountOre > 0
-      ? Math.round((route.baseBonusPoints / ((route.giftCardValueOre || route.purchaseAmountOre) / 10000)) * 10) / 10
+      ? Math.round((route.baseBonusPoints / ((route.giftCardValueOre || partnerBasisOre) / 10000)) * 10) / 10
       : undefined;
   const currentTierRate =
-    route.routeType === 'direct_partner' && !route.isOneTimeOffer && route.purchaseAmountOre > 0
-      ? Math.round((route.baseTierPoints / (route.purchaseAmountOre / 10000)) * 10) / 10
+    route.routeType === 'direct_partner' && !route.isOneTimeOffer && partnerBasisOre > 0
+      ? Math.round((route.baseTierPoints / (partnerBasisOre / 10000)) * 10) / 10
       : undefined;
 
   const regularBaseTierPoints =
@@ -73,7 +74,7 @@ export const AlternativeCard: React.FC<AlternativeCardProps> = ({
       ? route.isOneTimeOffer
         ? route.regularFixedTierPoints
         : route.regularTierPer100Kr !== undefined
-        ? Math.floor((route.purchaseAmountOre * route.regularTierPer100Kr) / 10000)
+        ? Math.floor((partnerBasisOre * route.regularTierPer100Kr) / 10000)
         : undefined
       : undefined;
 
@@ -230,6 +231,14 @@ export const AlternativeCard: React.FC<AlternativeCardProps> = ({
                   Ej Amex
                 </span>
               )}
+              {route.routeType === 'direct_partner' && route.excludesVat && (
+                <span
+                  className="text-[11px] font-semibold text-amber-800 bg-amber-50 border border-amber-200/80 px-2 py-0.5 rounded-md"
+                  title={`Butiken ger ej poäng på moms – partnerpoäng beräknas på 80 % av köpbeloppet (${formatKr(route.qualifyingAmountOre || Math.round(route.purchaseAmountOre * 0.8))} kr)`}
+                >
+                  Exkl. moms (80%)
+                </span>
+              )}
               {route.comment && (
                 <span
                   className="text-[11px] font-semibold text-amber-800 bg-amber-50 border border-amber-200/80 px-2 py-0.5 rounded-md flex items-center gap-1 cursor-help"
@@ -277,7 +286,9 @@ export const AlternativeCard: React.FC<AlternativeCardProps> = ({
               {route.isOneTimeOffer
                 ? 'Fast engångsbonus'
                 : route.routeType === 'direct_partner'
-                ? 'Från partnerbutik'
+                ? route.excludesVat && route.qualifyingAmountOre
+                  ? `På ${formatKr(route.qualifyingAmountOre)} kr exkl. moms`
+                  : 'Från partnerbutik'
                 : route.exceedsPurchaseAmount && route.giftCardValueOre > route.purchaseAmountOre
                 ? `Min. köp ${formatKr(route.giftCardValueOre)} kr`
                 : route.giftCardValueOre > 0 && route.giftCardValueOre < route.purchaseAmountOre

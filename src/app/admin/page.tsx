@@ -123,7 +123,7 @@ export default function AdminPage() {
 
   // States for "Alla butiker" tab
   const [allStoresSearch, setAllStoresSearch] = useState('');
-  const [allStoresFilter, setAllStoresFilter] = useState<'all' | 'partner' | 'zupergift' | 'sas' | 'amex_yes' | 'amex_no' | 'has_logo' | 'custom_logo' | 'missing_logo' | 'has_comment' | 'hidden' | 'excluded' | 'missing_source' | 'new_synced'>('all');
+  const [allStoresFilter, setAllStoresFilter] = useState<'all' | 'partner' | 'zupergift' | 'sas' | 'amex_yes' | 'amex_no' | 'no_vat' | 'has_logo' | 'custom_logo' | 'missing_logo' | 'has_comment' | 'hidden' | 'excluded' | 'missing_source' | 'new_synced'>('all');
   const [allStoresCategoryFilter, setAllStoresCategoryFilter] = useState<string>('all');
 
   // States for Sync New Stores Log & Audit Log
@@ -137,6 +137,7 @@ export default function AdminPage() {
     comment: string;
     isHidden: boolean;
     acceptsAmex: boolean;
+    excludesVat: boolean;
     categories: string[];
     alias: string;
     aliasesText: string;
@@ -183,7 +184,7 @@ export default function AdminPage() {
   // SAS Partner stores live sync & filter
   const [syncingPartner, setSyncingPartner] = useState<boolean>(false);
   const [storeSearch, setStoreSearch] = useState('');
-  const [storeFilter, setStoreFilter] = useState<'all' | 'partner' | 'campaign' | 'zupergift' | 'amex_yes' | 'amex_no' | 'fixed' | 'missing_partner'>('all');
+  const [storeFilter, setStoreFilter] = useState<'all' | 'partner' | 'campaign' | 'zupergift' | 'amex_yes' | 'amex_no' | 'no_vat' | 'fixed' | 'missing_partner'>('all');
   const [storeCategoryFilter, setStoreCategoryFilter] = useState<string>('all');
 
   // Load admin data
@@ -390,6 +391,7 @@ export default function AdminPage() {
       const comment = edit?.comment !== undefined ? edit.comment : (store.comment || '');
       const isHidden = edit?.isHidden !== undefined ? edit.isHidden : Boolean(store.isHidden);
       const acceptsAmex = edit?.acceptsAmex !== undefined ? edit.acceptsAmex : Boolean(store.acceptsAmex);
+      const excludesVat = edit?.excludesVat !== undefined ? edit.excludesVat : Boolean(store.excludesVat);
       const categories = edit?.categories !== undefined ? edit.categories : (store.categories || ['department']);
       const alias = edit?.alias !== undefined ? edit.alias : (store.alias || '');
       const aliasesText = edit?.aliasesText !== undefined ? edit.aliasesText : (store.aliases || []).join(', ');
@@ -404,6 +406,7 @@ export default function AdminPage() {
           comment: comment.trim() || null,
           isHidden,
           acceptsAmex,
+          excludesVat,
           categories,
           alias: alias.trim() || null,
           aliases,
@@ -818,6 +821,7 @@ export default function AdminPage() {
           isCampaign: store.partnerRule?.isCampaign ?? false,
           zupergiftSupported: store.zupergiftSupported,
           acceptsAmex: Boolean(store.acceptsAmex),
+          excludesVat: Boolean(store.excludesVat),
         }),
       });
       const data = await res.json();
@@ -940,6 +944,7 @@ export default function AdminPage() {
       if (storeFilter === 'zupergift' && !store.zupergiftSupported) return false;
       if (storeFilter === 'amex_yes' && !store.acceptsAmex) return false;
       if (storeFilter === 'amex_no' && store.acceptsAmex) return false;
+      if (storeFilter === 'no_vat' && !store.excludesVat) return false;
       if (storeFilter === 'missing_partner' && !store.isMissingFromPartner) return false;
       if (storeFilter === 'fixed') {
         const isFixed =
@@ -1031,6 +1036,7 @@ export default function AdminPage() {
       sas: active.filter((s) => s.hasSasGiftCard).length,
       amexYes: active.filter((s) => Boolean(s.acceptsAmex)).length,
       amexNo: active.filter((s) => !s.acceptsAmex).length,
+      noVat: active.filter((s) => Boolean(s.excludesVat)).length,
       missingSource: active.filter((s) => s.isMissingFromSource || s.isMissingFromPartner).length,
       newSynced: nonExcluded.filter(
         (s) =>
@@ -1104,6 +1110,7 @@ export default function AdminPage() {
       if (allStoresFilter === 'sas' && !item.hasSasGiftCard) return false;
       if (allStoresFilter === 'amex_yes' && !item.acceptsAmex) return false;
       if (allStoresFilter === 'amex_no' && item.acceptsAmex) return false;
+      if (allStoresFilter === 'no_vat' && !item.excludesVat) return false;
       if (allStoresFilter === 'missing_source' && !item.isMissingFromSource && !item.isMissingFromPartner) return false;
       if (
         allStoresFilter === 'new_synced' &&
@@ -1969,6 +1976,18 @@ export default function AdminPage() {
                   </button>
                   <button
                     type="button"
+                    onClick={() => setAllStoresFilter('no_vat')}
+                    className={`px-3 py-1.5 rounded-lg font-bold transition-colors ${
+                      allStoresFilter === 'no_vat'
+                        ? 'bg-amber-700 text-white'
+                        : 'bg-amber-50 text-amber-800 hover:bg-amber-100 border border-amber-200'
+                    }`}
+                    title="Butiker som inte ger poäng på moms (poäng beräknas på 80 % av köpbeloppet)"
+                  >
+                    Ej moms ({storeCounts.noVat})
+                  </button>
+                  <button
+                    type="button"
                     onClick={() => setAllStoresFilter('has_comment')}
                     className={`px-3 py-1.5 rounded-lg font-bold transition-colors ${
                       allStoresFilter === 'has_comment'
@@ -2019,6 +2038,7 @@ export default function AdminPage() {
                     const commentVal = edit?.comment !== undefined ? edit.comment : (item.comment || '');
                     const isHiddenVal = edit?.isHidden !== undefined ? edit.isHidden : Boolean(item.isHidden);
                     const acceptsAmexVal = edit?.acceptsAmex !== undefined ? edit.acceptsAmex : Boolean(item.acceptsAmex);
+                    const excludesVatVal = edit?.excludesVat !== undefined ? edit.excludesVat : Boolean(item.excludesVat);
                     const categoriesVal = edit?.categories !== undefined ? edit.categories : (item.categories || ['department']);
                     const aliasVal = edit?.alias !== undefined ? edit.alias : (item.alias || '');
                     const aliasesTextVal = edit?.aliasesText !== undefined ? edit.aliasesText : (item.aliases || []).join(', ');
@@ -2026,7 +2046,7 @@ export default function AdminPage() {
                     const isSaving = Boolean(storeMetadataSaving[item.id]);
                     const previewLogoUrl = customLogoVal.trim() || item.logoUrl;
 
-                    const updateMetadataEdit = (patch: Partial<{ customLogoUrl: string; comment: string; isHidden: boolean; acceptsAmex: boolean; categories: string[]; alias: string; aliasesText: string }>) => {
+                    const updateMetadataEdit = (patch: Partial<{ customLogoUrl: string; comment: string; isHidden: boolean; acceptsAmex: boolean; excludesVat: boolean; categories: string[]; alias: string; aliasesText: string }>) => {
                       setStoreMetadataEdits((prev) => ({
                         ...prev,
                         [item.id]: {
@@ -2034,6 +2054,7 @@ export default function AdminPage() {
                           comment: edit?.comment !== undefined ? edit.comment : (item.comment || ''),
                           isHidden: edit?.isHidden !== undefined ? edit.isHidden : Boolean(item.isHidden),
                           acceptsAmex: edit?.acceptsAmex !== undefined ? edit.acceptsAmex : Boolean(item.acceptsAmex),
+                          excludesVat: edit?.excludesVat !== undefined ? edit.excludesVat : Boolean(item.excludesVat),
                           categories: edit?.categories !== undefined ? edit.categories : (item.categories || ['department']),
                           alias: edit?.alias !== undefined ? edit.alias : (item.alias || ''),
                           aliasesText: edit?.aliasesText !== undefined ? edit.aliasesText : (item.aliases || []).join(', '),
@@ -2184,6 +2205,11 @@ export default function AdminPage() {
                                     Ej Amex (partner)
                                   </span>
                                 )}
+                                {excludesVatVal && (
+                                  <span className="px-2 py-0.5 rounded-md bg-amber-100 text-amber-900 font-bold text-[10px] border border-amber-200" title="Butiken ger ej poäng på moms – partnerpoäng beräknas på 80 % av köpbeloppet">
+                                    Exkl. moms (80%)
+                                  </span>
+                                )}
                               </div>
                               {aliasesTextVal.trim() && (
                                 <div className="text-[10px] text-slate-500 pt-0.5 flex items-center gap-1">
@@ -2330,7 +2356,7 @@ export default function AdminPage() {
                               </p>
                             </div>
 
-                            {/* Amex-stöd & Dölj butiken i Poängpiloten */}
+                            {/* Amex-stöd, Momsundantag & Dölj butiken i Poängpiloten */}
                             <div className="md:col-span-2 pt-2 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3">
                               <div className="flex flex-wrap items-center gap-5">
                                 <label className={`inline-flex items-center gap-2 cursor-pointer select-none text-xs ${item.isExcluded ? 'opacity-50 cursor-not-allowed' : ''}`}>
@@ -2343,6 +2369,22 @@ export default function AdminPage() {
                                   />
                                   <span className="font-semibold text-slate-700 flex items-center gap-1.5">
                                     <span>💳 Tar Amex (direkt hos butiken)</span>
+                                  </span>
+                                </label>
+
+                                <label
+                                  className={`inline-flex items-center gap-2 cursor-pointer select-none text-xs ${item.isExcluded ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                  title="När markerad beräknas partnerpoäng på 80 % av köpbeloppet (exkl. 25 % moms), t.ex. 80 kr vid ett köp på 100 kr"
+                                >
+                                  <input
+                                    type="checkbox"
+                                    disabled={item.isExcluded}
+                                    checked={excludesVatVal}
+                                    onChange={(e) => updateMetadataEdit({ excludesVat: e.target.checked })}
+                                    className="w-4 h-4 rounded border-slate-300 text-amber-600 focus:ring-amber-500 cursor-pointer disabled:cursor-not-allowed"
+                                  />
+                                  <span className="font-semibold text-slate-700 flex items-center gap-1.5">
+                                    <span>Ej poäng på moms (80 % av köpbelopp)</span>
                                   </span>
                                 </label>
 
@@ -2361,9 +2403,11 @@ export default function AdminPage() {
                                 </label>
                               </div>
                               <span className="text-[11px] text-slate-400 hidden sm:inline">
-                                {acceptsAmexVal
-                                  ? 'Partnerköp ger Amex-kortpoäng (presentkort & Zupergift tar alltid Amex)'
-                                  : 'Partnerköp ger 0 p på Amex (presentkort & Zupergift tar alltid Amex)'}
+                                {excludesVatVal
+                                  ? 'Partnerpoäng räknas på 80 % (exkl. moms)'
+                                  : acceptsAmexVal
+                                  ? 'Partnerköp ger Amex-kortpoäng'
+                                  : 'Partnerköp ger 0 p på Amex'}
                               </span>
                             </div>
                           </div>
@@ -3561,6 +3605,18 @@ export default function AdminPage() {
                 </button>
                 <button
                   type="button"
+                  onClick={() => setStoreFilter('no_vat')}
+                  className={`px-3 py-1.5 rounded-lg font-bold transition-colors ${
+                    storeFilter === 'no_vat'
+                      ? 'bg-amber-700 text-white'
+                      : 'bg-amber-50 text-amber-800 hover:bg-amber-100 border border-amber-200'
+                  }`}
+                  title="Partnerbutiker som inte ger poäng på moms (80 % av köpbeloppet)"
+                >
+                  Ej moms ({dbData?.stores.filter((s) => !s.isExcluded && s.excludesVat).length || 0})
+                </button>
+                <button
+                  type="button"
                   onClick={() => setStoreFilter('missing_partner')}
                   className={`px-3 py-1.5 rounded-lg font-bold transition-colors flex items-center gap-1 ${
                     storeFilter === 'missing_partner'
@@ -3647,6 +3703,11 @@ export default function AdminPage() {
                             Ej Amex
                           </span>
                         )}
+                        {store.excludesVat && (
+                          <span className="px-2 py-0.5 rounded-md bg-amber-100 text-amber-900 font-bold text-[10px] border border-amber-200" title="Butiken ger ej poäng på moms – partnerpoäng beräknas på 80 % av köpbeloppet">
+                            Exkl. moms (80%)
+                          </span>
+                        )}
                         {(store.partnerRule?.rewardType === 'fixed' || store.partnerRule?.isOneTimeOffer || (store.partnerRule?.fixedBonusPoints ?? 0) > 0) ? (
                           <span className="px-2 py-0.5 rounded-md bg-purple-100 text-purple-800 font-bold text-[10px] flex items-center gap-1">
                             <span>⚡ Engångsbonus</span>
@@ -3685,6 +3746,21 @@ export default function AdminPage() {
                             className="w-4 h-4 rounded text-sky-600"
                           />
                           <span className="font-medium text-slate-700">💳 Tar Amex</span>
+                        </label>
+                        <label
+                          className="text-xs flex items-center gap-1 cursor-pointer"
+                          title="När markerad beräknas partnerpoäng på 80 % av köpbeloppet (exkl. 25 % moms)"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={Boolean(store.excludesVat)}
+                            onChange={(e) => {
+                              store.excludesVat = e.target.checked;
+                              setDbData((prev) => (prev ? { ...prev } : null));
+                            }}
+                            className="w-4 h-4 rounded text-amber-600"
+                          />
+                          <span className="font-medium text-slate-700">Ej poäng på moms (80%)</span>
                         </label>
                         <label className="text-xs flex items-center gap-1 cursor-pointer">
                           <input

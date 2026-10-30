@@ -372,6 +372,12 @@ export function generateCandidateRoutes(options: RouteGenerationOptions): RouteC
     let baseTierPoints: number;
     let breakdownDesc: string;
 
+    const excludesVat = Boolean(store.excludesVat);
+    const qualifyingAmountOre =
+      excludesVat && !isFixedReward
+        ? Math.round(purchaseAmountOre * 0.8)
+        : purchaseAmountOre;
+
     if (isFixedReward) {
       baseBonusPoints = isCampaignValid
         ? (partnerRule?.fixedBonusPoints ?? partnerRule?.bonusPer100Kr ?? partnerRateBonus)
@@ -381,9 +387,11 @@ export function generateCandidateRoutes(options: RouteGenerationOptions): RouteC
         : (resolvedRegularFixedTierPoints ?? partnerRule?.fixedTierPoints ?? partnerRule?.tierPer100Kr ?? partnerRateTier);
       breakdownDesc = `Fast engångsbonus (${baseBonusPoints.toLocaleString('sv-SE')} Extrapoäng${baseTierPoints > 0 ? ` + ${baseTierPoints.toLocaleString('sv-SE')} nivåpoäng` : ''})`;
     } else {
-      baseBonusPoints = Math.floor((purchaseAmountOre * partnerRateBonus) / 10000);
-      baseTierPoints = partnerRateTier > 0 ? Math.floor((purchaseAmountOre * partnerRateTier) / 10000) : 0;
-      breakdownDesc = `Partnerlänk ger ${partnerRateBonus} bonuspoäng${partnerRateTier > 0 ? ` + ${partnerRateTier} nivåpoäng` : ''} per 100 kr`;
+      baseBonusPoints = Math.floor((qualifyingAmountOre * partnerRateBonus) / 10000);
+      baseTierPoints = partnerRateTier > 0 ? Math.floor((qualifyingAmountOre * partnerRateTier) / 10000) : 0;
+      breakdownDesc = excludesVat
+        ? `Partnerlänk ger ${partnerRateBonus} bonuspoäng${partnerRateTier > 0 ? ` + ${partnerRateTier} nivåpoäng` : ''} per 100 kr exkl. moms (80 % av köpbeloppet = ${(qualifyingAmountOre / 100).toLocaleString('sv-SE')} kr)`
+        : `Partnerlänk ger ${partnerRateBonus} bonuspoäng${partnerRateTier > 0 ? ` + ${partnerRateTier} nivåpoäng` : ''} per 100 kr`;
     }
 
     const totalOutlayOre = purchaseAmountOre;
@@ -396,9 +404,11 @@ export function generateCandidateRoutes(options: RouteGenerationOptions): RouteC
         description: breakdownDesc,
         bonusPoints: baseBonusPoints,
         tierPoints: baseTierPoints,
-        qualifyingAmountOre: purchaseAmountOre,
+        qualifyingAmountOre,
         note: isFixedReward
           ? (store.partnerRule?.oneTimeTerms || 'Engångsbonus – gäller vanligtvis ny kund vid första köpet')
+          : excludesVat
+          ? `Ej poäng på moms – partnerpoäng beräknas på 80 % av köpbeloppet (${(qualifyingAmountOre / 100).toLocaleString('sv-SE')} kr)`
           : undefined,
       },
     ];
@@ -449,11 +459,12 @@ export function generateCandidateRoutes(options: RouteGenerationOptions): RouteC
           title: 'Genomför köpet i butiken',
           description: isFixedReward
             ? `Handla för ${purchaseAmountKr.toLocaleString('sv-SE')} kr och betala med ditt valda betalkort. Ger en fast engångsbonus på ${baseBonusPoints.toLocaleString('sv-SE')} Extrapoäng${baseTierPoints > 0 ? ` och ${baseTierPoints.toLocaleString('sv-SE')} nivåpoäng` : ''}.`
-            : `Handla för ${purchaseAmountKr.toLocaleString('sv-SE')} kr och betala med ditt valda betalkort.`,
+            : `Handla för ${purchaseAmountKr.toLocaleString('sv-SE')} kr och betala med ditt valda betalkort.${excludesVat ? ` Partnerpoäng hos ${store.name} beräknas exklusive moms (på ${(qualifyingAmountOre / 100).toLocaleString('sv-SE')} kr).` : ''}`,
         },
       ],
       totalSteps: 2,
       purchaseAmountOre,
+      qualifyingAmountOre,
       totalOutlayOre,
       giftCardValueOre: 0,
       extraOutlayOre,
@@ -478,6 +489,7 @@ export function generateCandidateRoutes(options: RouteGenerationOptions): RouteC
       customLogoUrl: store.customLogoUrl || null,
       comment: store.comment || null,
       acceptsAmex: partnerAcceptsAmex,
+      excludesVat: excludesVat && !isFixedReward,
       isDemoFixture: !store.partnerRule?.hasPartnerLink,
       demoLabel: !store.partnerRule?.hasPartnerLink
         ? ((store.id === 'bagaren-och-kocken' || store.id === 'kitchentime')

@@ -265,6 +265,15 @@ export async function syncSasPartnerStores(): Promise<{
         ? `https://onlineshopping.flysas.com/sv-SE/butiker/${shop.slug}/${shop.uuid}`
         : `https://onlineshopping.flysas.com/sv-SE/butiker/${shop.slug}`;
 
+      const plainDesc = (shop.description || '')
+        .replace(/<[^>]+>/g, ' ')
+        .replace(/&nbsp;/gi, ' ')
+        .replace(/\s+/g, ' ');
+      const apiExcludesVat =
+        /(?:inte|ej)\s+(?:kan\s+)?tjäna\s+poäng\s+på[^.!\n]*\bmoms\b|\bpoäng\s+(?:delas|betalas|ges)\s+(?:inte|ej)\s+ut[^.!\n]*\bmoms\b|\bexkl(?:usive|\.)?\s*moms\b/i.test(
+          plainDesc
+        );
+
       const partnerRule = {
         hasPartnerLink: true,
         bonusPer100Kr,
@@ -289,6 +298,14 @@ export async function syncSasPartnerStores(): Promise<{
         existing.partnerRule = partnerRule;
         existing.isMissingFromPartner = false;
         existing.partnerMissingSince = null;
+        const metaExcludesVat =
+          db.storeCustomMetadata?.[existing.id]?.excludesVat ??
+          db.storeCustomMetadata?.[shopSlug]?.excludesVat;
+        if (metaExcludesVat !== undefined && metaExcludesVat !== null) {
+          existing.excludesVat = Boolean(metaExcludesVat);
+        } else if (apiExcludesVat) {
+          existing.excludesVat = true;
+        }
         if (shop.logo && (!existing.logoUrl || existing.logoUrl.includes('neutral'))) {
           existing.logoUrl = shop.logo;
         }
@@ -308,6 +325,7 @@ export async function syncSasPartnerStores(): Promise<{
           logoUrl: shop.logo || `/logos/${shop.slug}.svg`,
           categories: mapCategories(shop.categoryId),
           isActive: true,
+          excludesVat: apiExcludesVat || undefined,
           partnerRule,
           giftCardRule: {
             hasDirectGiftCard: false,
