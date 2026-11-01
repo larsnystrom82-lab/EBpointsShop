@@ -153,14 +153,14 @@ export const AlternativeCard: React.FC<AlternativeCardProps> = ({
       <div className="hidden md:flex items-center justify-between p-5 gap-4">
         {/* Vänster: Logga, Titel, Taggar, Breadcrumb, Kontrolltid */}
         <div className="flex items-center gap-4 min-w-[280px] max-w-[340px]">
-          <div className="w-20 h-12 relative flex items-center justify-center shrink-0">
+          <div className="w-20 h-[60px] relative flex items-center justify-center shrink-0">
             {route.storeLogoUrl && !imgError ? (
               <Image
                 src={route.storeLogoUrl}
                 alt={route.storeName}
                 width={80}
-                height={40}
-                className="max-h-10 w-auto object-contain"
+                height={60}
+                className="max-h-[60px] max-w-[80px] w-auto object-contain"
                 onError={() => setImgError(true)}
               />
             ) : (
@@ -365,14 +365,14 @@ export const AlternativeCard: React.FC<AlternativeCardProps> = ({
         {/* Mobil Header: Logga, Titel & Enkelt-badge */}
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-center gap-2.5">
-            <div className="w-14 h-8 relative flex items-center justify-center shrink-0">
+            <div className="w-14 h-[42px] relative flex items-center justify-center shrink-0">
               {route.storeLogoUrl && !imgError ? (
                 <Image
                   src={route.storeLogoUrl}
                   alt=""
                   width={56}
-                  height={32}
-                  className="max-h-7 w-auto object-contain"
+                  height={42}
+                  className="max-h-[42px] max-w-[56px] w-auto object-contain"
                   onError={() => setImgError(true)}
                 />
               ) : (
