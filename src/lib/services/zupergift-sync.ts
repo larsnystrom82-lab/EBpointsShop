@@ -1,4 +1,5 @@
 import { getDatabase, saveDatabase, ZupergiftStoreItem, SyncNewStoreItem } from '@/lib/db';
+import { isSasZupergiftBlocked } from './store-resolver';
 
 /**
  * Normalizes title strings from HTML (e.g. &#x27; -> ')
@@ -279,12 +280,17 @@ export async function syncZupergiftCatalog(): Promise<{
 
   for (const [slug, item] of discoveredMap.entries()) {
     const existing = db.zupergiftStores.find((s) => s.slug === slug || s.id === slug);
+    const blockedInSas = isSasZupergiftBlocked(item.name, slug, slug);
 
     if (existing) {
-      // Existing store: preserve admin's choice (isHidden and isExcluded)
+      // Existing store: preserve admin's choice (isHidden and isExcluded),
+      // and always keep SAS-blocked Zupergift brands hidden.
       existing.syncedAt = now;
       existing.isMissingFromSource = false;
       existing.missingSince = null;
+      if (blockedInSas) {
+        existing.isHidden = true;
+      }
       if (!existing.name || existing.name === existing.slug) {
         existing.name = item.name;
       }
@@ -310,7 +316,7 @@ export async function syncZupergiftCatalog(): Promise<{
         name: item.name,
         slug: slug,
         category: assignedCategory,
-        isHidden: false,
+        isHidden: blockedInSas,
         isExcluded: false,
         isMissingFromSource: false,
         missingSince: null,
@@ -367,8 +373,13 @@ export async function syncZupergiftCatalog(): Promise<{
 
     if (zgItem) {
       zgItem.matchedStoreId = store.id;
-      // Active in app only if not hidden, not excluded, and not missing from Zupergift
-      store.zupergiftSupported = !zgItem.isHidden && !zgItem.isExcluded && !zgItem.isMissingFromSource;
+      // Active in app only if not hidden, not excluded, not missing from Zupergift, and not blocked in SAS Shop Zupergift terms
+      store.zupergiftSupported =
+        !zgItem.isHidden &&
+        !zgItem.isExcluded &&
+        !zgItem.isMissingFromSource &&
+        !isSasZupergiftBlocked(store.name, store.slug, store.id) &&
+        !isSasZupergiftBlocked(zgItem.name, zgItem.slug, zgItem.id);
       if (store.zupergiftSupported) {
         matchedStoresList.push(store.name);
       }

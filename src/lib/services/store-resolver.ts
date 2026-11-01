@@ -50,6 +50,16 @@ export function cleanStoreSlug(slug: string): string {
 }
 
 /**
+ * According to SAS EuroBonus Shop terms:
+ * "Zupergift som är köpt i SAS EuroBonus Shop fungerar inte att lösa in till
+ * Circle K, Coop, Hemköp, ICA, Paygoo, Amazon, Gekås Ullared och IKEA."
+ */
+export function isSasZupergiftBlocked(name?: string, slug?: string, id?: string): boolean {
+  const combined = `${name || ''} ${slug || ''} ${id || ''}`.toLowerCase();
+  return /(?:circle[\s-]*k|circlek|\bcoop\b|hemk[oö]p|\bica\b|paygoo|\bamazon\b|gek[aå]s|ullared|\bikea\b)/i.test(combined);
+}
+
+/**
  * Builds the consolidated, deduplicated list of all stores across:
  * 1. SAS Online Shopping partner stores (db.stores)
  * 2. Zupergift catalog stores (db.zupergiftStores)
@@ -71,6 +81,7 @@ export function buildAllStores(db: DatabaseSchema, options?: { includeExcluded?:
   };
 
   const isStoreHidden = (id: string, slug?: string, obj?: { isHidden?: boolean }): boolean => {
+    if (obj?.isHidden) return true;
     const m =
       metadata[id] ||
       metadata[id.toLowerCase()] ||
@@ -78,7 +89,32 @@ export function buildAllStores(db: DatabaseSchema, options?: { includeExcluded?:
     if (m?.isHidden !== undefined && m?.isHidden !== null) {
       return Boolean(m.isHidden);
     }
-    return Boolean(obj?.isHidden);
+    return false;
+  };
+
+  // Pre-build lookup of SAS gift cards that are active, so a store in zupergiftStores
+  // whose Zupergift channel is hidden (e.g. IKEA) still keeps its canonical store entry
+  // if it has an active SAS Gift Card.
+  const activeSasGcKeys = new Set<string>();
+  for (const gc of db.sasGiftCards || []) {
+    if (gc.isHidden || gc.isExcluded || gc.isMissingFromSource || (gc.bonusPer100Kr ?? 0) <= 0) continue;
+    activeSasGcKeys.add(gc.id.toLowerCase());
+    if (gc.slug) activeSasGcKeys.add(gc.slug.toLowerCase());
+    activeSasGcKeys.add(cleanStoreSlug(gc.id));
+    if (gc.slug) activeSasGcKeys.add(cleanStoreSlug(gc.slug));
+    if (gc.matchedStoreId) activeSasGcKeys.add(gc.matchedStoreId.toLowerCase());
+    if (gc.name) activeSasGcKeys.add(gc.name.trim().toLowerCase());
+  }
+
+  const hasActiveSasGcMatch = (zs: { id: string; slug?: string; name?: string; matchedStoreId?: string }): boolean => {
+    return (
+      activeSasGcKeys.has(zs.id.toLowerCase()) ||
+      Boolean(zs.slug && activeSasGcKeys.has(zs.slug.toLowerCase())) ||
+      activeSasGcKeys.has(cleanStoreSlug(zs.id)) ||
+      Boolean(zs.slug && activeSasGcKeys.has(cleanStoreSlug(zs.slug))) ||
+      Boolean(zs.matchedStoreId && activeSasGcKeys.has(zs.matchedStoreId.toLowerCase())) ||
+      Boolean(zs.name && activeSasGcKeys.has(zs.name.trim().toLowerCase()))
+    );
   };
 
   const baseStores: Store[] = (db.stores || [])
@@ -173,7 +209,8 @@ export function buildAllStores(db: DatabaseSchema, options?: { includeExcluded?:
         excludesVat,
         partnerRule: resolvedPartnerRule,
         giftCardRule: s.giftCardRule,
-        zupergiftSupported: Boolean(s.zupergiftSupported),
+        zupergiftSupported:
+          Boolean(s.zupergiftSupported) && !isSasZupergiftBlocked(s.name, s.slug, s.id),
         isZupergiftOnly: false,
         hasPartnerLink: isExcluded || isHidden ? false : Boolean(resolvedPartnerRule?.hasPartnerLink),
         isMissingFromPartner: Boolean(s.isMissingFromPartner),
@@ -205,8 +242,9 @@ export function buildAllStores(db: DatabaseSchema, options?: { includeExcluded?:
         return false;
       }
       if (options?.includeExcluded) return true;
-      if (isStoreExcluded(zs.id, zs.slug, zs)) return false;
-      if (isStoreHidden(zs.id, zs.slug, zs)) return false;
+      const hasSasGc = hasActiveSasGcMatch(zs);
+      if (isStoreExcluded(zs.id, zs.slug, hasSasGc ? undefined : zs)) return false;
+      if (isStoreHidden(zs.id, zs.slug, hasSasGc ? undefined : zs)) return false;
       return true;
     })
     .map((zs) => {
@@ -214,8 +252,14 @@ export function buildAllStores(db: DatabaseSchema, options?: { includeExcluded?:
       const customLogoUrl = meta?.customLogoUrl?.trim() || (zs as any).customLogoUrl || null;
       const comment = meta?.comment?.trim() || (zs as any).comment || null;
       const alias = meta?.alias !== undefined ? (meta.alias?.trim() || null) : ((zs as any).alias?.trim() || null);
-      const isExcluded = isStoreExcluded(zs.id, zs.slug, zs);
-      const isHidden = isStoreHidden(zs.id, zs.slug, zs);
+      const hasSasGc = hasActiveSasGcMatch(zs);
+      const isExcluded = isStoreExcluded(zs.id, zs.slug, hasSasGc ? undefined : zs);
+      const isHidden = isStoreHidden(zs.id, zs.slug, hasSasGc ? undefined : zs);
+      const isZgChannelBlockedOrHidden =
+        Boolean(zs.isHidden) ||
+        Boolean(zs.isExcluded) ||
+        Boolean(zs.isMissingFromSource) ||
+        isSasZupergiftBlocked(zs.name, zs.slug, zs.id);
 
       return {
         id: zs.id,
@@ -250,10 +294,10 @@ export function buildAllStores(db: DatabaseSchema, options?: { includeExcluded?:
           isCampaign: false,
           startUrl: '',
         },
-        zupergiftSupported: !isExcluded && !isHidden,
+        zupergiftSupported: !isExcluded && !isHidden && !isZgChannelBlockedOrHidden,
         zupergiftSlug: zs.slug,
         zupergiftUrl: `https://zupergift.com/se/${zs.slug}`,
-        isZupergiftOnly: true,
+        isZupergiftOnly: !hasSasGc,
         hasPartnerLink: false,
         isMissingFromSource: Boolean(zs.isMissingFromSource),
         missingSince: zs.missingSince || null,
@@ -397,9 +441,9 @@ export function buildAllStores(db: DatabaseSchema, options?: { includeExcluded?:
   }
 
   // Enrich all stores with Zupergift item info (slug & direct presentkort URL)
-  const zgMap = new Map<string, { slug: string }>();
+  // Also enforce that if a matching Zupergift catalog entry is hidden/excluded/missing, zupergiftSupported is false.
+  const zgMap = new Map<string, { slug: string; isHidden?: boolean; isExcluded?: boolean; isMissingFromSource?: boolean }>();
   for (const zg of db.zupergiftStores || []) {
-    if (zg.isHidden || zg.isExcluded) continue;
     if (zg.matchedStoreId) {
       zgMap.set(zg.matchedStoreId.toLowerCase(), zg);
     }
@@ -436,9 +480,15 @@ export function buildAllStores(db: DatabaseSchema, options?: { includeExcluded?:
         zgMap.get(cleanStoreSlug(s.slug)) ||
         zgMap.get(s.name.trim().toLowerCase());
 
-      const resolvedSlug = zg?.slug || s.zupergiftSlug || s.slug || s.id;
-      s.zupergiftSlug = resolvedSlug;
-      s.zupergiftUrl = `https://zupergift.com/se/${resolvedSlug}`;
+      if (zg && (zg.isHidden || zg.isExcluded || zg.isMissingFromSource)) {
+        s.zupergiftSupported = false;
+      } else if (isSasZupergiftBlocked(s.name, s.slug, s.id)) {
+        s.zupergiftSupported = false;
+      } else {
+        const resolvedSlug = zg?.slug || s.zupergiftSlug || s.slug || s.id;
+        s.zupergiftSlug = resolvedSlug;
+        s.zupergiftUrl = `https://zupergift.com/se/${resolvedSlug}`;
+      }
     }
   }
 

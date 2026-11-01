@@ -76,18 +76,6 @@ export async function POST(request: Request) {
       }
     }
 
-    // Update in zupergiftStores if exists
-    const zgStore = (db.zupergiftStores || []).find((s) => s.id === storeId || s.slug === storeId || s.matchedStoreId === storeId);
-    if (zgStore) {
-      (zgStore as any).customLogoUrl = cleanLogoUrl;
-      (zgStore as any).comment = cleanComment;
-      (zgStore as any).alias = cleanAlias;
-      zgStore.isHidden = cleanIsHidden;
-      if (cleanCategories && cleanCategories.length > 0) {
-        zgStore.category = cleanCategories[0];
-      }
-    }
-
     // Update in sasGiftCards if exists
     const sasStore = (db.sasGiftCards || []).find((s) => s.id === storeId || s.slug === storeId || s.matchedStoreId === storeId);
     if (sasStore) {
@@ -95,6 +83,22 @@ export async function POST(request: Request) {
       (sasStore as any).comment = cleanComment;
       (sasStore as any).alias = cleanAlias;
       sasStore.isHidden = cleanIsHidden;
+    }
+
+    // Update in zupergiftStores if exists
+    const zgStore = (db.zupergiftStores || []).find((s) => s.id === storeId || s.slug === storeId || s.matchedStoreId === storeId);
+    if (zgStore) {
+      (zgStore as any).customLogoUrl = cleanLogoUrl;
+      (zgStore as any).comment = cleanComment;
+      (zgStore as any).alias = cleanAlias;
+      // Only overwrite zgStore.isHidden if this is a pure Zupergift store (no partner or SAS gift card)
+      // or if the admin is hiding the entire store globally.
+      if (cleanIsHidden || (!baseStore && !sasStore)) {
+        zgStore.isHidden = cleanIsHidden;
+      }
+      if (cleanCategories && cleanCategories.length > 0) {
+        zgStore.category = cleanCategories[0];
+      }
     }
 
     const storeName = baseStore?.name || zgStore?.name || sasStore?.name || storeId;
