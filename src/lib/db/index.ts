@@ -10,6 +10,7 @@ export interface ZupergiftConfig {
   updatedAt: string;
   updatedBy: string;
   note: string;
+  blockedStores?: string[]; // Butiker som ej kan lösas in med Zupergift köpt i SAS EuroBonus Shop
 }
 
 export interface ZupergiftStoreItem {
@@ -19,6 +20,7 @@ export interface ZupergiftStoreItem {
   category?: string;
   isHidden: boolean; // Dold av admin (visas inte för besökare)
   isExcluded: boolean; // Borttagen av admin (exkluderas även vid framtida synkningar)
+  isSasBlocked?: boolean; // True om SAS EuroBonus Shop anger att Zupergift ej kan lösas in till butiken
   matchedStoreId?: string; // Motsvarande lokal butik i Poängpiloten
   syncedAt: string;
   isMissingFromSource?: boolean; // True om butiken inte hittades på Zupergifts webbplats vid senaste synk

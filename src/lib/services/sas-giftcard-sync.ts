@@ -1,4 +1,8 @@
 import { getDatabase, saveDatabase, SasGiftCardStoreItem, SyncNewStoreItem } from '@/lib/db';
+import {
+  isSasZupergiftBlocked,
+  parseSasZupergiftBlockedStoresFromHtml,
+} from '@/lib/services/store-resolver';
 
 /**
  * Normalizes title strings from HTML entities
@@ -185,6 +189,7 @@ interface GraphQLProductItem {
   attributes?: {
     manufacturer?: string | null;
     accrual?: number | null;
+    description?: string | null;
     image?: { src?: string | null };
   };
   options?: {
@@ -285,6 +290,7 @@ export async function syncSasGiftCardStores(): Promise<{
                 attributes {
                   manufacturer
                   accrual
+                  description
                   image { src }
                 }
               }
@@ -388,6 +394,22 @@ export async function syncSasGiftCardStores(): Promise<{
     for (const prod of baseItems) {
       if (!prod.url || !prod.name) continue;
       const slug = prod.url.replace(/^\/?(?:se\/)?/, '').replace(/\/$/, '').toLowerCase();
+      if (slug === 'zupergift-presentkort' && prod.attributes?.description) {
+        const parsedBlocked = parseSasZupergiftBlockedStoresFromHtml(prod.attributes.description);
+        if (parsedBlocked.length > 0 && db.zupergiftConfig) {
+          db.zupergiftConfig.blockedStores = parsedBlocked;
+          for (const zs of db.zupergiftStores || []) {
+            const blocked = isSasZupergiftBlocked(zs.name, zs.slug, zs.id, parsedBlocked);
+            zs.isSasBlocked = blocked;
+            if (blocked) zs.isHidden = true;
+          }
+          for (const st of db.stores || []) {
+            if (isSasZupergiftBlocked(st.name, st.slug, st.id, parsedBlocked)) {
+              st.zupergiftSupported = false;
+            }
+          }
+        }
+      }
       if (!slug || NON_STORE_SLUGS.has(slug)) continue;
 
       const cleanName = cleanStoreName(prod.name);

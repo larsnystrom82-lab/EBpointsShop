@@ -1,5 +1,54 @@
 import { getDatabase, saveDatabase, ZupergiftStoreItem, SyncNewStoreItem } from '@/lib/db';
-import { isSasZupergiftBlocked } from './store-resolver';
+import {
+  DEFAULT_SAS_ZUPERGIFT_BLOCKED_STORES,
+  isSasZupergiftBlocked,
+  parseSasZupergiftBlockedStoresFromHtml,
+} from './store-resolver';
+
+/**
+ * Fetches the Zupergift product description from SAS EuroBonus Shop's GraphQL API
+ * (`route(path: "zupergift-presentkort")`) and parses the list of stores where
+ * Zupergift bought in SAS EuroBonus Shop cannot be redeemed.
+ */
+export async function fetchSasZupergiftBlockedStores(): Promise<string[]> {
+  try {
+    const res = await fetch('https://www.saseurobonusshop.com/se/graphql', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'User-Agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+        Accept: 'application/json',
+      },
+      body: JSON.stringify({
+        query: `{
+          route(path: "zupergift-presentkort") {
+            ... on RouteProduct {
+              product {
+                attributes {
+                  description
+                }
+              }
+            }
+          }
+        }`,
+      }),
+      next: { revalidate: 0 },
+    });
+
+    if (res.ok) {
+      const json = await res.json();
+      const descHtml: string | undefined = json?.data?.route?.product?.attributes?.description;
+      const parsed = parseSasZupergiftBlockedStoresFromHtml(descHtml);
+      if (parsed.length > 0) {
+        return Array.from(new Set([...DEFAULT_SAS_ZUPERGIFT_BLOCKED_STORES, ...parsed]));
+      }
+    }
+  } catch {
+    // Fallback to default list below
+  }
+  return DEFAULT_SAS_ZUPERGIFT_BLOCKED_STORES;
+}
 
 /**
  * Normalizes title strings from HTML (e.g. &#x27; -> ')
@@ -274,13 +323,19 @@ export async function syncZupergiftCatalog(): Promise<{
   );
 
   // Synchronize with database, respecting admin overrides (isHidden & isExcluded)
+  // Also fetch SAS EuroBonus Shop's Zupergift terms to automatically detect any blocked stores
+  const blockedStoresList = await fetchSasZupergiftBlockedStores();
+  if (db.zupergiftConfig) {
+    db.zupergiftConfig.blockedStores = blockedStoresList;
+  }
+
   let newStoresAdded = 0;
   const addedStores: SyncNewStoreItem[] = [];
   const now = new Date().toISOString();
 
   for (const [slug, item] of discoveredMap.entries()) {
     const existing = db.zupergiftStores.find((s) => s.slug === slug || s.id === slug);
-    const blockedInSas = isSasZupergiftBlocked(item.name, slug, slug);
+    const blockedInSas = isSasZupergiftBlocked(item.name, slug, slug, blockedStoresList);
 
     if (existing) {
       // Existing store: preserve admin's choice (isHidden and isExcluded),
@@ -288,6 +343,7 @@ export async function syncZupergiftCatalog(): Promise<{
       existing.syncedAt = now;
       existing.isMissingFromSource = false;
       existing.missingSince = null;
+      existing.isSasBlocked = blockedInSas;
       if (blockedInSas) {
         existing.isHidden = true;
       }
@@ -318,6 +374,7 @@ export async function syncZupergiftCatalog(): Promise<{
         category: assignedCategory,
         isHidden: blockedInSas,
         isExcluded: false,
+        isSasBlocked: blockedInSas,
         isMissingFromSource: false,
         missingSince: null,
         matchedStoreId: matchedStore?.id,
@@ -378,8 +435,9 @@ export async function syncZupergiftCatalog(): Promise<{
         !zgItem.isHidden &&
         !zgItem.isExcluded &&
         !zgItem.isMissingFromSource &&
-        !isSasZupergiftBlocked(store.name, store.slug, store.id) &&
-        !isSasZupergiftBlocked(zgItem.name, zgItem.slug, zgItem.id);
+        !zgItem.isSasBlocked &&
+        !isSasZupergiftBlocked(store.name, store.slug, store.id, blockedStoresList) &&
+        !isSasZupergiftBlocked(zgItem.name, zgItem.slug, zgItem.id, blockedStoresList);
       if (store.zupergiftSupported) {
         matchedStoresList.push(store.name);
       }

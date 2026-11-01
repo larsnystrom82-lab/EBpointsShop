@@ -49,14 +49,91 @@ export function cleanStoreSlug(slug: string): string {
     .replace(/-sek$/, '');
 }
 
+export const DEFAULT_SAS_ZUPERGIFT_BLOCKED_STORES = [
+  'Circle K',
+  'Coop',
+  'Hemköp',
+  'ICA',
+  'Paygoo',
+  'Amazon',
+  'Gekås Ullared',
+  'IKEA',
+];
+
+function escapeRegex(str: string): string {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function foldSwedish(str: string): string {
+  return str
+    .toLowerCase()
+    .replace(/[åä]/g, 'a')
+    .replace(/ö/g, 'o');
+}
+
+/**
+ * Parses blocked Zupergift store names from SAS EuroBonus Shop's Zupergift product description HTML.
+ * Example sentence in SAS Shop GraphQL (`route(path: "zupergift-presentkort")`):
+ * "Zupergift som är köpt i SAS EuroBonus Shop fungerar inte att lösa in till Circle K, Coop, Hemköp, ICA, Paygoo, Amazon, Gekås Ullared och IKEA."
+ */
+export function parseSasZupergiftBlockedStoresFromHtml(html?: string | null): string[] {
+  if (!html) return [];
+  const decoded = html
+    .replace(/&auml;/gi, 'ä')
+    .replace(/&ouml;/gi, 'ö')
+    .replace(/&aring;/gi, 'å')
+    .replace(/&Auml;/g, 'Ä')
+    .replace(/&Ouml;/g, 'Ö')
+    .replace(/&Aring;/g, 'Å')
+    .replace(/&amp;/gi, '&')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&#x27;/gi, "'")
+    .replace(/&quot;/gi, '"')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const match = decoded.match(
+    /(?:fungerar\s+(?:inte|ej)\s+att\s+lösa\s+in\s+(?:till|hos)|kan\s+(?:inte|ej)\s+lösas\s+in\s+(?:till|hos))\s+([^.!?\n]+)/i
+  );
+  if (!match || !match[1]) return [];
+
+  return match[1]
+    .split(/\s*(?:,|\boch\b|\bsamt\b)\s*/i)
+    .map((s) => s.trim())
+    .filter((s) => s.length >= 2);
+}
+
 /**
  * According to SAS EuroBonus Shop terms:
  * "Zupergift som är köpt i SAS EuroBonus Shop fungerar inte att lösa in till
  * Circle K, Coop, Hemköp, ICA, Paygoo, Amazon, Gekås Ullared och IKEA."
  */
-export function isSasZupergiftBlocked(name?: string, slug?: string, id?: string): boolean {
+export function isSasZupergiftBlocked(
+  name?: string,
+  slug?: string,
+  id?: string,
+  dynamicBlockedStores?: string[] | null
+): boolean {
   const combined = `${name || ''} ${slug || ''} ${id || ''}`.toLowerCase();
-  return /(?:circle[\s-]*k|circlek|\bcoop\b|hemk[oö]p|\bica\b|paygoo|\bamazon\b|gek[aå]s|ullared|\bikea\b)/i.test(combined);
+  if (/(?:circle[\s-]*k|circlek|\bcoop\b|hemk[oö]p|\bica\b|paygoo|\bamazon\b|gek[aå]s|ullared|\bikea\b)/i.test(combined)) {
+    return true;
+  }
+
+  if (dynamicBlockedStores && dynamicBlockedStores.length > 0) {
+    const foldedCombined = foldSwedish(combined);
+    for (const rawBrand of dynamicBlockedStores) {
+      const clean = rawBrand.trim().toLowerCase();
+      if (clean.length < 2) continue;
+      const foldedBrand = foldSwedish(clean);
+      const pattern = new RegExp(`\\b${escapeRegex(foldedBrand).replace(/\\s+/g, '[\\s-]*')}\\b`, 'i');
+      if (pattern.test(foldedCombined)) {
+        return true;
+      }
+    }
+  }
+
+  return false;
 }
 
 /**
@@ -70,6 +147,7 @@ export function isSasZupergiftBlocked(name?: string, slug?: string, id?: string)
 export function buildAllStores(db: DatabaseSchema, options?: { includeExcluded?: boolean }): Store[] {
   const metadata = db.storeCustomMetadata || {};
   const excludedSet = new Set((db.excludedStoreIds || []).map((id) => id.toLowerCase()));
+  const dynamicBlockedStores = db.zupergiftConfig?.blockedStores || DEFAULT_SAS_ZUPERGIFT_BLOCKED_STORES;
 
   const isStoreExcluded = (id: string, slug?: string, obj?: { isExcluded?: boolean }): boolean => {
     if (obj?.isExcluded) return true;
@@ -210,7 +288,7 @@ export function buildAllStores(db: DatabaseSchema, options?: { includeExcluded?:
         partnerRule: resolvedPartnerRule,
         giftCardRule: s.giftCardRule,
         zupergiftSupported:
-          Boolean(s.zupergiftSupported) && !isSasZupergiftBlocked(s.name, s.slug, s.id),
+          Boolean(s.zupergiftSupported) && !isSasZupergiftBlocked(s.name, s.slug, s.id, dynamicBlockedStores),
         isZupergiftOnly: false,
         hasPartnerLink: isExcluded || isHidden ? false : Boolean(resolvedPartnerRule?.hasPartnerLink),
         isMissingFromPartner: Boolean(s.isMissingFromPartner),
@@ -259,7 +337,8 @@ export function buildAllStores(db: DatabaseSchema, options?: { includeExcluded?:
         Boolean(zs.isHidden) ||
         Boolean(zs.isExcluded) ||
         Boolean(zs.isMissingFromSource) ||
-        isSasZupergiftBlocked(zs.name, zs.slug, zs.id);
+        Boolean(zs.isSasBlocked) ||
+        isSasZupergiftBlocked(zs.name, zs.slug, zs.id, dynamicBlockedStores);
 
       return {
         id: zs.id,
@@ -482,7 +561,7 @@ export function buildAllStores(db: DatabaseSchema, options?: { includeExcluded?:
 
       if (zg && (zg.isHidden || zg.isExcluded || zg.isMissingFromSource)) {
         s.zupergiftSupported = false;
-      } else if (isSasZupergiftBlocked(s.name, s.slug, s.id)) {
+      } else if (isSasZupergiftBlocked(s.name, s.slug, s.id, dynamicBlockedStores)) {
         s.zupergiftSupported = false;
       } else {
         const resolvedSlug = zg?.slug || s.zupergiftSlug || s.slug || s.id;

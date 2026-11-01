@@ -1,5 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { buildAllStores } from './store-resolver';
+import {
+  buildAllStores,
+  parseSasZupergiftBlockedStoresFromHtml,
+  isSasZupergiftBlocked,
+} from './store-resolver';
 import type { DatabaseSchema } from '@/lib/db';
 
 describe('Store Resolver - Alias and Grouping', () => {
@@ -681,5 +685,44 @@ describe('Store Resolver - Alias and Grouping', () => {
     });
     const storesWithTibber = buildAllStores(mockDb);
     expect(storesWithTibber.find((s) => s.id === 'tibber')?.excludesVat).toBe(false);
+  });
+
+  it('parses SAS EuroBonus Shop Zupergift blocked stores from HTML description and blocks matching stores', () => {
+    const sampleHtml = `
+      <p>Zupergift har samlat mer &auml;n 150 av de st&ouml;rsta varum&auml;rkena.</p>
+      <p>Zupergift som &auml;r k&ouml;pt i SAS EuroBonus Shop fungerar inte att l&ouml;sa in till Circle K, Coop, Hemk&ouml;p, ICA, Paygoo, Amazon, Gek&aring;s Ullared och IKEA.<br /><br />Koden till Zupergift levereras digitalt via e-post.</p>
+    `;
+
+    const parsed = parseSasZupergiftBlockedStoresFromHtml(sampleHtml);
+    expect(parsed).toEqual([
+      'Circle K',
+      'Coop',
+      'Hemköp',
+      'ICA',
+      'Paygoo',
+      'Amazon',
+      'Gekås Ullared',
+      'IKEA',
+    ]);
+
+    expect(isSasZupergiftBlocked('IKEA', 'ikea', 'ikea', parsed)).toBe(true);
+    expect(
+      isSasZupergiftBlocked(
+        'Circle K Biltvätt - Standard',
+        'presentkort-circlek-biltvatt-standard',
+        'presentkort-circlek-biltvatt-standard',
+        parsed
+      )
+    ).toBe(true);
+    expect(isSasZupergiftBlocked('Gekås Ullared', 'gekas-ullared', 'gekas', parsed)).toBe(true);
+    expect(isSasZupergiftBlocked('Zalando', 'zalando', 'zalando', parsed)).toBe(false);
+    // Do not false-positive on short substring "ica" inside unrelated names
+    expect(isSasZupergiftBlocked('Clas Ohlson', 'clas-ohlson', 'clas-ohlson', parsed)).toBe(false);
+
+    // Also supports dynamically added stores if SAS updates the description text in the future
+    const futureHtml = `<p>Zupergift som är köpt i SAS EuroBonus Shop fungerar inte att lösa in till Circle K, IKEA och Systembolaget.</p>`;
+    const futureParsed = parseSasZupergiftBlockedStoresFromHtml(futureHtml);
+    expect(futureParsed).toContain('Systembolaget');
+    expect(isSasZupergiftBlocked('Systembolaget', 'systembolaget', 'systembolaget', futureParsed)).toBe(true);
   });
 });

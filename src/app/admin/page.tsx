@@ -2674,6 +2674,23 @@ export default function AdminPage() {
                 );
               })()}
 
+              {/* Info om butiker som är spärrade för Zupergift köpt i SAS EuroBonus Shop */}
+              {(() => {
+                const blockedNames = dbData?.zupergiftConfig?.blockedStores;
+                if (!blockedNames || blockedNames.length === 0) return null;
+                return (
+                  <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-slate-700 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+                    <div className="flex items-start sm:items-center gap-2.5">
+                      <span className="text-base leading-none shrink-0">🚫</span>
+                      <div>
+                        <span className="font-bold text-slate-800">Spärrade hos SAS EuroBonus Shop vid Zupergift-inlösen (synkas automatiskt): </span>
+                        <span className="font-medium text-slate-600">{blockedNames.join(', ')}</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
+
               {/* Sök och filterrad */}
               <div className="flex flex-col sm:flex-row gap-3 items-center justify-between pt-2">
                 <div className="flex flex-col sm:flex-row gap-2.5 w-full sm:w-auto">
@@ -2845,6 +2862,14 @@ export default function AdminPage() {
                               ) : (
                                 <span className="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 font-bold text-[10px]">
                                   Aktiv Zupergift-butik
+                                </span>
+                              )}
+                              {item.isSasBlocked && (
+                                <span
+                                  className="px-2 py-0.5 rounded-md bg-rose-100 text-rose-800 font-bold text-[10px] border border-rose-200"
+                                  title="Zupergift köpt i SAS EuroBonus Shop går enligt SAS villkor inte att lösa in på denna butik"
+                                >
+                                  🚫 Spärrad för SAS Zupergift
                                 </span>
                               )}
                               {isMatchedWithLocal && (
