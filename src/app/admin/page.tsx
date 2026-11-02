@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useDeferredValue } from 'react';
 import {
   Lock,
   LogOut,
@@ -186,6 +186,12 @@ export default function AdminPage() {
   const [storeSearch, setStoreSearch] = useState('');
   const [storeFilter, setStoreFilter] = useState<'all' | 'partner' | 'campaign' | 'zupergift' | 'amex_yes' | 'amex_no' | 'no_vat' | 'fixed' | 'missing_partner'>('all');
   const [storeCategoryFilter, setStoreCategoryFilter] = useState<string>('all');
+
+  const deferredAllStoresSearch = useDeferredValue(allStoresSearch);
+  const deferredZgSearch = useDeferredValue(zgSearch);
+  const deferredSasGcSearch = useDeferredValue(sasGcSearch);
+  const deferredStoreSearch = useDeferredValue(storeSearch);
+  const deferredLinksSearch = useDeferredValue(linksSearch);
 
   // Load admin data
   const fetchAdminData = async () => {
@@ -925,14 +931,14 @@ export default function AdminPage() {
       }
 
       // Search query
-      if (zgSearch.trim()) {
-        const q = zgSearch.toLowerCase();
+      if (deferredZgSearch.trim()) {
+        const q = deferredZgSearch.toLowerCase();
         return store.name.toLowerCase().includes(q) || store.slug.toLowerCase().includes(q);
       }
 
       return true;
     });
-  }, [dbData?.zupergiftStores, zgFilter, zgCategoryFilter, zgSearch]);
+  }, [dbData?.zupergiftStores, zgFilter, zgCategoryFilter, deferredZgSearch]);
 
   // Filtered SAS stores list for Stores tab
   const filteredStores = useMemo(() => {
@@ -965,8 +971,8 @@ export default function AdminPage() {
         }
       }
 
-      if (storeSearch.trim()) {
-        const q = storeSearch.toLowerCase();
+      if (deferredStoreSearch.trim()) {
+        const q = deferredStoreSearch.toLowerCase();
         return (
           store.name.toLowerCase().includes(q) ||
           store.slug.toLowerCase().includes(q) ||
@@ -975,7 +981,7 @@ export default function AdminPage() {
       }
       return true;
     });
-  }, [dbData?.stores, storeFilter, storeCategoryFilter, storeSearch]);
+  }, [dbData?.stores, storeFilter, storeCategoryFilter, deferredStoreSearch]);
 
   // Filtered SAS gift card stores for SAS Presentkort tab
   const filteredSasGiftCards = useMemo(() => {
@@ -998,13 +1004,13 @@ export default function AdminPage() {
         if (!item.isHidden) return false;
       }
 
-      if (sasGcSearch.trim()) {
-        const q = sasGcSearch.toLowerCase();
+      if (deferredSasGcSearch.trim()) {
+        const q = deferredSasGcSearch.toLowerCase();
         return item.name.toLowerCase().includes(q) || item.slug.toLowerCase().includes(q);
       }
       return true;
     });
-  }, [dbData?.sasGiftCards, sasGcSearch, sasGcFilter]);
+  }, [dbData?.sasGiftCards, deferredSasGcSearch, sasGcFilter]);
 
   // Unreviewed newly synced store IDs/slugs lookup
   const unreviewedSyncStoreSet = useMemo(() => {
@@ -1136,8 +1142,8 @@ export default function AdminPage() {
         }
       }
 
-      if (allStoresSearch.trim()) {
-        const q = allStoresSearch.trim().toLowerCase();
+      if (deferredAllStoresSearch.trim()) {
+        const q = deferredAllStoresSearch.trim().toLowerCase();
         const edit = storeMetadataEdits[item.id];
         const currentAlias = edit?.alias !== undefined ? edit.alias : (item.alias || '');
         const currentComment = edit?.comment !== undefined ? edit.comment : (item.comment || '');
@@ -1162,7 +1168,7 @@ export default function AdminPage() {
       }
       return true;
     });
-  }, [dbData?.allStores, allStoresFilter, allStoresCategoryFilter, allStoresSearch, excludeHidden, categoryNameMap, storeMetadataEdits, unreviewedSyncStoreSet]);
+  }, [dbData?.allStores, allStoresFilter, allStoresCategoryFilter, deferredAllStoresSearch, excludeHidden, categoryNameMap, storeMetadataEdits, unreviewedSyncStoreSet]);
 
   // Filtered links for "Länkar & Resurser" tab
   const filteredResourceLinks = useMemo(() => {
@@ -1172,8 +1178,8 @@ export default function AdminPage() {
       if (linksStatusFilter === 'hidden' && !item.isHidden) return false;
       if (linksCategoryFilter !== 'all' && item.category !== linksCategoryFilter) return false;
 
-      if (linksSearch.trim()) {
-        const q = linksSearch.trim().toLowerCase();
+      if (deferredLinksSearch.trim()) {
+        const q = deferredLinksSearch.trim().toLowerCase();
         const matchesName = (item.name || '').toLowerCase().includes(q);
         const matchesTagline = (item.tagline || '').toLowerCase().includes(q);
         const matchesUrl = (item.url || '').toLowerCase().includes(q);
@@ -1183,7 +1189,7 @@ export default function AdminPage() {
       }
       return true;
     }).sort((a, b) => (a.order ?? 999) - (b.order ?? 999));
-  }, [dbData?.resourceLinks, linksStatusFilter, linksCategoryFilter, linksSearch]);
+  }, [dbData?.resourceLinks, linksStatusFilter, linksCategoryFilter, deferredLinksSearch]);
 
   const handleStartAddLink = () => {
     const nextOrder = (dbData?.resourceLinks?.length || 0) + 1;

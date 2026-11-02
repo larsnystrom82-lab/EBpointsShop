@@ -12,6 +12,10 @@
   --color-border: #e2e8f0;
 }
 
+html {
+  scrollbar-gutter: stable;
+}
+
 body {
   background-color: var(--color-bg-neutral);
   color: var(--color-navy);

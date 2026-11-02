@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useEffect, useMemo, useDeferredValue } from 'react';
 import { Search, X, Check, Store as StoreIcon, ChevronDown, CheckSquare, Square } from 'lucide-react';
 import Image from 'next/image';
 import { Store } from '@/types/domain';
@@ -151,8 +151,9 @@ export const StoreMultiSelectDropdown: React.FC<StoreMultiSelectDropdownProps> =
     return { selectedGroups: selected, unselectedGroups: unselected };
   }, [filterGroups, selectedStoreIds]);
 
-  // Filter groups based on search query
-  const query = searchQuery.trim().toLowerCase();
+  // Filter groups based on deferred search query
+  const deferredSearchQuery = useDeferredValue(searchQuery);
+  const query = deferredSearchQuery.trim().toLowerCase();
 
   const filterGroup = (group: StoreFilterGroup) => {
     if (!query) return true;

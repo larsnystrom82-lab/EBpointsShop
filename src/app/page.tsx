@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useDeferredValue, useCallback } from 'react';
 import { Navbar } from '@/components/Navbar';
 import { SearchFilterBox } from '@/components/SearchFilterBox';
 import { AlternativeCard } from '@/components/AlternativeCard';
@@ -11,10 +11,11 @@ import { DEMO_STORES, DEMO_CATEGORIES, DEMO_CARDS } from '@/lib/fixtures/demo-da
 import { Category, FilterState, OneTimeBonusFilter, RouteCalculationResult, SortOption, Store } from '@/types/domain';
 import type { SasGiftCardStoreItem } from '@/lib/db';
 import { generateCandidateRoutes, processAndRankRoutes } from '@/lib/engine/calculator';
-import { Info, RotateCcw } from 'lucide-react';
+import { Info, RotateCcw, ChevronDown } from 'lucide-react';
 import { ScrollToTopButton } from '@/components/ScrollToTopButton';
 
 const STORAGE_KEY = 'poangkollen_user_preferences_v3';
+const RESULTS_PAGE_SIZE = 40;
 
 function cleanSlug(slug: string): string {
   return (slug || '')
@@ -58,6 +59,22 @@ export default function Home() {
   const [sortBy, setSortBy] = useState<SortOption>('most_bonus');
 
   const [activeReportRoute, setActiveReportRoute] = useState<RouteCalculationResult | null>(null);
+  const [visibleCount, setVisibleCount] = useState<number>(RESULTS_PAGE_SIZE);
+
+  // Deferred values so typing in Köpbelopp / Sök and clicking filter toggles update inputs immediately (low INP)
+  const deferredSearchQuery = useDeferredValue(searchQuery);
+  const deferredPurchaseAmountKr = useDeferredValue(purchaseAmountKr);
+  const deferredSelectedStoreIds = useDeferredValue(selectedStoreIds);
+  const deferredSelectedCategoryIds = useDeferredValue(selectedCategoryIds);
+  const deferredSelectedCardIds = useDeferredValue(selectedCardIds);
+  const deferredAllowPartnerStores = useDeferredValue(allowPartnerStores);
+  const deferredAllowGiftCards = useDeferredValue(allowGiftCards);
+  const deferredAllowZupergift = useDeferredValue(allowZupergift);
+  const deferredMatchPurchaseAmount = useDeferredValue(matchPurchaseAmount);
+  const deferredTierPointsImportant = useDeferredValue(tierPointsImportant);
+  const deferredOnlyCampaigns = useDeferredValue(onlyCampaigns);
+  const deferredOneTimeBonusFilter = useDeferredValue(oneTimeBonusFilter);
+  const deferredSortBy = useDeferredValue(sortBy);
 
   // Load preferences from localStorage safely
   useEffect(() => {
@@ -366,15 +383,15 @@ export default function Home() {
     let list = allStores.filter((store) => !store.isHidden && store.isActive !== false);
 
     // 1. Filter by selected categories if any
-    if (selectedCategoryIds.length > 0) {
+    if (deferredSelectedCategoryIds.length > 0) {
       list = list.filter((store) =>
-        store.categories.some((c) => selectedCategoryIds.includes(c))
+        store.categories.some((c) => deferredSelectedCategoryIds.includes(c))
       );
     }
 
     // 2. Filter by specific selected stores if any (including all active variants sharing the same alias)
-    if (selectedStoreIds.length > 0) {
-      const selectedSet = new Set(selectedStoreIds);
+    if (deferredSelectedStoreIds.length > 0) {
+      const selectedSet = new Set(deferredSelectedStoreIds);
       const selectedAliases = new Set(
         list
           .filter((s) => selectedSet.has(s.id) && s.alias?.trim())
@@ -389,7 +406,7 @@ export default function Home() {
     }
 
     // 3. Filter by search query if any
-    const query = searchQuery.trim().toLowerCase();
+    const query = deferredSearchQuery.trim().toLowerCase();
     if (query) {
       list = list.filter((store) => {
         const matchesName = store.name.toLowerCase().includes(query);
@@ -404,11 +421,28 @@ export default function Home() {
     }
 
     return list;
-  }, [allStores, selectedStoreIds, selectedCategoryIds, searchQuery]);
+  }, [allStores, deferredSelectedStoreIds, deferredSelectedCategoryIds, deferredSearchQuery, categories]);
+
+  // Reset pagination to RESULTS_PAGE_SIZE when filters or sort change
+  useEffect(() => {
+    setVisibleCount(RESULTS_PAGE_SIZE);
+  }, [
+    deferredSelectedStoreIds,
+    deferredSelectedCategoryIds,
+    deferredSearchQuery,
+    deferredAllowPartnerStores,
+    deferredAllowGiftCards,
+    deferredAllowZupergift,
+    deferredMatchPurchaseAmount,
+    deferredTierPointsImportant,
+    deferredOnlyCampaigns,
+    deferredOneTimeBonusFilter,
+    deferredSortBy,
+  ]);
 
   // Generate candidate routes & process ranking
   const calculationResults = useMemo(() => {
-    if (!purchaseAmountKr || purchaseAmountKr <= 0 || matchingStores.length === 0) {
+    if (!deferredPurchaseAmountKr || deferredPurchaseAmountKr <= 0 || matchingStores.length === 0) {
       return [];
     }
 
@@ -439,13 +473,13 @@ export default function Home() {
 
       const routes = generateCandidateRoutes({
         store,
-        purchaseAmountKr,
+        purchaseAmountKr: deferredPurchaseAmountKr,
         availableCards: DEMO_CARDS,
-        selectedCardIds,
-        allowPartnerStores,
-        allowGiftCards,
-        allowZupergift,
-        matchPurchaseAmount,
+        selectedCardIds: deferredSelectedCardIds,
+        allowPartnerStores: deferredAllowPartnerStores,
+        allowGiftCards: deferredAllowGiftCards,
+        allowZupergift: deferredAllowZupergift,
+        matchPurchaseAmount: deferredMatchPurchaseAmount,
         zupergiftRatePer100Kr: zupergiftRate,
         zupergiftIsCampaign: zupergiftIsCampaign,
         sasGiftCardItem,
@@ -456,40 +490,48 @@ export default function Home() {
 
     const filterState: FilterState = {
       selectedStoreIds: matchingStores.map((s) => s.id),
-      purchaseAmountKr,
+      purchaseAmountKr: deferredPurchaseAmountKr,
       rawAmountInput,
-      allowPartnerStores,
-      allowGiftCards,
-      allowZupergift,
-      matchPurchaseAmount,
-      tierPointsImportant,
-      onlyCampaigns,
-      oneTimeBonusFilter,
-      selectedCardIds,
-      sortBy,
-      searchQuery,
+      allowPartnerStores: deferredAllowPartnerStores,
+      allowGiftCards: deferredAllowGiftCards,
+      allowZupergift: deferredAllowZupergift,
+      matchPurchaseAmount: deferredMatchPurchaseAmount,
+      tierPointsImportant: deferredTierPointsImportant,
+      onlyCampaigns: deferredOnlyCampaigns,
+      oneTimeBonusFilter: deferredOneTimeBonusFilter,
+      selectedCardIds: deferredSelectedCardIds,
+      sortBy: deferredSortBy,
+      searchQuery: deferredSearchQuery,
       selectedCategory: null,
     };
 
     return processAndRankRoutes(candidateRoutes, filterState);
   }, [
     matchingStores,
-    purchaseAmountKr,
-    allowPartnerStores,
-    allowGiftCards,
-    allowZupergift,
-    matchPurchaseAmount,
+    deferredPurchaseAmountKr,
+    deferredAllowPartnerStores,
+    deferredAllowGiftCards,
+    deferredAllowZupergift,
+    deferredMatchPurchaseAmount,
     excludeComplex,
-    tierPointsImportant,
-    onlyCampaigns,
-    oneTimeBonusFilter,
-    selectedCardIds,
-    sortBy,
-    rawAmountInput,
-    searchQuery,
+    deferredTierPointsImportant,
+    deferredOnlyCampaigns,
+    deferredOneTimeBonusFilter,
+    deferredSelectedCardIds,
+    deferredSortBy,
+    deferredSearchQuery,
     zupergiftRate,
     zupergiftIsCampaign,
+    sasGiftCards,
   ]);
+
+  const visibleResults = useMemo(() => {
+    return calculationResults.slice(0, visibleCount);
+  }, [calculationResults, visibleCount]);
+
+  const handleOpenReportModal = useCallback((r: RouteCalculationResult) => {
+    setActiveReportRoute(r);
+  }, []);
 
   // Selected card objects
   const selectedCards = useMemo(() => {
@@ -651,16 +693,40 @@ export default function Home() {
 
           {/* Resultatkort */}
           {calculationResults.length > 0 ? (
-            <div className="space-y-3.5">
-              {calculationResults.map((route) => (
+            <div className="space-y-3.5 min-h-[600px]">
+              {visibleResults.map((route) => (
                 <AlternativeCard
                   key={route.id}
                   route={route}
                   selectedCards={selectedCards}
                   categories={categories}
-                  onReportError={(r) => setActiveReportRoute(r)}
+                  onReportError={handleOpenReportModal}
                 />
               ))}
+
+              {calculationResults.length > visibleCount && (
+                <div className="pt-3 flex flex-col sm:flex-row items-center justify-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setVisibleCount((prev) => prev + RESULTS_PAGE_SIZE)}
+                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold shadow-xs transition-colors cursor-pointer touch-target"
+                  >
+                    <ChevronDown className="w-4 h-4" />
+                    <span>
+                      Visa {Math.min(RESULTS_PAGE_SIZE, calculationResults.length - visibleCount)} fler alternativ (visar {visibleResults.length} av {calculationResults.length})
+                    </span>
+                  </button>
+                  {calculationResults.length - visibleCount > RESULTS_PAGE_SIZE && (
+                    <button
+                      type="button"
+                      onClick={() => setVisibleCount(calculationResults.length)}
+                      className="w-full sm:w-auto inline-flex items-center justify-center px-4 py-3 rounded-2xl bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 text-xs font-bold transition-colors cursor-pointer touch-target"
+                    >
+                      Visa alla ({calculationResults.length})
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
           ) : (
             <div className="p-10 rounded-2xl bg-white border border-slate-200 text-center space-y-3">

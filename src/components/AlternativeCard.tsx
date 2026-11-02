@@ -35,7 +35,7 @@ interface AlternativeCardProps {
   categories?: { id: string; name: string }[];
 }
 
-export const AlternativeCard: React.FC<AlternativeCardProps> = ({
+export const AlternativeCard: React.FC<AlternativeCardProps> = React.memo(({
   route,
   selectedCards,
   onReportError,
@@ -620,4 +620,6 @@ export const AlternativeCard: React.FC<AlternativeCardProps> = ({
       )}
     </article>
   );
-};
+});
+
+AlternativeCard.displayName = 'AlternativeCard';
