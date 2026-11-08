@@ -54,6 +54,52 @@ export async function PATCH(request: NextRequest) {
 
   const now = new Date().toISOString();
 
+  if (isExcluded === true) {
+    const targetIds = new Set([item.id.toLowerCase(), item.slug.toLowerCase()]);
+    db.sasGiftCards = db.sasGiftCards.filter(
+      (s) => s.id !== item.id && s.slug !== item.slug
+    );
+    if (db.syncNewStores) {
+      db.syncNewStores = db.syncNewStores.filter(
+        (entry) =>
+          entry.source !== 'sas_giftcard' ||
+          (!targetIds.has((entry.storeId || '').toLowerCase()) &&
+            !targetIds.has((entry.slug || '').toLowerCase()))
+      );
+    }
+    if (db.excludedStoreIds) {
+      db.excludedStoreIds = db.excludedStoreIds.filter((eid) => !targetIds.has(eid.toLowerCase()));
+    }
+    const stillInOtherChannel =
+      (db.stores || []).some(
+        (s) => targetIds.has(s.id.toLowerCase()) || targetIds.has(s.slug.toLowerCase())
+      ) ||
+      (db.zupergiftStores || []).some(
+        (s) => targetIds.has(s.id.toLowerCase()) || targetIds.has(s.slug.toLowerCase())
+      );
+    if (!stillInOtherChannel && db.storeCustomMetadata) {
+      for (const key of Object.keys(db.storeCustomMetadata)) {
+        if (targetIds.has(key.toLowerCase())) {
+          delete db.storeCustomMetadata[key];
+        }
+      }
+    }
+
+    db.auditEvents.push({
+      id: `audit-${Date.now()}`,
+      timestamp: now,
+      action: 'DELETE_SAS_GIFTCARD',
+      details: `Tog bort SAS presentkortsbutik "${item.name}" (${item.id}) från databasen. Om den kommer tillbaka vid synk läggs den till som en ny butik.`,
+      user: 'Admin',
+    });
+
+    saveDatabase(db);
+    return NextResponse.json({
+      success: true,
+      message: `"${item.name}" har tagits bort från databasen.`,
+    });
+  }
+
   if (bonusPer100Kr !== undefined) item.bonusPer100Kr = bonusPer100Kr;
   if (minPurchaseAmount !== undefined) item.minPurchaseAmount = minPurchaseAmount;
   if (isCampaign !== undefined) item.isCampaign = Boolean(isCampaign);

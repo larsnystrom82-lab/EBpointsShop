@@ -364,7 +364,12 @@ export default function AdminPage() {
   };
 
   const handleExcludeSasGiftCard = async (storeId: string, storeName: string) => {
-    if (!confirm(`Exkludera "${storeName}" permanent? Den kommer inte att återläggas vid framtida synkar.`)) return;
+    if (
+      !confirm(
+        `Vill du ta bort "${storeName}" från SAS Presentkort i databasen?\n\nButiken raderas från vår databas. Om den kommer tillbaka hos SAS EuroBonus Shop i framtiden läggs den till som en helt ny butik vid synk.`
+      )
+    )
+      return;
     try {
       const res = await fetch('/api/admin/sas-giftcard', {
         method: 'PATCH',
@@ -373,13 +378,13 @@ export default function AdminPage() {
       });
       const data = await res.json();
       if (data.success) {
-        setStatusMessage({ text: `"${storeName}" exkluderades.`, type: 'success' });
+        setStatusMessage({ text: data.message || `"${storeName}" togs bort från databasen.`, type: 'success' });
         await fetchAdminData();
       } else {
-        setStatusMessage({ text: data.error || 'Kunde inte exkludera', type: 'error' });
+        setStatusMessage({ text: data.error || 'Kunde inte ta bort butik', type: 'error' });
       }
     } catch {
-      setStatusMessage({ text: 'Fel vid exkludering', type: 'error' });
+      setStatusMessage({ text: 'Fel vid borttagning', type: 'error' });
     } finally {
       setTimeout(() => setStatusMessage(null), 4000);
     }
@@ -609,11 +614,16 @@ export default function AdminPage() {
     }
   };
 
-  // Exclude/Delete or Restore a store (e.g. bankruptcy or removed from SAS partner site)
-  const handleStoreAction = async (storeId: string, storeName: string, action: 'exclude' | 'restore') => {
-    if (action === 'exclude') {
+  // Delete or Restore a store from database
+  const handleStoreAction = async (
+    storeId: string,
+    storeName: string,
+    action: 'exclude' | 'delete' | 'restore',
+    scope: 'partner' | 'all' = 'all'
+  ) => {
+    if (action === 'exclude' || action === 'delete') {
       const confirmed = confirm(
-        `Vill du ta bort "${storeName}" från Poängpiloten?\n\nButiken tas bort från sajten och exkluderas från framtida synkningar (används t.ex. vid konkurs eller avslutat samarbete med SAS).`
+        `Vill du ta bort "${storeName}" från vår databas?\n\nButiken tas bort från vår databas. Om butiken kommer tillbaka hos SAS eller Zupergift i framtiden kommer den att läggas till hos oss som en helt ny butik vid synk.`
       );
       if (!confirmed) return;
     }
@@ -622,7 +632,7 @@ export default function AdminPage() {
       const res = await fetch('/api/admin/store-action', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ storeId, action }),
+        body: JSON.stringify({ storeId, action, scope }),
       });
       const data = await res.json();
       if (data.success) {
@@ -638,11 +648,18 @@ export default function AdminPage() {
     }
   };
 
-  // Modify store state: hide, unhide, exclude (remove), restore
+  // Modify store state: hide, unhide, exclude/delete (remove from DB), restore
   const handleZupergiftStoreAction = async (
     storeId: string,
-    action: 'hide' | 'unhide' | 'exclude' | 'restore'
+    action: 'hide' | 'unhide' | 'exclude' | 'delete' | 'restore',
+    storeName?: string
   ) => {
+    if (action === 'exclude' || action === 'delete') {
+      const confirmed = confirm(
+        `Vill du ta bort "${storeName || storeId}" från Zupergift i vår databas?\n\nOm butiken kommer tillbaka hos Zupergift i framtiden kommer den att läggas till som en helt ny butik vid synk.`
+      );
+      if (!confirmed) return;
+    }
     try {
       const res = await fetch('/api/admin/zupergift-stores', {
         method: 'POST',
@@ -2433,15 +2450,26 @@ export default function AdminPage() {
                           {/* Save, Reset, Delete & Restore actions */}
                           <div className="flex lg:flex-col items-center gap-2 shrink-0 self-end lg:self-center pt-2 lg:pt-0">
                             {item.isExcluded ? (
-                              <button
-                                type="button"
-                                onClick={() => handleStoreAction(item.id, item.name, 'restore')}
-                                className="px-3.5 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white flex items-center gap-1.5 transition-colors shadow-xs"
-                                title="Återställ butiken så den syns på sajten och inkluderas i synkar igen"
-                              >
-                                <RotateCcw className="w-3.5 h-3.5" />
-                                <span>Återställ butik</span>
-                              </button>
+                              <>
+                                <button
+                                  type="button"
+                                  onClick={() => handleStoreAction(item.id, item.name, 'restore')}
+                                  className="px-3.5 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white flex items-center gap-1.5 transition-colors shadow-xs"
+                                  title="Återställ butiken så den syns på sajten och inkluderas i synkar igen"
+                                >
+                                  <RotateCcw className="w-3.5 h-3.5" />
+                                  <span>Återställ butik</span>
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleStoreAction(item.id, item.name, 'delete', 'all')}
+                                  className="px-3 py-1.5 rounded-xl text-xs font-semibold text-rose-600 hover:bg-rose-50 hover:text-rose-700 border border-rose-200 flex items-center gap-1 transition-colors"
+                                  title="Radera butiken helt från databasen"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                  <span>Radera ur DB</span>
+                                </button>
+                              </>
                             ) : (
                               <>
                                 <button
@@ -2476,9 +2504,9 @@ export default function AdminPage() {
 
                                 <button
                                   type="button"
-                                  onClick={() => handleStoreAction(item.id, item.name, 'exclude')}
+                                  onClick={() => handleStoreAction(item.id, item.name, 'delete', 'all')}
                                   className="px-3 py-1.5 rounded-xl text-xs font-semibold text-rose-600 hover:bg-rose-50 hover:text-rose-700 border border-rose-200 flex items-center gap-1 transition-colors"
-                                  title="Ta bort butiken från Poängpiloten (t.ex. vid konkurs eller avslutat samarbete med SAS)"
+                                  title="Ta bort butiken från vår databas (om den kommer tillbaka läggs den till som en helt ny butik)"
                                 >
                                   <Trash2 className="w-3.5 h-3.5" />
                                   <span>Ta bort</span>
@@ -2909,15 +2937,26 @@ export default function AdminPage() {
                           </div>
 
                           {item.isExcluded ? (
-                            <button
-                              type="button"
-                              onClick={() => handleZupergiftStoreAction(item.id, 'restore')}
-                              className="px-3 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-semibold text-xs flex items-center gap-1 border border-emerald-200 transition-colors"
-                              title="Återställ butiken till aktiv i Zupergift"
-                            >
-                              <RotateCcw className="w-3.5 h-3.5" />
-                              <span>Återställ</span>
-                            </button>
+                            <>
+                              <button
+                                type="button"
+                                onClick={() => handleZupergiftStoreAction(item.id, 'restore')}
+                                className="px-3 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-semibold text-xs flex items-center gap-1 border border-emerald-200 transition-colors"
+                                title="Återställ butiken till aktiv i Zupergift"
+                              >
+                                <RotateCcw className="w-3.5 h-3.5" />
+                                <span>Återställ</span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleZupergiftStoreAction(item.id, 'delete', item.name)}
+                                className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-red-100 text-slate-600 hover:text-red-700 font-semibold text-xs flex items-center gap-1 transition-colors"
+                                title="Radera butiken helt från Zupergift i databasen"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                                <span>Radera ur DB</span>
+                              </button>
+                            </>
                           ) : (
                             <>
                               {/* Dölj / Visa */}
@@ -2943,12 +2982,12 @@ export default function AdminPage() {
                                 </button>
                               )}
 
-                              {/* Ta bort / Exkludera */}
+                              {/* Ta bort från databasen */}
                               <button
                                 type="button"
-                                onClick={() => handleZupergiftStoreAction(item.id, 'exclude')}
+                                onClick={() => handleZupergiftStoreAction(item.id, 'delete', item.name)}
                                 className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-red-100 text-slate-600 hover:text-red-700 font-semibold text-xs flex items-center gap-1 transition-colors"
-                                title="Ta bort butiken från Zupergift (exkluderas även vid framtida synk)"
+                                title="Ta bort butiken från Zupergift i databasen (om den kommer tillbaka läggs den till som en ny butik)"
                               >
                                 <Trash2 className="w-3.5 h-3.5" />
                                 <span>Ta bort</span>
@@ -4074,9 +4113,9 @@ export default function AdminPage() {
                         </button>
                         <button
                           type="button"
-                          onClick={() => handleStoreAction(store.id, store.name, 'exclude')}
+                          onClick={() => handleStoreAction(store.id, store.name, 'delete', 'partner')}
                           className="px-3 py-2 rounded-xl border border-red-200 bg-red-50 hover:bg-red-100 text-red-700 font-bold text-xs transition-colors touch-target flex items-center gap-1"
-                          title="Ta bort butik (konkurs eller försvunnen)"
+                          title="Ta bort partnerbutiken från vår databas (om den kommer tillbaka hos SAS läggs den till som en helt ny butik)"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                           <span className="hidden sm:inline">Ta bort</span>

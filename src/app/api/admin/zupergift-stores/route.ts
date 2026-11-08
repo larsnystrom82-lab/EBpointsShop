@@ -39,9 +39,37 @@ export async function POST(request: Request) {
     } else if (action === 'unhide') {
       zgStore.isHidden = false;
       detailMsg = `Gjorde butik "${zgStore.name}" synlig igen för Zupergift-vägar.`;
-    } else if (action === 'exclude') {
-      zgStore.isExcluded = true;
-      detailMsg = `Tog bort och exkluderade butik "${zgStore.name}" från Zupergift.`;
+    } else if (action === 'exclude' || action === 'delete') {
+      const targetIds = new Set([zgStore.id.toLowerCase(), zgStore.slug.toLowerCase()]);
+      db.zupergiftStores = db.zupergiftStores.filter(
+        (s) => s.id !== zgStore.id && s.slug !== zgStore.slug
+      );
+      if (db.syncNewStores) {
+        db.syncNewStores = db.syncNewStores.filter(
+          (entry) =>
+            entry.source !== 'zupergift' ||
+            (!targetIds.has((entry.storeId || '').toLowerCase()) &&
+              !targetIds.has((entry.slug || '').toLowerCase()))
+        );
+      }
+      if (db.excludedStoreIds) {
+        db.excludedStoreIds = db.excludedStoreIds.filter((id) => !targetIds.has(id.toLowerCase()));
+      }
+      const stillInOtherChannel =
+        (db.stores || []).some(
+          (s) => targetIds.has(s.id.toLowerCase()) || targetIds.has(s.slug.toLowerCase())
+        ) ||
+        (db.sasGiftCards || []).some(
+          (s) => targetIds.has(s.id.toLowerCase()) || targetIds.has(s.slug.toLowerCase())
+        );
+      if (!stillInOtherChannel && db.storeCustomMetadata) {
+        for (const key of Object.keys(db.storeCustomMetadata)) {
+          if (targetIds.has(key.toLowerCase())) {
+            delete db.storeCustomMetadata[key];
+          }
+        }
+      }
+      detailMsg = `Tog bort butik "${zgStore.name}" från Zupergift i databasen. Om den kommer tillbaka vid synk läggs den till som en ny butik.`;
     } else if (action === 'restore') {
       zgStore.isExcluded = false;
       zgStore.isHidden = false;
@@ -51,17 +79,19 @@ export async function POST(request: Request) {
     }
 
     // Synchronize corresponding local store if matched
+    const isZgActive =
+      action !== 'exclude' && action !== 'delete' && !zgStore.isHidden && !zgStore.isExcluded;
     if (zgStore.matchedStoreId) {
       const localStore = db.stores.find((s) => s.id === zgStore.matchedStoreId);
       if (localStore) {
-        localStore.zupergiftSupported = !zgStore.isHidden && !zgStore.isExcluded;
+        localStore.zupergiftSupported = isZgActive;
       }
     }
 
     // Also check direct match
     const directLocalStore = db.stores.find((s) => s.id === zgStore.id || s.slug === zgStore.slug);
     if (directLocalStore) {
-      directLocalStore.zupergiftSupported = !zgStore.isHidden && !zgStore.isExcluded;
+      directLocalStore.zupergiftSupported = isZgActive;
     }
 
     db.auditEvents.push({

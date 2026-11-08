@@ -9,7 +9,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { storeId, action } = await request.json();
+    const { storeId, action, scope } = await request.json();
     if (!storeId || typeof storeId !== 'string') {
       return NextResponse.json({ error: 'Ogiltigt butiks-ID' }, { status: 400 });
     }
@@ -44,55 +44,93 @@ export async function POST(request: Request) {
     const storeName = baseStore?.name || zgStore?.name || sasStore?.name || storeId;
 
     if (action === 'exclude' || action === 'delete') {
-      // Mark as excluded in base stores
+      const candidateIds = new Set<string>([targetId]);
       if (baseStore) {
-        baseStore.isExcluded = true;
-        baseStore.isActive = false;
+        candidateIds.add(baseStore.id.toLowerCase());
+        candidateIds.add(baseStore.slug.toLowerCase());
+      }
+      if (scope !== 'partner') {
+        if (zgStore) {
+          candidateIds.add(zgStore.id.toLowerCase());
+          candidateIds.add(zgStore.slug.toLowerCase());
+        }
+        if (sasStore) {
+          candidateIds.add(sasStore.id.toLowerCase());
+          candidateIds.add(sasStore.slug.toLowerCase());
+        }
       }
 
-      // Mark as excluded in Zupergift
-      if (zgStore) {
-        zgStore.isExcluded = true;
+      // 1. Remove from db.stores (Partner / base stores)
+      db.stores = (db.stores || []).filter(
+        (s) => !candidateIds.has(s.id.toLowerCase()) && !candidateIds.has(s.slug.toLowerCase())
+      );
+
+      // 2. If scope is not strictly 'partner', also remove from Zupergift and SAS Gift Cards
+      if (scope !== 'partner') {
+        db.zupergiftStores = (db.zupergiftStores || []).filter(
+          (s) =>
+            !candidateIds.has(s.id.toLowerCase()) &&
+            !candidateIds.has(s.slug.toLowerCase()) &&
+            (!s.matchedStoreId || !candidateIds.has(s.matchedStoreId.toLowerCase()))
+        );
+        db.sasGiftCards = (db.sasGiftCards || []).filter(
+          (s) =>
+            !candidateIds.has(s.id.toLowerCase()) &&
+            !candidateIds.has(s.slug.toLowerCase()) &&
+            (!s.matchedStoreId || !candidateIds.has(s.matchedStoreId.toLowerCase()))
+        );
+      } else {
+        // Unlink matchedStoreId if Zupergift / SAS GiftCard still exists
+        for (const zs of db.zupergiftStores || []) {
+          if (zs.matchedStoreId && candidateIds.has(zs.matchedStoreId.toLowerCase())) {
+            delete zs.matchedStoreId;
+          }
+        }
+        for (const gc of db.sasGiftCards || []) {
+          if (gc.matchedStoreId && candidateIds.has(gc.matchedStoreId.toLowerCase())) {
+            delete gc.matchedStoreId;
+          }
+        }
       }
 
-      // Mark as excluded in SAS gift cards
-      if (sasStore) {
-        sasStore.isExcluded = true;
+      // 3. Ensure store is NOT in excludedStoreIds so it can return as a brand new store if re-added at source
+      db.excludedStoreIds = (db.excludedStoreIds || []).filter(
+        (id) => !candidateIds.has(id.toLowerCase())
+      );
+
+      // 4. Clean up storeCustomMetadata if store is no longer present in any channel (or if scope !== 'partner')
+      const stillInOtherChannel =
+        scope === 'partner' && Boolean(zgStore || sasStore);
+      if (!stillInOtherChannel && db.storeCustomMetadata) {
+        for (const key of Object.keys(db.storeCustomMetadata)) {
+          if (candidateIds.has(key.toLowerCase())) {
+            delete db.storeCustomMetadata[key];
+          }
+        }
+      } else if (db.storeCustomMetadata) {
+        for (const key of Object.keys(db.storeCustomMetadata)) {
+          if (candidateIds.has(key.toLowerCase()) && db.storeCustomMetadata[key]?.isExcluded) {
+            db.storeCustomMetadata[key].isExcluded = false;
+          }
+        }
       }
 
-      // Add to excludedStoreIds
-      if (!db.excludedStoreIds.includes(targetId)) {
-        db.excludedStoreIds.push(targetId);
-      }
-      if (baseStore && !db.excludedStoreIds.includes(baseStore.id.toLowerCase())) {
-        db.excludedStoreIds.push(baseStore.id.toLowerCase());
-      }
-      if (baseStore?.slug && !db.excludedStoreIds.includes(baseStore.slug.toLowerCase())) {
-        db.excludedStoreIds.push(baseStore.slug.toLowerCase());
-      }
-
-      // Store in custom metadata so it persists forever
-      const existingMeta = db.storeCustomMetadata[targetId] || {};
-      db.storeCustomMetadata[targetId] = {
-        ...existingMeta,
-        isExcluded: true,
-        updatedAt: new Date().toISOString(),
-        updatedBy: 'Admin',
-      };
-      if (baseStore && baseStore.id.toLowerCase() !== targetId) {
-        db.storeCustomMetadata[baseStore.id] = {
-          ...db.storeCustomMetadata[baseStore.id],
-          isExcluded: true,
-          updatedAt: new Date().toISOString(),
-          updatedBy: 'Admin',
-        };
+      // 5. Clean up syncNewStores log so if it returns in a future sync it is logged fresh
+      if (db.syncNewStores) {
+        db.syncNewStores = db.syncNewStores.filter((entry) => {
+          if (scope === 'partner' && entry.source !== 'partner') return true;
+          const matchesId = entry.storeId && candidateIds.has(entry.storeId.toLowerCase());
+          const matchesSlug = entry.slug && candidateIds.has(entry.slug.toLowerCase());
+          const matchesMatched = entry.matchedStoreId && candidateIds.has(entry.matchedStoreId.toLowerCase());
+          return !(matchesId || matchesSlug || matchesMatched);
+        });
       }
 
       db.auditEvents.push({
         id: `audit-${Date.now()}`,
         timestamp: new Date().toISOString(),
         action: 'DELETE_STORE',
-        details: `Tog bort butik "${storeName}" (${storeId}) - konkurs / borttagen från SAS. Exkluderas från sökning och framtida synkningar.`,
+        details: `Tog bort butik "${storeName}" (${storeId}) från databasen. Om butiken återkommer vid framtida synk läggs den till som en helt ny butik.`,
         user: 'Admin',
       });
 
@@ -100,7 +138,7 @@ export async function POST(request: Request) {
 
       return NextResponse.json({
         success: true,
-        message: `Butik "${storeName}" har tagits bort och exkluderats från synkningar.`,
+        message: `Butiken "${storeName}" har tagits bort från databasen. Om den kommer tillbaka i framtiden läggs den till som en ny butik.`,
         storeId,
       });
     } else if (action === 'restore') {
