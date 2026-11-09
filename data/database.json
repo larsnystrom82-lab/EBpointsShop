@@ -22330,28 +22330,6 @@
       "isSasBlocked": false
     },
     {
-      "id": "kitchentime",
-      "name": "KitchenTime",
-      "slug": "kitchentime",
-      "isHidden": false,
-      "isExcluded": false,
-      "matchedStoreId": "kitchentime",
-      "syncedAt": "2026-10-02T04:00:00.000Z",
-      "isMissingFromSource": true,
-      "missingSince": "2026-10-11T14:59:27.139Z"
-    },
-    {
-      "id": "elgiganten",
-      "name": "Elgiganten",
-      "slug": "elgiganten",
-      "isHidden": false,
-      "isExcluded": false,
-      "matchedStoreId": "lg",
-      "syncedAt": "2026-10-02T04:00:00.000Z",
-      "isMissingFromSource": true,
-      "missingSince": "2026-10-11T14:59:27.146Z"
-    },
-    {
       "id": "zalando",
       "name": "Zalando",
       "slug": "zalando-presentkort",
@@ -22576,7 +22554,6 @@
       "isHidden": false,
       "isExcluded": false,
       "syncedAt": "2026-11-01T10:31:32.554Z",
-      "matchedStoreId": "bokus-play",
       "isMissingFromSource": false,
       "missingSince": null,
       "category": "books",
@@ -22835,7 +22812,6 @@
       "isMissingFromSource": false,
       "missingSince": null,
       "category": "health",
-      "matchedStoreId": "parfym",
       "isSasBlocked": false
     },
     {
@@ -23259,7 +23235,6 @@
       "isHidden": false,
       "isExcluded": false,
       "syncedAt": "2026-11-01T10:31:32.554Z",
-      "matchedStoreId": "electrolux",
       "isMissingFromSource": false,
       "missingSince": null,
       "category": "kitchen",
@@ -23750,7 +23725,6 @@
       "isHidden": false,
       "isExcluded": false,
       "syncedAt": "2026-11-01T10:31:32.554Z",
-      "matchedStoreId": "eleven",
       "isMissingFromSource": false,
       "missingSince": null,
       "category": "food",
@@ -24904,7 +24878,6 @@
       "note": "",
       "syncedAt": "2026-10-31T11:36:02.846Z",
       "updatedAt": null,
-      "matchedStoreId": "electrolux",
       "isMissingFromSource": false,
       "missingSince": null,
       "imageUrl": "https://sas-media.loyalty.prod.eu-north-1.awardit.com/media/catalog/product/cache/2/image/17f82f742ffe127f42dca9de82fb58b1/e/l/electrolux_home_giftcard_med_logo.jpg",
@@ -26891,7 +26864,6 @@
       "note": "",
       "syncedAt": "2026-10-31T11:36:02.846Z",
       "updatedAt": null,
-      "matchedStoreId": "eleven",
       "isMissingFromSource": false,
       "missingSince": null,
       "imageUrl": "https://sas-media.loyalty.prod.eu-north-1.awardit.com/media/catalog/product/cache/2/image/17f82f742ffe127f42dca9de82fb58b1/p/r/pressbyran_7-eleven_giftcard_config_100_mar25.jpg",

@@ -1,5 +1,6 @@
 import { getDatabase, saveDatabase, ZupergiftStoreItem, SyncNewStoreItem } from '@/lib/db';
 import {
+  cleanStoreSlug,
   DEFAULT_SAS_ZUPERGIFT_BLOCKED_STORES,
   isSasZupergiftBlocked,
   parseSasZupergiftBlockedStoresFromHtml,
@@ -356,13 +357,18 @@ export async function syncZupergiftCatalog(): Promise<{
     } else {
       // New store found in Zupergift
       newStoresAdded++;
-      // Try to match against local store
+      // Try to match against local store using exact slug/cleanSlug/name/alias (never loose substring)
+      const cleanZgSlug = cleanStoreSlug(slug);
       const matchedStore = db.stores.find(
         (s) =>
-          s.slug === slug ||
-          s.id === slug ||
-          (s.aliases || []).some((a) => a.includes(slug) || slug.includes(a)) ||
-          (s.name || '').toLowerCase() === item.name.toLowerCase()
+          s.slug.toLowerCase() === slug.toLowerCase() ||
+          s.id.toLowerCase() === slug.toLowerCase() ||
+          cleanStoreSlug(s.slug) === cleanZgSlug ||
+          cleanStoreSlug(s.id) === cleanZgSlug ||
+          (s.aliases || []).some(
+            (a) => a.toLowerCase() === slug.toLowerCase() || a.toLowerCase() === cleanZgSlug
+          ) ||
+          (s.name || '').trim().toLowerCase() === item.name.trim().toLowerCase()
       );
 
       const assignedCategory = matchedStore?.categories?.[0] || item.category;
@@ -419,13 +425,44 @@ export async function syncZupergiftCatalog(): Promise<{
   // Update matched status for all local stores
   const matchedStoresList: string[] = [];
 
+  // First clear any legacy false substring matches (e.g. elgiganten -> lg, pressbyran-7-eleven -> eleven)
+  for (const z of db.zupergiftStores) {
+    if (z.matchedStoreId) {
+      const mStore = db.stores.find((s) => s.id === z.matchedStoreId);
+      if (!mStore) {
+        delete z.matchedStoreId;
+      } else {
+        const cleanZ = cleanStoreSlug(z.slug || z.id);
+        const cleanS = cleanStoreSlug(mStore.slug || mStore.id);
+        const exactMatch =
+          z.slug.toLowerCase() === mStore.slug.toLowerCase() ||
+          z.id.toLowerCase() === mStore.id.toLowerCase() ||
+          cleanZ === cleanS ||
+          z.name.trim().toLowerCase() === mStore.name.trim().toLowerCase() ||
+          (mStore.aliases || []).some(
+            (a) => a.toLowerCase() === z.slug.toLowerCase() || a.toLowerCase() === cleanZ
+          );
+        if (!exactMatch) {
+          delete z.matchedStoreId;
+        }
+      }
+    }
+  }
+
   for (const store of db.stores) {
+    const cleanS = cleanStoreSlug(store.slug || store.id);
     const zgItem = db.zupergiftStores.find(
       (z) =>
         z.matchedStoreId === store.id ||
-        z.slug === store.slug ||
-        z.id === store.id ||
-        (store.aliases || []).some((a) => a.includes(z.slug) || z.slug.includes(a))
+        z.slug.toLowerCase() === store.slug.toLowerCase() ||
+        z.id.toLowerCase() === store.id.toLowerCase() ||
+        cleanStoreSlug(z.slug || z.id) === cleanS ||
+        z.name.trim().toLowerCase() === store.name.trim().toLowerCase() ||
+        (store.aliases || []).some(
+          (a) =>
+            a.toLowerCase() === z.slug.toLowerCase() ||
+            a.toLowerCase() === cleanStoreSlug(z.slug || z.id)
+        )
     );
 
     if (zgItem) {

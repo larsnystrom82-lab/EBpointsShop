@@ -210,8 +210,6 @@ export function getDataDir(): string {
 const INITIAL_ZUPERGIFT_STORES: ZupergiftStoreItem[] = [
   { id: 'cervera', name: 'Cervera', slug: 'cervera', isHidden: false, isExcluded: false, matchedStoreId: 'cervera', syncedAt: '2026-10-02T04:00:00.000Z' },
   { id: 'ahlens', name: 'Åhléns', slug: 'ahlens', isHidden: false, isExcluded: false, matchedStoreId: 'ahlens', syncedAt: '2026-10-02T04:00:00.000Z' },
-  { id: 'kitchentime', name: 'KitchenTime', slug: 'kitchentime', isHidden: false, isExcluded: false, matchedStoreId: 'kitchentime', syncedAt: '2026-10-02T04:00:00.000Z' },
-  { id: 'elgiganten', name: 'Elgiganten', slug: 'elgiganten', isHidden: false, isExcluded: false, matchedStoreId: 'elgiganten', syncedAt: '2026-10-02T04:00:00.000Z' },
   { id: 'zalando', name: 'Zalando', slug: 'zalando-presentkort', isHidden: false, isExcluded: false, syncedAt: '2026-10-02T04:00:00.000Z' },
   { id: 'ikea', name: 'IKEA', slug: 'ikea', isHidden: false, isExcluded: false, syncedAt: '2026-10-02T04:00:00.000Z' },
   { id: 'akademibokhandeln', name: 'Akademibokhandeln', slug: 'akademibokhandeln-retain24', isHidden: false, isExcluded: false, syncedAt: '2026-10-02T04:00:00.000Z' },

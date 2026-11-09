@@ -722,9 +722,7 @@ export async function syncSasGiftCardStores(): Promise<{
       existing.name = item.name;
       existing.isMissingFromSource = false;
       existing.missingSince = null;
-      if (!existing.matchedStoreId) {
-        existing.matchedStoreId = findMatchedStoreId(slug, item.name);
-      }
+      existing.matchedStoreId = findMatchedStoreId(slug, item.name);
 
       // 1. Update imageUrl if discovered from GraphQL
       if (item.imageUrl) {
