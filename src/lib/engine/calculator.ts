@@ -305,7 +305,8 @@ export function generateCandidateRoutes(options: RouteGenerationOptions): RouteC
     allowPartnerStores &&
     (Boolean(store.partnerRule?.hasPartnerLink) ||
       storePartnerBonusPer100Kr !== undefined ||
-      ['bagaren-och-kocken', 'kitchentime', 'ahlens'].includes(store.id));
+      (store.partnerRule === undefined &&
+        ['bagaren-och-kocken', 'kitchentime', 'ahlens'].includes(store.id)));
 
   if (isDirectPartner) {
     const partnerRule = store.partnerRule;

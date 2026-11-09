@@ -41,37 +41,6 @@
   ],
   "stores": [
     {
-      "id": "cervera",
-      "name": "Cervera",
-      "slug": "cervera",
-      "aliases": [
-        "cervera.se",
-        "cervera ab"
-      ],
-      "logoUrl": "/logos/cervera.svg",
-      "categories": [
-        "kitchen"
-      ],
-      "isActive": true,
-      "partnerRule": {
-        "hasPartnerLink": false,
-        "bonusPer100Kr": 0,
-        "tierPer100Kr": 0,
-        "isCampaign": false,
-        "campaignValidUntil": null,
-        "startUrl": "https://www.cervera.se"
-      },
-      "giftCardRule": {
-        "hasDirectGiftCard": false,
-        "bonusPer100Kr": 0,
-        "denominationsKr": [],
-        "feeKr": 0,
-        "isCampaign": false,
-        "startUrl": "https://www.saseurobonusshop.com"
-      },
-      "zupergiftSupported": true
-    },
-    {
       "id": "bagaren-och-kocken",
       "name": "Bagaren och Kocken",
       "slug": "bagaren-och-kocken",
@@ -157,75 +126,6 @@
       "isMissingFromPartner": false,
       "partnerMissingSince": null,
       "excludesVat": true
-    },
-    {
-      "id": "elgiganten",
-      "name": "Elgiganten",
-      "slug": "elgiganten",
-      "aliases": [
-        "elgiganten.se",
-        "el-giganten"
-      ],
-      "logoUrl": "/logos/elgiganten.svg",
-      "categories": [
-        "electronics",
-        "kitchen"
-      ],
-      "isActive": true,
-      "partnerRule": {
-        "hasPartnerLink": false,
-        "bonusPer100Kr": 0,
-        "tierPer100Kr": 0,
-        "isCampaign": false,
-        "campaignValidUntil": null,
-        "startUrl": "https://www.elgiganten.se"
-      },
-      "giftCardRule": {
-        "hasDirectGiftCard": true,
-        "bonusPer100Kr": 10.1,
-        "denominationsKr": [
-          1000
-        ],
-        "feeKr": 0,
-        "isCampaign": false,
-        "startUrl": "https://www.saseurobonusshop.com/se/gift-cards-vouchers"
-      },
-      "zupergiftSupported": false
-    },
-    {
-      "id": "ahlens",
-      "name": "Åhléns",
-      "slug": "ahlens",
-      "aliases": [
-        "ahlens.se",
-        "åhlens city"
-      ],
-      "logoUrl": "/logos/ahlens.svg",
-      "categories": [
-        "fashion",
-        "kitchen"
-      ],
-      "isActive": true,
-      "partnerRule": {
-        "hasPartnerLink": false,
-        "bonusPer100Kr": 20,
-        "tierPer100Kr": 0,
-        "isCampaign": false,
-        "campaignValidUntil": null,
-        "startUrl": "https://onlineshopping.flysas.com/se/ahlens"
-      },
-      "giftCardRule": {
-        "hasDirectGiftCard": true,
-        "bonusPer100Kr": 15,
-        "denominationsKr": [
-          500,
-          1000
-        ],
-        "feeKr": 0,
-        "isCampaign": false,
-        "startUrl": "https://www.saseurobonusshop.com"
-      },
-      "zupergiftSupported": true
     },
     {
       "id": "a-retro-tale",

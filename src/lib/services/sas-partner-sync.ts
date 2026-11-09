@@ -373,6 +373,16 @@ export async function syncSasPartnerStores(): Promise<{
     const returnedSlugs = new Set(allShops.map((s) => s.slug?.toLowerCase()).filter(Boolean));
     const returnedNormNames = new Set(allShops.map((s) => normalizeName(s.name)).filter(Boolean));
 
+    // Remove any legacy initial seed entries in db.stores that never had a real SAS partner link
+    db.stores = db.stores.filter(
+      (s) =>
+        Boolean(s.partnerRule?.hasPartnerLink) ||
+        Boolean(s.isMissingFromPartner) ||
+        returnedSlugs.has(s.slug.toLowerCase()) ||
+        returnedSlugs.has(s.id.toLowerCase()) ||
+        returnedNormNames.has(normalizeName(s.name))
+    );
+
     let removedFromSasCount = 0;
     const nowSync = new Date().toISOString();
     for (const store of db.stores) {
