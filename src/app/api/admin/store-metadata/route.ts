@@ -10,7 +10,7 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json();
-    const { storeId, customLogoUrl, comment, isHidden, categories, alias, aliases, acceptsAmex, excludesVat } = body;
+    const { storeId, customLogoUrl, comment, isHidden, categories, alias, aliases, acceptsAmex, excludesVat, invoiceOnly } = body;
 
     if (!storeId || typeof storeId !== 'string') {
       return NextResponse.json({ error: 'Ogiltigt butiks-ID' }, { status: 400 });
@@ -26,7 +26,12 @@ export async function POST(request: Request) {
     const existingMeta = db.storeCustomMetadata[storeId] || {};
     const cleanIsHidden = typeof isHidden === 'boolean' ? isHidden : Boolean(existingMeta.isHidden);
     const cleanAlias = typeof alias === 'string' ? (alias.trim() || null) : alias === null ? null : (existingMeta.alias || null);
-    const cleanAcceptsAmex = typeof acceptsAmex === 'boolean' ? acceptsAmex : existingMeta.acceptsAmex;
+    const cleanInvoiceOnly = typeof invoiceOnly === 'boolean' ? invoiceOnly : existingMeta.invoiceOnly;
+    const cleanAcceptsAmex = cleanInvoiceOnly
+      ? false
+      : typeof acceptsAmex === 'boolean'
+      ? acceptsAmex
+      : existingMeta.acceptsAmex;
     const cleanExcludesVat = typeof excludesVat === 'boolean' ? excludesVat : existingMeta.excludesVat;
 
     let cleanCategories: string[] | null | undefined = undefined;
@@ -49,6 +54,7 @@ export async function POST(request: Request) {
       alias: cleanAlias,
       ...(cleanAcceptsAmex !== undefined ? { acceptsAmex: cleanAcceptsAmex } : {}),
       ...(cleanExcludesVat !== undefined ? { excludesVat: cleanExcludesVat } : {}),
+      ...(cleanInvoiceOnly !== undefined ? { invoiceOnly: cleanInvoiceOnly } : {}),
       ...(cleanCategories !== undefined ? { categories: cleanCategories } : {}),
       ...(cleanAliases !== undefined ? { aliases: cleanAliases } : {}),
       updatedAt: new Date().toISOString(),
@@ -62,6 +68,9 @@ export async function POST(request: Request) {
       baseStore.comment = cleanComment;
       baseStore.isHidden = cleanIsHidden;
       baseStore.alias = cleanAlias;
+      if (typeof cleanInvoiceOnly === 'boolean') {
+        baseStore.invoiceOnly = cleanInvoiceOnly;
+      }
       if (typeof cleanAcceptsAmex === 'boolean') {
         baseStore.acceptsAmex = cleanAcceptsAmex;
       }

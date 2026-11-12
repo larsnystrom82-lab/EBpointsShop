@@ -18,6 +18,7 @@ export async function POST(request: Request) {
       zupergiftSupported,
       acceptsAmex,
       excludesVat,
+      invoiceOnly,
       categories,
       category,
       alias,
@@ -78,14 +79,31 @@ export async function POST(request: Request) {
     if (typeof zupergiftSupported === 'boolean') {
       store.zupergiftSupported = zupergiftSupported;
     }
-    if (typeof acceptsAmex === 'boolean') {
-      store.acceptsAmex = acceptsAmex;
+    if (typeof invoiceOnly === 'boolean') {
+      store.invoiceOnly = invoiceOnly;
+      if (invoiceOnly) {
+        store.acceptsAmex = false;
+      }
       if (!db.storeCustomMetadata) {
         db.storeCustomMetadata = {};
       }
       db.storeCustomMetadata[store.id] = {
         ...(db.storeCustomMetadata[store.id] || {}),
-        acceptsAmex,
+        invoiceOnly,
+        ...(invoiceOnly ? { acceptsAmex: false } : {}),
+        updatedAt: new Date().toISOString(),
+        updatedBy: 'Admin',
+      };
+    }
+    if (typeof acceptsAmex === 'boolean') {
+      const effectiveAmex = store.invoiceOnly ? false : acceptsAmex;
+      store.acceptsAmex = effectiveAmex;
+      if (!db.storeCustomMetadata) {
+        db.storeCustomMetadata = {};
+      }
+      db.storeCustomMetadata[store.id] = {
+        ...(db.storeCustomMetadata[store.id] || {}),
+        acceptsAmex: effectiveAmex,
         updatedAt: new Date().toISOString(),
         updatedBy: 'Admin',
       };

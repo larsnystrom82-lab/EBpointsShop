@@ -209,12 +209,19 @@ export function buildAllStores(db: DatabaseSchema, options?: { includeExcluded?:
       const alias = meta?.alias !== undefined ? (meta.alias?.trim() || null) : (s.alias?.trim() || null);
       const isExcluded = isStoreExcluded(s.id, s.slug, s);
       const isHidden = isStoreHidden(s.id, s.slug, s);
-      const acceptsAmex =
-        meta?.acceptsAmex !== undefined && meta?.acceptsAmex !== null
-          ? Boolean(meta.acceptsAmex)
-          : s.acceptsAmex !== undefined
-          ? Boolean(s.acceptsAmex)
-          : !s.partnerRule?.hasPartnerLink;
+      const invoiceOnly =
+        meta?.invoiceOnly !== undefined && meta?.invoiceOnly !== null
+          ? Boolean(meta.invoiceOnly)
+          : s.invoiceOnly !== undefined
+          ? Boolean(s.invoiceOnly)
+          : false;
+      const acceptsAmex = invoiceOnly
+        ? false
+        : meta?.acceptsAmex !== undefined && meta?.acceptsAmex !== null
+        ? Boolean(meta.acceptsAmex)
+        : s.acceptsAmex !== undefined
+        ? Boolean(s.acceptsAmex)
+        : !s.partnerRule?.hasPartnerLink;
       const isFixedPartner =
         s.partnerRule?.rewardType === 'fixed' ||
         Boolean(s.partnerRule?.isOneTimeOffer) ||
@@ -285,6 +292,7 @@ export function buildAllStores(db: DatabaseSchema, options?: { includeExcluded?:
         isHidden,
         acceptsAmex,
         excludesVat,
+        invoiceOnly,
         partnerRule: resolvedPartnerRule,
         giftCardRule: s.giftCardRule,
         zupergiftSupported:
@@ -356,7 +364,8 @@ export function buildAllStores(db: DatabaseSchema, options?: { includeExcluded?:
         isActive: isExcluded || isHidden ? false : true,
         isExcluded,
         isHidden,
-        acceptsAmex: meta?.acceptsAmex !== undefined && meta?.acceptsAmex !== null ? Boolean(meta.acceptsAmex) : true,
+        acceptsAmex: meta?.invoiceOnly ? false : (meta?.acceptsAmex !== undefined && meta?.acceptsAmex !== null ? Boolean(meta.acceptsAmex) : true),
+        invoiceOnly: Boolean(meta?.invoiceOnly),
         partnerRule: {
           hasPartnerLink: false,
           bonusPer100Kr: 0,
@@ -486,7 +495,8 @@ export function buildAllStores(db: DatabaseSchema, options?: { includeExcluded?:
       zupergiftSupported: false,
       isZupergiftOnly: false,
       hasPartnerLink: false,
-      acceptsAmex: meta?.acceptsAmex !== undefined && meta?.acceptsAmex !== null ? Boolean(meta.acceptsAmex) : true,
+      acceptsAmex: meta?.invoiceOnly ? false : (meta?.acceptsAmex !== undefined && meta?.acceptsAmex !== null ? Boolean(meta.acceptsAmex) : true),
+      invoiceOnly: Boolean(meta?.invoiceOnly),
       isMissingFromSource: Boolean(gc.isMissingFromSource),
       missingSince: gc.missingSince || null,
       syncedAt: gc.syncedAt || undefined,

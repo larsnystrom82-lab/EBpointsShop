@@ -1055,6 +1055,50 @@ describe('EuroBonus Beräkningsmotor – Acceptanstester A03–A16', () => {
     expect(tibberRoutes[0].baseBonusPoints).toBe(2500);
     expect(tibberRoutes[0].baseTierPoints).toBe(500);
   });
+
+  it('invoiceOnly: ger 0 kortpoäng för samtliga kort (både Amex och Mastercard) när partnerbutik endast tar faktura', () => {
+    const invoiceStore: Store = {
+      id: 'faktura-butik',
+      name: 'Fakturabutiken',
+      slug: 'faktura-butik',
+      aliases: [],
+      categories: ['services'],
+      isActive: true,
+      acceptsAmex: false,
+      excludesVat: false,
+      invoiceOnly: true,
+      partnerRule: {
+        hasPartnerLink: true,
+        bonusPer100Kr: 30,
+        tierPer100Kr: 6,
+        rewardType: 'rate',
+        isCampaign: false,
+        campaignValidUntil: null,
+        startUrl: 'https://onlineshopping.flysas.com/sv-SE/butiker/faktura-butik',
+      },
+    };
+
+    const routes = generateCandidateRoutes({
+      store: invoiceStore,
+      purchaseAmountKr: 1000,
+    });
+
+    expect(routes.length).toBe(1);
+    const r = routes[0];
+    expect(r.invoiceOnly).toBe(true);
+    expect(r.acceptsAmex).toBe(false);
+    expect(r.baseBonusPoints).toBe(300);
+    expect(r.baseTierPoints).toBe(60);
+
+    // Samtliga kort ska ge 0 kortpoäng vid fakturabetalning
+    expect(r.cardOutcomes['amex_elite'].cardBonusPoints).toBe(0);
+    expect(r.cardOutcomes['amex_elite'].totalBonusPoints).toBe(300);
+    expect(r.cardOutcomes['mc_premium'].cardBonusPoints).toBe(0);
+    expect(r.cardOutcomes['mc_premium'].cardTierPoints).toBe(0);
+    expect(r.cardOutcomes['mc_premium'].totalBonusPoints).toBe(300);
+    expect(r.cardOutcomes['mc_premium'].totalTierPoints).toBe(60);
+    expect(r.steps[1].description).toContain('betala med faktura');
+  });
 });
 
 

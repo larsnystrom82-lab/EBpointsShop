@@ -215,7 +215,15 @@ export const AlternativeCard: React.FC<AlternativeCardProps> = React.memo(({
               >
                 {difficultyText}
               </span>
-              {route.routeType === 'direct_partner' && routeAcceptsAmex && (
+              {route.routeType === 'direct_partner' && route.invoiceOnly && (
+                <span
+                  className="text-[11px] font-bold text-orange-800 bg-orange-50 border border-orange-200/80 px-2 py-0.5 rounded-md"
+                  title="Butiken kan endast betalas med faktura (ger 0 kortpoäng)"
+                >
+                  Endast faktura
+                </span>
+              )}
+              {route.routeType === 'direct_partner' && !route.invoiceOnly && routeAcceptsAmex && (
                 <span
                   className="text-[11px] font-bold text-sky-800 bg-sky-50 border border-sky-200/80 px-2 py-0.5 rounded-md"
                   title="Verifierad att ta emot American Express"
@@ -223,7 +231,7 @@ export const AlternativeCard: React.FC<AlternativeCardProps> = React.memo(({
                   Tar Amex
                 </span>
               )}
-              {route.routeType === 'direct_partner' && !routeAcceptsAmex && hasAmexSelected && (
+              {route.routeType === 'direct_partner' && !route.invoiceOnly && !routeAcceptsAmex && hasAmexSelected && (
                 <span
                   className="text-[11px] font-semibold text-slate-600 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-md"
                   title="Partnerbutiken är ej verifierad för American Express (0 kortpoäng med Amex)"
@@ -325,7 +333,9 @@ export const AlternativeCard: React.FC<AlternativeCardProps> = React.memo(({
               {cardBonusPoints > 0 ? `+${cardBonusPoints.toLocaleString('sv-SE')}` : '+0'}
             </span>
             <span className="text-[11px] text-slate-400 block">
-              {!routeAcceptsAmex && onlyAmexSelected
+              {route.routeType === 'direct_partner' && route.invoiceOnly
+                ? 'Endast faktura'
+                : !routeAcceptsAmex && onlyAmexSelected
                 ? 'Tar ej Amex'
                 : !routeAcceptsAmex && hasAmexSelected && cardBonusPoints > 0
                 ? 'Via Mastercard'
@@ -449,7 +459,11 @@ export const AlternativeCard: React.FC<AlternativeCardProps> = React.memo(({
                 {cardBonusPoints > 0 ? `+${cardBonusPoints.toLocaleString('sv-SE')}` : '+0'}
               </span>
               <span className="text-[10px] text-slate-400">
-                {!routeAcceptsAmex && onlyAmexSelected ? 'Tar ej Amex' : 'Kortpoäng'}
+                {route.routeType === 'direct_partner' && route.invoiceOnly
+                  ? 'Endast faktura'
+                  : !routeAcceptsAmex && onlyAmexSelected
+                  ? 'Tar ej Amex'
+                  : 'Kortpoäng'}
               </span>
             </div>
           </div>

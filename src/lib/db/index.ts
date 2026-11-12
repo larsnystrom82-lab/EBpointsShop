@@ -76,6 +76,7 @@ export interface DbStore {
   partnerMissingSince?: string | null; // Tidsstämpel när butiken togs bort från SAS Online Shopping
   acceptsAmex?: boolean; // True om partnerbutiken verifierats ta emot American Express (default false för partnerbutiker)
   excludesVat?: boolean; // True om partnerbutiken inte ger poäng på moms (poäng beräknas på 80 % av köpbeloppet)
+  invoiceOnly?: boolean; // True om partnerbutiken endast kan betalas med faktura (ger 0 kortpoäng oavsett kort)
 }
 
 export interface DbErrorReport {
@@ -153,6 +154,7 @@ export interface StoreMetadataItem {
   isHidden?: boolean | null;
   acceptsAmex?: boolean | null;
   excludesVat?: boolean | null;
+  invoiceOnly?: boolean | null;
   categories?: string[] | null;
   alias?: string | null;
   aliases?: string[] | null;
@@ -688,6 +690,120 @@ export function getDatabase(): DatabaseSchema {
     // Initialize syncNewStores if missing
     if (!parsed.syncNewStores || !Array.isArray(parsed.syncNewStores)) {
       parsed.syncNewStores = [];
+      saveDatabase(parsed);
+    }
+
+    // Automatic persistent DB cleanup for legacy acceptance-test stores and false substring matches
+    let cleaned = false;
+
+    // 1. Remove legacy initial demo stores in db.stores that lack a real SAS Partner UUID
+    const legacyDemoIds = new Set(['ahlens', 'cervera', 'elgiganten', 'netonnet']);
+    const beforeStoresLen = (parsed.stores || []).length;
+    parsed.stores = (parsed.stores || []).filter((s) => {
+      if (legacyDemoIds.has(s.id) && !s.partnerRule?.uuid) {
+        return false;
+      }
+      return true;
+    });
+    if (parsed.stores.length !== beforeStoresLen) {
+      cleaned = true;
+    }
+
+    // 2. Remove fake initial Zupergift seed items (kitchentime, elgiganten) that never existed on Zupergift
+    const beforeZgLen = (parsed.zupergiftStores || []).length;
+    parsed.zupergiftStores = (parsed.zupergiftStores || []).filter((z) => {
+      if (
+        (z.id === 'kitchentime' || z.id === 'elgiganten') &&
+        z.syncedAt === '2026-10-02T04:00:00.000Z' &&
+        z.isMissingFromSource
+      ) {
+        return false;
+      }
+      return true;
+    });
+    if (parsed.zupergiftStores.length !== beforeZgLen) {
+      cleaned = true;
+    }
+
+    // 3. Unlink false substring matchedStoreId links in zupergiftStores and sasGiftCards
+    // and clean accidental metadata bleed between 'eleven' and 'presentkort-pressbyran-7-eleven-*'
+    const elevenLogo = parsed.storeCustomMetadata?.['eleven']?.customLogoUrl;
+    for (const z of parsed.zupergiftStores || []) {
+      if (
+        (z.id === 'bokus' && z.matchedStoreId === 'bokus-play') ||
+        (z.id === 'grandparfymeri-se' && z.matchedStoreId === 'parfym') ||
+        (z.id.includes('7-eleven') && z.matchedStoreId === 'eleven') ||
+        (z.id === 'electrolux-home' && z.matchedStoreId === 'electrolux') ||
+        (z.id === 'elgiganten' && z.matchedStoreId === 'lg')
+      ) {
+        delete z.matchedStoreId;
+        cleaned = true;
+      }
+      if (z.id.includes('7-eleven')) {
+        const zAny = z as any;
+        if (
+          zAny.customLogoUrl &&
+          (zAny.customLogoUrl === elevenLogo || String(zAny.customLogoUrl).startsWith('data:image/jpeg;base64,/9j/4AAQ'))
+        ) {
+          delete zAny.customLogoUrl;
+          cleaned = true;
+        }
+        if (z.category === 'beauty') {
+          z.category = 'food';
+          cleaned = true;
+        }
+      }
+    }
+
+    for (const g of parsed.sasGiftCards || []) {
+      if (
+        (g.id.includes('7-eleven') && g.matchedStoreId === 'eleven') ||
+        (g.id === 'presentkort-electrolux-home' && g.matchedStoreId === 'electrolux')
+      ) {
+        delete g.matchedStoreId;
+        cleaned = true;
+      }
+      if (g.id.includes('7-eleven')) {
+        const gAny = g as any;
+        if (
+          gAny.customLogoUrl &&
+          (gAny.customLogoUrl === elevenLogo || String(gAny.customLogoUrl).startsWith('data:image/jpeg;base64,/9j/4AAQ'))
+        ) {
+          delete gAny.customLogoUrl;
+          cleaned = true;
+        }
+      }
+    }
+
+    if (parsed.storeCustomMetadata) {
+      for (const [metaKey, metaVal] of Object.entries(parsed.storeCustomMetadata)) {
+        if (metaKey.includes('7-eleven') && metaVal) {
+          if (
+            metaVal.customLogoUrl &&
+            (metaVal.customLogoUrl === elevenLogo ||
+              String(metaVal.customLogoUrl).startsWith('data:image/jpeg;base64,/9j/4AAQ'))
+          ) {
+            metaVal.customLogoUrl = null;
+            cleaned = true;
+          }
+          if (Array.isArray(metaVal.categories) && metaVal.categories.includes('beauty')) {
+            metaVal.categories = ['food'];
+            cleaned = true;
+          }
+        }
+      }
+    }
+
+    // 4. Reset false zupergiftSupported flag on stores that were falsely substring-matched
+    const falseZgStoreIds = new Set(['eleven', 'lg', 'bokus-play', 'parfym', 'electrolux']);
+    for (const s of parsed.stores || []) {
+      if (falseZgStoreIds.has(s.id) && s.zupergiftSupported) {
+        s.zupergiftSupported = false;
+        cleaned = true;
+      }
+    }
+
+    if (cleaned) {
       saveDatabase(parsed);
     }
 

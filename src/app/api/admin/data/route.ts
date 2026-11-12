@@ -12,6 +12,11 @@ export async function GET() {
   const db = getDatabase();
   const allStores = buildAllStores(db, { includeExcluded: true });
   const stores = (db.stores || []).map((s) => {
+    const metaInvoiceOnly = db.storeCustomMetadata?.[s.id]?.invoiceOnly ?? db.storeCustomMetadata?.[s.slug]?.invoiceOnly;
+    const resolvedInvoiceOnly =
+      metaInvoiceOnly !== undefined && metaInvoiceOnly !== null
+        ? Boolean(metaInvoiceOnly)
+        : Boolean(s.invoiceOnly);
     const metaAmex = db.storeCustomMetadata?.[s.id]?.acceptsAmex ?? db.storeCustomMetadata?.[s.slug]?.acceptsAmex;
     const defaultAcceptsAmex = !s.partnerRule?.hasPartnerLink;
     const isFixedPartner =
@@ -22,7 +27,10 @@ export async function GET() {
     const defaultExcludesVat = Boolean(s.partnerRule?.hasPartnerLink && !isFixedPartner);
     return {
       ...s,
-      acceptsAmex: metaAmex !== undefined && metaAmex !== null
+      invoiceOnly: resolvedInvoiceOnly,
+      acceptsAmex: resolvedInvoiceOnly
+        ? false
+        : metaAmex !== undefined && metaAmex !== null
         ? Boolean(metaAmex)
         : s.acceptsAmex !== undefined
           ? Boolean(s.acceptsAmex)

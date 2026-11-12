@@ -415,16 +415,20 @@ export function generateCandidateRoutes(options: RouteGenerationOptions): RouteC
     ];
 
     // Partner store routes only accept Amex if verified (store.acceptsAmex === true).
-    // Note: buildAllStores() explicitly resolves store.acceptsAmex = false for all unverified partner stores.
-    const partnerAcceptsAmex =
-      store.acceptsAmex !== undefined
-        ? Boolean(store.acceptsAmex)
-        : true;
+    // If store.invoiceOnly === true, no payment card can be used at the store (0 card points on all cards).
+    const isInvoiceOnly = Boolean(store.invoiceOnly);
+    const partnerAcceptsAmex = isInvoiceOnly
+      ? false
+      : store.acceptsAmex !== undefined
+      ? Boolean(store.acceptsAmex)
+      : true;
+
+    const cardSpendOre = isInvoiceOnly ? 0 : purchaseAmountOre;
 
     const cardOutcomes = computeCardOutcomes(
       baseBonusPoints,
       baseTierPoints,
-      purchaseAmountOre,
+      cardSpendOre,
       totalOutlayOre,
       partnerAcceptsAmex
     );
@@ -459,7 +463,11 @@ export function generateCandidateRoutes(options: RouteGenerationOptions): RouteC
           stepNumber: 2,
           title: 'Genomför köpet i butiken',
           description: isFixedReward
-            ? `Handla för ${purchaseAmountKr.toLocaleString('sv-SE')} kr och betala med ditt valda betalkort. Ger en fast engångsbonus på ${baseBonusPoints.toLocaleString('sv-SE')} Extrapoäng${baseTierPoints > 0 ? ` och ${baseTierPoints.toLocaleString('sv-SE')} nivåpoäng` : ''}.`
+            ? isInvoiceOnly
+              ? `Handla för ${purchaseAmountKr.toLocaleString('sv-SE')} kr och betala med faktura (butiken tar endast emot fakturabetalning och ger därför 0 kortpoäng). Ger en fast engångsbonus på ${baseBonusPoints.toLocaleString('sv-SE')} Extrapoäng${baseTierPoints > 0 ? ` och ${baseTierPoints.toLocaleString('sv-SE')} nivåpoäng` : ''}.`
+              : `Handla för ${purchaseAmountKr.toLocaleString('sv-SE')} kr och betala med ditt valda betalkort. Ger en fast engångsbonus på ${baseBonusPoints.toLocaleString('sv-SE')} Extrapoäng${baseTierPoints > 0 ? ` och ${baseTierPoints.toLocaleString('sv-SE')} nivåpoäng` : ''}.`
+            : isInvoiceOnly
+            ? `Handla för ${purchaseAmountKr.toLocaleString('sv-SE')} kr och betala med faktura (butiken tar endast emot fakturabetalning och ger därför 0 kortpoäng).${excludesVat ? ` Partnerpoäng hos ${store.name} beräknas exklusive moms (på ${(qualifyingAmountOre / 100).toLocaleString('sv-SE')} kr).` : ''}`
             : `Handla för ${purchaseAmountKr.toLocaleString('sv-SE')} kr och betala med ditt valda betalkort.${excludesVat ? ` Partnerpoäng hos ${store.name} beräknas exklusive moms (på ${(qualifyingAmountOre / 100).toLocaleString('sv-SE')} kr).` : ''}`,
         },
       ],
@@ -491,6 +499,7 @@ export function generateCandidateRoutes(options: RouteGenerationOptions): RouteC
       comment: store.comment || null,
       acceptsAmex: partnerAcceptsAmex,
       excludesVat: excludesVat && !isFixedReward,
+      invoiceOnly: isInvoiceOnly,
       isDemoFixture: !store.partnerRule?.hasPartnerLink,
       demoLabel: !store.partnerRule?.hasPartnerLink
         ? ((store.id === 'bagaren-och-kocken' || store.id === 'kitchentime')
@@ -625,8 +634,13 @@ export function generateCandidateRoutes(options: RouteGenerationOptions): RouteC
     const extraOutlayOre = Math.max(0, totalOutlayOre - purchaseAmountOre);
     const remainingBalanceOre = Math.max(0, giftCardValueOre - purchaseAmountOre);
 
-    const storeAcceptsAmex = store.acceptsAmex !== undefined ? Boolean(store.acceptsAmex) : true;
+    const storeAcceptsAmex = store.invoiceOnly
+      ? false
+      : store.acceptsAmex !== undefined
+      ? Boolean(store.acceptsAmex)
+      : true;
     const amexSpendOre = giftCardValueOre + (storeAcceptsAmex ? directStorePayOre : 0);
+    const zgCardSpendOre = store.invoiceOnly ? giftCardValueOre : totalOutlayOre;
 
     const breakdown: RouteBreakdownItem[] = [
       {
@@ -649,7 +663,7 @@ export function generateCandidateRoutes(options: RouteGenerationOptions): RouteC
     const cardOutcomes = computeCardOutcomes(
       baseBonusPoints,
       baseTierPoints,
-      totalOutlayOre,
+      zgCardSpendOre,
       totalOutlayOre,
       true,
       amexSpendOre
@@ -783,12 +797,17 @@ export function generateCandidateRoutes(options: RouteGenerationOptions): RouteC
         },
       ];
 
-      const storeAcceptsAmex = store.acceptsAmex !== undefined ? Boolean(store.acceptsAmex) : true;
+      const storeAcceptsAmex = store.invoiceOnly
+        ? false
+        : store.acceptsAmex !== undefined
+        ? Boolean(store.acceptsAmex)
+        : true;
       const amexSpendOre = giftCardValueOre + (storeAcceptsAmex ? directStorePayOre : 0);
+      const gcCardSpendOre = store.invoiceOnly ? giftCardValueOre : totalOutlayOre;
       const cardOutcomes = computeCardOutcomes(
         baseBonusPoints,
         baseTierPoints,
-        totalOutlayOre,
+        gcCardSpendOre,
         totalOutlayOre,
         true,
         amexSpendOre

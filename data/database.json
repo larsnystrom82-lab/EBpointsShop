@@ -2601,7 +2601,7 @@
         "isCampaign": false,
         "startUrl": ""
       },
-      "zupergiftSupported": true,
+      "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
       "partnerMissingSince": null,
@@ -5086,7 +5086,7 @@
         "isCampaign": false,
         "startUrl": ""
       },
-      "zupergiftSupported": true,
+      "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
       "partnerMissingSince": null,
@@ -5176,7 +5176,7 @@
         "isCampaign": false,
         "startUrl": ""
       },
-      "zupergiftSupported": true,
+      "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
       "partnerMissingSince": null,
@@ -21356,7 +21356,7 @@
         "isCampaign": false,
         "startUrl": ""
       },
-      "zupergiftSupported": true,
+      "zupergiftSupported": false,
       "isZupergiftOnly": false,
       "isMissingFromPartner": false,
       "partnerMissingSince": null

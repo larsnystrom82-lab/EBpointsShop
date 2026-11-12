@@ -62,6 +62,7 @@ export interface Store {
   partnerMissingSince?: string | null;
   acceptsAmex?: boolean;
   excludesVat?: boolean;
+  invoiceOnly?: boolean;
 }
 
 export interface Category {
@@ -202,6 +203,7 @@ export interface RouteCalculationResult {
   comment?: string | null;
   acceptsAmex?: boolean;
   excludesVat?: boolean;
+  invoiceOnly?: boolean;
   qualifyingAmountOre?: number;
 
   isDemoFixture?: boolean;

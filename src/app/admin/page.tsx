@@ -123,7 +123,7 @@ export default function AdminPage() {
 
   // States for "Alla butiker" tab
   const [allStoresSearch, setAllStoresSearch] = useState('');
-  const [allStoresFilter, setAllStoresFilter] = useState<'all' | 'partner' | 'zupergift' | 'sas' | 'amex_yes' | 'amex_no' | 'no_vat' | 'has_logo' | 'custom_logo' | 'missing_logo' | 'has_comment' | 'hidden' | 'excluded' | 'missing_source' | 'new_synced'>('all');
+  const [allStoresFilter, setAllStoresFilter] = useState<'all' | 'partner' | 'zupergift' | 'sas' | 'amex_yes' | 'amex_no' | 'no_vat' | 'invoice_only' | 'has_logo' | 'custom_logo' | 'missing_logo' | 'has_comment' | 'hidden' | 'excluded' | 'missing_source' | 'new_synced'>('all');
   const [allStoresCategoryFilter, setAllStoresCategoryFilter] = useState<string>('all');
 
   // States for Sync New Stores Log & Audit Log
@@ -138,6 +138,7 @@ export default function AdminPage() {
     isHidden: boolean;
     acceptsAmex: boolean;
     excludesVat: boolean;
+    invoiceOnly: boolean;
     categories: string[];
     alias: string;
     aliasesText: string;
@@ -184,7 +185,7 @@ export default function AdminPage() {
   // SAS Partner stores live sync & filter
   const [syncingPartner, setSyncingPartner] = useState<boolean>(false);
   const [storeSearch, setStoreSearch] = useState('');
-  const [storeFilter, setStoreFilter] = useState<'all' | 'partner' | 'campaign' | 'zupergift' | 'amex_yes' | 'amex_no' | 'no_vat' | 'fixed' | 'missing_partner'>('all');
+  const [storeFilter, setStoreFilter] = useState<'all' | 'partner' | 'campaign' | 'zupergift' | 'amex_yes' | 'amex_no' | 'no_vat' | 'invoice_only' | 'fixed' | 'missing_partner'>('all');
   const [storeCategoryFilter, setStoreCategoryFilter] = useState<string>('all');
 
   const deferredAllStoresSearch = useDeferredValue(allStoresSearch);
@@ -401,7 +402,8 @@ export default function AdminPage() {
       const customLogoUrl = edit?.customLogoUrl !== undefined ? edit.customLogoUrl : (store.customLogoUrl || '');
       const comment = edit?.comment !== undefined ? edit.comment : (store.comment || '');
       const isHidden = edit?.isHidden !== undefined ? edit.isHidden : Boolean(store.isHidden);
-      const acceptsAmex = edit?.acceptsAmex !== undefined ? edit.acceptsAmex : Boolean(store.acceptsAmex);
+      const invoiceOnly = edit?.invoiceOnly !== undefined ? edit.invoiceOnly : Boolean(store.invoiceOnly);
+      const acceptsAmex = invoiceOnly ? false : (edit?.acceptsAmex !== undefined ? edit.acceptsAmex : Boolean(store.acceptsAmex));
       const excludesVat = edit?.excludesVat !== undefined ? edit.excludesVat : Boolean(store.excludesVat);
       const categories = edit?.categories !== undefined ? edit.categories : (store.categories || ['department']);
       const alias = edit?.alias !== undefined ? edit.alias : (store.alias || '');
@@ -418,6 +420,7 @@ export default function AdminPage() {
           isHidden,
           acceptsAmex,
           excludesVat,
+          invoiceOnly,
           categories,
           alias: alias.trim() || null,
           aliases,
@@ -843,8 +846,9 @@ export default function AdminPage() {
           oneTimeTerms: store.partnerRule?.oneTimeTerms || undefined,
           isCampaign: store.partnerRule?.isCampaign ?? false,
           zupergiftSupported: store.zupergiftSupported,
-          acceptsAmex: Boolean(store.acceptsAmex),
+          acceptsAmex: store.invoiceOnly ? false : Boolean(store.acceptsAmex),
           excludesVat: Boolean(store.excludesVat),
+          invoiceOnly: Boolean(store.invoiceOnly),
         }),
       });
       const data = await res.json();
@@ -968,6 +972,7 @@ export default function AdminPage() {
       if (storeFilter === 'amex_yes' && !store.acceptsAmex) return false;
       if (storeFilter === 'amex_no' && store.acceptsAmex) return false;
       if (storeFilter === 'no_vat' && !store.excludesVat) return false;
+      if (storeFilter === 'invoice_only' && !store.invoiceOnly) return false;
       if (storeFilter === 'missing_partner' && !store.isMissingFromPartner) return false;
       if (storeFilter === 'fixed') {
         const isFixed =
@@ -1060,6 +1065,7 @@ export default function AdminPage() {
       amexYes: active.filter((s) => Boolean(s.acceptsAmex)).length,
       amexNo: active.filter((s) => !s.acceptsAmex).length,
       noVat: active.filter((s) => Boolean(s.excludesVat)).length,
+      invoiceOnly: active.filter((s) => Boolean(s.invoiceOnly)).length,
       missingSource: active.filter((s) => s.isMissingFromSource || s.isMissingFromPartner).length,
       newSynced: nonExcluded.filter(
         (s) =>
@@ -1134,6 +1140,7 @@ export default function AdminPage() {
       if (allStoresFilter === 'amex_yes' && !item.acceptsAmex) return false;
       if (allStoresFilter === 'amex_no' && item.acceptsAmex) return false;
       if (allStoresFilter === 'no_vat' && !item.excludesVat) return false;
+      if (allStoresFilter === 'invoice_only' && !item.invoiceOnly) return false;
       if (allStoresFilter === 'missing_source' && !item.isMissingFromSource && !item.isMissingFromPartner) return false;
       if (
         allStoresFilter === 'new_synced' &&
@@ -2011,6 +2018,18 @@ export default function AdminPage() {
                   </button>
                   <button
                     type="button"
+                    onClick={() => setAllStoresFilter('invoice_only')}
+                    className={`px-3 py-1.5 rounded-lg font-bold transition-colors ${
+                      allStoresFilter === 'invoice_only'
+                        ? 'bg-orange-700 text-white'
+                        : 'bg-orange-50 text-orange-800 hover:bg-orange-100 border border-orange-200'
+                    }`}
+                    title="Butiker som endast kan betalas med faktura (ger 0 kortpoäng)"
+                  >
+                    🧾 Endast faktura ({storeCounts.invoiceOnly})
+                  </button>
+                  <button
+                    type="button"
                     onClick={() => setAllStoresFilter('has_comment')}
                     className={`px-3 py-1.5 rounded-lg font-bold transition-colors ${
                       allStoresFilter === 'has_comment'
@@ -2060,7 +2079,8 @@ export default function AdminPage() {
                     const customLogoVal = edit?.customLogoUrl !== undefined ? edit.customLogoUrl : (item.customLogoUrl || '');
                     const commentVal = edit?.comment !== undefined ? edit.comment : (item.comment || '');
                     const isHiddenVal = edit?.isHidden !== undefined ? edit.isHidden : Boolean(item.isHidden);
-                    const acceptsAmexVal = edit?.acceptsAmex !== undefined ? edit.acceptsAmex : Boolean(item.acceptsAmex);
+                    const invoiceOnlyVal = edit?.invoiceOnly !== undefined ? edit.invoiceOnly : Boolean(item.invoiceOnly);
+                    const acceptsAmexVal = invoiceOnlyVal ? false : (edit?.acceptsAmex !== undefined ? edit.acceptsAmex : Boolean(item.acceptsAmex));
                     const isFixedPartnerItem =
                       item.partnerRule?.rewardType === 'fixed' ||
                       Boolean(item.partnerRule?.isOneTimeOffer) ||
@@ -2077,7 +2097,7 @@ export default function AdminPage() {
                     const isSaving = Boolean(storeMetadataSaving[item.id]);
                     const previewLogoUrl = customLogoVal.trim() || item.logoUrl;
 
-                    const updateMetadataEdit = (patch: Partial<{ customLogoUrl: string; comment: string; isHidden: boolean; acceptsAmex: boolean; excludesVat: boolean; categories: string[]; alias: string; aliasesText: string }>) => {
+                    const updateMetadataEdit = (patch: Partial<{ customLogoUrl: string; comment: string; isHidden: boolean; acceptsAmex: boolean; excludesVat: boolean; invoiceOnly: boolean; categories: string[]; alias: string; aliasesText: string }>) => {
                       setStoreMetadataEdits((prev) => ({
                         ...prev,
                         [item.id]: {
@@ -2086,6 +2106,7 @@ export default function AdminPage() {
                           isHidden: edit?.isHidden !== undefined ? edit.isHidden : Boolean(item.isHidden),
                           acceptsAmex: edit?.acceptsAmex !== undefined ? edit.acceptsAmex : Boolean(item.acceptsAmex),
                           excludesVat: edit?.excludesVat !== undefined ? edit.excludesVat : Boolean(item.excludesVat),
+                          invoiceOnly: edit?.invoiceOnly !== undefined ? edit.invoiceOnly : Boolean(item.invoiceOnly),
                           categories: edit?.categories !== undefined ? edit.categories : (item.categories || ['department']),
                           alias: edit?.alias !== undefined ? edit.alias : (item.alias || ''),
                           aliasesText: edit?.aliasesText !== undefined ? edit.aliasesText : (item.aliases || []).join(', '),
@@ -2227,7 +2248,11 @@ export default function AdminPage() {
                                     SAS Presentkort {item.sasGiftCardBonusPer100Kr ? `(${item.sasGiftCardBonusPer100Kr} p/100 kr)` : ''}
                                   </span>
                                 )}
-                                {acceptsAmexVal ? (
+                                {invoiceOnlyVal ? (
+                                  <span className="px-2 py-0.5 rounded-md bg-orange-100 text-orange-900 font-bold text-[10px] border border-orange-200" title="Butiken kan endast betalas med faktura (ger 0 kortpoäng)">
+                                    🧾 Endast faktura
+                                  </span>
+                                ) : acceptsAmexVal ? (
                                   <span className="px-2 py-0.5 rounded-md bg-sky-100 text-sky-900 font-bold text-[10px] border border-sky-200">
                                     💳 Tar Amex
                                   </span>
@@ -2390,16 +2415,37 @@ export default function AdminPage() {
                             {/* Amex-stöd, Momsundantag & Dölj butiken i Poängpiloten */}
                             <div className="md:col-span-2 pt-2 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3">
                               <div className="flex flex-wrap items-center gap-5">
-                                <label className={`inline-flex items-center gap-2 cursor-pointer select-none text-xs ${item.isExcluded ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                                <label className={`inline-flex items-center gap-2 cursor-pointer select-none text-xs ${item.isExcluded || invoiceOnlyVal ? 'opacity-50 cursor-not-allowed' : ''}`}>
                                   <input
                                     type="checkbox"
-                                    disabled={item.isExcluded}
+                                    disabled={item.isExcluded || invoiceOnlyVal}
                                     checked={acceptsAmexVal}
                                     onChange={(e) => updateMetadataEdit({ acceptsAmex: e.target.checked })}
                                     className="w-4 h-4 rounded border-slate-300 text-sky-600 focus:ring-sky-500 cursor-pointer disabled:cursor-not-allowed"
                                   />
                                   <span className="font-semibold text-slate-700 flex items-center gap-1.5">
                                     <span>💳 Tar Amex (direkt hos butiken)</span>
+                                  </span>
+                                </label>
+
+                                <label
+                                  className={`inline-flex items-center gap-2 cursor-pointer select-none text-xs ${item.isExcluded ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                  title="Markerar att butiken endast kan betalas med faktura och därmed ger 0 kortpoäng oavsett kort"
+                                >
+                                  <input
+                                    type="checkbox"
+                                    disabled={item.isExcluded}
+                                    checked={invoiceOnlyVal}
+                                    onChange={(e) =>
+                                      updateMetadataEdit({
+                                        invoiceOnly: e.target.checked,
+                                        ...(e.target.checked ? { acceptsAmex: false } : {}),
+                                      })
+                                    }
+                                    className="w-4 h-4 rounded border-slate-300 text-orange-600 focus:ring-orange-500 cursor-pointer disabled:cursor-not-allowed"
+                                  />
+                                  <span className="font-semibold text-slate-700 flex items-center gap-1.5">
+                                    <span>🧾 Endast faktura (ej kortbetalning)</span>
                                   </span>
                                 </label>
 
@@ -2438,7 +2484,9 @@ export default function AdminPage() {
                                 </label>
                               </div>
                               <span className="text-[11px] text-slate-400 hidden sm:inline">
-                                {excludesVatVal
+                                {invoiceOnlyVal
+                                  ? 'Endast faktura – 0 kortpoäng'
+                                  : excludesVatVal
                                   ? 'Partnerpoäng räknas på 80 % (exkl. moms)'
                                   : acceptsAmexVal
                                   ? 'Partnerköp ger Amex-kortpoäng'
@@ -3699,6 +3747,18 @@ export default function AdminPage() {
                 </button>
                 <button
                   type="button"
+                  onClick={() => setStoreFilter('invoice_only')}
+                  className={`px-3 py-1.5 rounded-lg font-bold transition-colors ${
+                    storeFilter === 'invoice_only'
+                      ? 'bg-orange-700 text-white'
+                      : 'bg-orange-50 text-orange-800 hover:bg-orange-100 border border-orange-200'
+                  }`}
+                  title="Partnerbutiker som endast kan betalas med faktura (ger 0 kortpoäng)"
+                >
+                  🧾 Endast faktura ({dbData?.stores.filter((s) => !s.isExcluded && s.invoiceOnly).length || 0})
+                </button>
+                <button
+                  type="button"
                   onClick={() => setStoreFilter('missing_partner')}
                   className={`px-3 py-1.5 rounded-lg font-bold transition-colors flex items-center gap-1 ${
                     storeFilter === 'missing_partner'
@@ -3776,7 +3836,11 @@ export default function AdminPage() {
                             SAS Partner
                           </span>
                         )}
-                        {store.acceptsAmex ? (
+                        {store.invoiceOnly ? (
+                          <span className="px-2 py-0.5 rounded-md bg-orange-100 text-orange-900 font-bold text-[10px] border border-orange-200" title="Butiken kan endast betalas med faktura (ger 0 kortpoäng)">
+                            🧾 Endast faktura
+                          </span>
+                        ) : store.acceptsAmex ? (
                           <span className="px-2 py-0.5 rounded-md bg-sky-100 text-sky-900 font-bold text-[10px] border border-sky-200">
                             💳 Tar Amex
                           </span>
@@ -3817,17 +3881,36 @@ export default function AdminPage() {
                         />
                       </div>
                       <div className="flex items-center gap-3 pt-1 flex-wrap">
-                        <label className="text-xs flex items-center gap-1 cursor-pointer">
+                        <label className={`text-xs flex items-center gap-1 ${store.invoiceOnly ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}>
                           <input
                             type="checkbox"
-                            checked={Boolean(store.acceptsAmex)}
+                            disabled={Boolean(store.invoiceOnly)}
+                            checked={store.invoiceOnly ? false : Boolean(store.acceptsAmex)}
                             onChange={(e) => {
                               store.acceptsAmex = e.target.checked;
                               setDbData((prev) => (prev ? { ...prev } : null));
                             }}
-                            className="w-4 h-4 rounded text-sky-600"
+                            className="w-4 h-4 rounded text-sky-600 disabled:cursor-not-allowed"
                           />
                           <span className="font-medium text-slate-700">💳 Tar Amex</span>
+                        </label>
+                        <label
+                          className="text-xs flex items-center gap-1 cursor-pointer"
+                          title="Markerar att butiken endast kan betalas med faktura och därmed ger 0 kortpoäng oavsett kort"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={Boolean(store.invoiceOnly)}
+                            onChange={(e) => {
+                              store.invoiceOnly = e.target.checked;
+                              if (e.target.checked) {
+                                store.acceptsAmex = false;
+                              }
+                              setDbData((prev) => (prev ? { ...prev } : null));
+                            }}
+                            className="w-4 h-4 rounded text-orange-600"
+                          />
+                          <span className="font-medium text-slate-700">🧾 Endast faktura</span>
                         </label>
                         <label
                           className={`text-xs flex items-center gap-1 ${
